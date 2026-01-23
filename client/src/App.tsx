@@ -11,6 +11,7 @@ import Payments from "./pages/Payments";
 import TaxSchedule from "./pages/TaxSchedule";
 import Documentation from "./pages/Documentation";
 import Settings from "./pages/Settings";
+import Exceptions from "./pages/Exceptions";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/tax-schedule"} component={TaxSchedule} />
       <Route path={"/documentation"} component={Documentation} />
       <Route path={"/settings"} component={Settings} />
+      <Route path={"/exceptions"} component={Exceptions} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

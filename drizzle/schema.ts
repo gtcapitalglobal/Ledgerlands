@@ -63,6 +63,11 @@ export const contracts = mysqlTable("contracts", {
   // For ASSUMED contracts: opening receivable as of transfer date
   openingReceivable: varchar("openingReceivable", { length: 20 }),
   
+  // V2.3: Tax/Audit evidence fields
+  costBasisSource: mysqlEnum("costBasisSource", ["HUD", "PSA", "ASSIGNMENT", "LEGACY", "OTHER"]),
+  costBasisNotes: text("costBasisNotes"),
+  openingReceivableSource: mysqlEnum("openingReceivableSource", ["ASSIGNMENT", "LEGACY", "OTHER"]), // ASSUMED only
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -91,6 +96,25 @@ export const payments = mysqlTable("payments", {
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = typeof payments.$inferInsert;
+
+/**
+ * V2.3: Tax Audit Log
+ * Critical audit trail for tax-sensitive fields only
+ */
+export const taxAuditLog = mysqlTable("taxAuditLog", {
+  id: int("id").autoincrement().primaryKey(),
+  entityType: mysqlEnum("entityType", ["CONTRACT", "PAYMENT"]).notNull(),
+  entityId: int("entityId").notNull(), // contractId or paymentId
+  field: varchar("field", { length: 100 }).notNull(), // e.g., "contractPrice", "costBasis"
+  oldValue: text("oldValue"), // JSON string for complex values
+  newValue: text("newValue"), // JSON string for complex values
+  changedBy: varchar("changedBy", { length: 255 }).notNull(), // user name or openId
+  changedAt: timestamp("changedAt").defaultNow().notNull(),
+  reason: text("reason").notNull(), // REQUIRED justification for audit
+});
+
+export type TaxAuditLog = typeof taxAuditLog.$inferSelect;
+export type InsertTaxAuditLog = typeof taxAuditLog.$inferInsert;
 
 /**
  * V2.0: Contract Attachments table

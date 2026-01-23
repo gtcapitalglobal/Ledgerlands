@@ -787,6 +787,24 @@ export const appRouter = router({
         }
       }),
   }),
+
+  // V2.3: Tax Audit Log
+  auditLog: router({
+    getForContract: protectedProcedure
+      .input(z.object({ contractId: z.number() }))
+      .query(async ({ input }) => {
+        const { getAuditLogForContract } = await import("./auditLog");
+        return await getAuditLogForContract(input.contractId);
+      }),
+  }),
+
+  // V2.3: Exceptions Validation
+  exceptions: router({
+    listAll: protectedProcedure.query(async () => {
+      const { validateAllContracts } = await import("./exceptions");
+      return await validateAllContracts();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

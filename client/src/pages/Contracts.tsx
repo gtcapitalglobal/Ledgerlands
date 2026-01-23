@@ -44,6 +44,9 @@ export default function Contracts() {
     balloonDate: "",
     status: "active" as "active" | "paid_off" | "defaulted",
     notes: "",
+    costBasisSource: "" as "HUD" | "PSA" | "ASSIGNMENT" | "LEGACY" | "OTHER" | "",
+    costBasisNotes: "",
+    openingReceivableSource: "" as "ASSIGNMENT" | "LEGACY" | "OTHER" | "",
   });
 
   const { data: contracts, isLoading, refetch } = trpc.contracts.list.useQuery();
@@ -72,6 +75,9 @@ export default function Contracts() {
         balloonDate: "",
         status: "active",
         notes: "",
+        costBasisSource: "",
+        costBasisNotes: "",
+        openingReceivableSource: "",
       });
       refetch();
     },
@@ -567,6 +573,17 @@ export default function Contracts() {
                     <Label htmlFor="openingReceivable">Opening Receivable *</Label>
                     <Input id="openingReceivable" type="number" step="0.01" value={formData.openingReceivable} onChange={(e) => setFormData({...formData, openingReceivable: e.target.value})} required />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="openingReceivableSource">Opening Receivable Source</Label>
+                    <Select value={formData.openingReceivableSource} onValueChange={(v: any) => setFormData({...formData, openingReceivableSource: v})}>
+                      <SelectTrigger><SelectValue placeholder="Select source..." /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ASSIGNMENT">Assignment Document</SelectItem>
+                        <SelectItem value="LEGACY">Legacy System</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </>
               )}
               {formData.saleType === "CASH" && (
@@ -582,6 +599,23 @@ export default function Contracts() {
               <div className="space-y-2">
                 <Label htmlFor="costBasis">Cost Basis *</Label>
                 <Input id="costBasis" type="number" step="0.01" value={formData.costBasis} onChange={(e) => setFormData({...formData, costBasis: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costBasisSource">Cost Basis Source</Label>
+                <Select value={formData.costBasisSource} onValueChange={(v: any) => setFormData({...formData, costBasisSource: v})}>
+                  <SelectTrigger><SelectValue placeholder="Select source..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HUD">HUD Statement</SelectItem>
+                    <SelectItem value="PSA">Purchase Agreement</SelectItem>
+                    <SelectItem value="ASSIGNMENT">Assignment</SelectItem>
+                    <SelectItem value="LEGACY">Legacy Data</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costBasisNotes">Cost Basis Notes</Label>
+                <Textarea id="costBasisNotes" value={formData.costBasisNotes} onChange={(e) => setFormData({...formData, costBasisNotes: e.target.value})} rows={2} placeholder="Additional details about cost basis..." />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="downPayment">Down Payment</Label>

@@ -280,3 +280,31 @@
 - [x] Criar tRPC procedure contracts.exportCSV para gerar CSV de contratos
 - [x] Adicionar botão "Exportar CSV" na página Contracts (header)
 - [x] Implementar download automático do arquivo CSV
+
+
+## Tax/Audit Subledger Transformation
+### 1. Contract Evidence
+- [x] Add costBasisSource ENUM(HUD,PSA,ASSIGNMENT,LEGACY,OTHER) to contracts table
+- [x] Add costBasisNotes TEXT to contracts table
+- [x] Add openingReceivableSource ENUM(ASSIGNMENT,LEGACY,OTHER) to contracts table (ASSUMED only)
+- [x] UI: show fields in create/edit forms
+- [x] Validation: require Contract attachment for all, Assignment/Notice for ASSUMED
+
+### 2. Critical Audit Log
+- [x] Create tax_audit_log table (entityType, entityId, field, oldValue, newValue, changedBy, changedAt, reason NOT NULL)
+- [x] Track Contract fields: contractPrice, costBasis, downPayment, openingReceivable, transferDate, closeDate
+- [x] Track Payment fields: paymentDate, amountTotal, principalAmount, lateFeeAmount
+- [x] Backend: audit log helpers (logContractChange, logPaymentChange, getAuditLogForContract)
+- [ ] UI: per-contract "History" modal showing audit trail (backend ready, UI pending)
+- [ ] Backend: auto-capture changes on update mutations (helpers ready, integration pending)
+
+### 3. Period Tax Reporting
+- [ ] Add period selector: YEAR | Q1 | Q2 | Q3 | Q4 | RANGE(start, end) (pending)
+- [ ] TaxSchedule page: filter by period (pending)
+- [ ] CSV export: include period in filename and data (pending)
+
+### 4. Blocking Exceptions View
+- [x] Create Exceptions page listing validation failures
+- [x] Rules: costBasis NULL, ASSUMED missing transferDate/openingReceivable, receivable<0, principal+lateFee!=total, CASH missing closeDate, missing docs
+- [x] UI: list with deep-links to fix each issue
+- [x] Backend: validation procedure returning all exceptions
