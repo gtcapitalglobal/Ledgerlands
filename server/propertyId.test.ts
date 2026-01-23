@@ -11,8 +11,8 @@ describe("propertyId normalization", () => {
   });
 
   it("handles edge cases", () => {
-    expect(normalizePropertyId("#")).toBe("#");
+    expect(normalizePropertyId("#")).toBe("");
     expect(normalizePropertyId("")).toBe("");
-    expect(normalizePropertyId("  ")).toBe("#");
+    expect(normalizePropertyId("  ")).toBe("");
   });
 });

@@ -17,15 +17,16 @@
 export function normalizePropertyId(input: string): string {
   if (!input) return '';
   
-  // Remove common prefixes and whitespace
+  // Remove all spaces, #, and common prefixes
   let normalized = input
     .trim()
-    .replace(/^property\s*/i, '') // "Property 33" → "33"
-    .replace(/^prop\s*/i, '')     // "Prop 33" → "33"
-    .replace(/^#/, '');            // "#33" → "33"
+    .replace(/\s+/g, '')           // Remove all spaces
+    .replace(/#/g, '')             // Remove all #
+    .replace(/^property/i, '')     // "Property33" → "33"
+    .replace(/^prop/i, '');        // "Prop33" → "33"
   
-  // Add # prefix
-  return `#${normalized}`;
+  // Add # prefix if normalized is not empty
+  return normalized ? `#${normalized}` : '';
 }
 
 /**

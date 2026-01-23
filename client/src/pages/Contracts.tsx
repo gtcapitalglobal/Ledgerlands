@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import Papa from "papaparse";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -34,21 +35,20 @@ export default function Contracts() {
     if (!file) return;
 
     const text = await file.text();
-    const lines = text.split('\n').filter(l => l.trim());
-    const headers = lines[0].split(',');
-    const rows = lines.slice(1).map(line => {
-      const values = line.split(',');
-      const row: any = {};
-      headers.forEach((h, i) => {
-        const key = h.trim();
-        const val = values[i]?.trim();
-        if (key === 'installmentCount') row[key] = val ? parseInt(val) : undefined;
-        else row[key] = val || undefined;
-      });
-      return row;
+    Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data.map((row: any) => ({
+          ...row,
+          installmentCount: row.installmentCount ? parseInt(row.installmentCount) : undefined,
+        }));
+        importCSV.mutate({ rows });
+      },
+      error: (error: any) => {
+        toast.error(`CSV parse error: ${error.message}`);
+      }
     });
-
-    importCSV.mutate({ rows });
     e.target.value = '';
   };
 
