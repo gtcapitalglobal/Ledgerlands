@@ -5,7 +5,9 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, FileText, TrendingUp, Wallet, Calendar, AlertCircle } from "lucide-react";
+import { DollarSign, FileText, TrendingUp, Wallet, Calendar, AlertCircle, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const currentYear = new Date().getFullYear();
@@ -14,6 +16,7 @@ export default function Dashboard() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCounty, setSelectedCounty] = useState<string>("all");
   const [reportingMode, setReportingMode] = useState<"BOOK" | "TAX">("TAX");
+  const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
 
   // Fetch contracts to get unique counties
   const { data: contracts } = trpc.contracts.list.useQuery();
@@ -56,11 +59,47 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Visão geral dos contratos de financiamento imobiliário e performance fiscal
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Visão geral dos contratos de financiamento imobiliário e performance fiscal
+            </p>
+          </div>
+          <Button 
+            onClick={async () => {
+              try {
+                setIsDownloadingBackup(true);
+                toast.info('Gerando backup...');
+                
+                const response = await fetch('/api/trpc/backup.downloadAll');
+                const result = await response.json();
+                const data = result.result.data;
+                
+                // Create a combined JSON file
+                const fullBackup = JSON.stringify(data, null, 2);
+                const blob = new Blob([fullBackup], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                toast.success(`Backup completo gerado! ${data.contracts.length} contratos, ${data.payments.length} pagamentos`);
+              } catch (error) {
+                toast.error('Erro ao gerar backup');
+                console.error(error);
+              } finally {
+                setIsDownloadingBackup(false);
+              }
+            }}
+            disabled={isDownloadingBackup}
+            className="shadow-elegant"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download Backup
+          </Button>
         </div>
 
         {/* Filters */}

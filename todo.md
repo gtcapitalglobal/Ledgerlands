@@ -255,3 +255,11 @@
 - [ ] Configurar anos fiscais disponíveis
 - [ ] Configurar status personalizados de contratos
 - [ ] Configurar counties padrão (dropdown)
+
+
+## Backup e Validação (Prioridade Alta)
+- [x] Implementar backup manual completo (botão Download Backup)
+- [x] Criar tRPC procedure para gerar backup JSON (contratos + pagamentos + attachments metadata)
+- [x] Adicionar validação de CSV com preview antes de importar contratos
+- [x] Mostrar erros de validação (campos obrigatórios, formatos incorretos, datas inválidas)
+- [x] Permitir correção de erros antes de confirmar import

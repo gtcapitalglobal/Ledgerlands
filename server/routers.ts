@@ -635,6 +635,33 @@ export const appRouter = router({
         return rows;
       }),
   }),
+
+  backup: router({
+    downloadAll: protectedProcedure.query(async () => {
+      const contracts = await db.getAllContracts();
+      const payments = await db.getAllPayments();
+      
+      const dbConn = await import("./db").then(m => m.getDb());
+      const { contractAttachments } = await import("../drizzle/schema");
+      const attachments = dbConn ? await dbConn.select().from(contractAttachments) : [];
+
+      return {
+        contracts,
+        payments,
+        attachments: attachments.map((a: any) => ({
+          id: a.id,
+          contractId: a.contractId,
+          propertyId: a.propertyId,
+          fileName: a.fileName,
+          fileUrl: a.fileUrl,
+          fileType: a.fileType,
+          docType: a.docType,
+          uploadedAt: a.uploadedAt,
+        })),
+        exportedAt: new Date().toISOString(),
+      };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

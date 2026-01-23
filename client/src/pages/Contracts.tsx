@@ -21,6 +21,9 @@ export default function Contracts() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [csvPreviewData, setCsvPreviewData] = useState<any[]>([]);
+  const [csvValidationErrors, setCsvValidationErrors] = useState<{row: number, field: string, message: string}[]>([]);
   const [formData, setFormData] = useState({
     propertyId: "",
     buyerName: "",
@@ -95,6 +98,56 @@ export default function Contracts() {
     },
   });
 
+  const validateCSVRow = (row: any, index: number) => {
+    const errors: {row: number, field: string, message: string}[] = [];
+    const requiredFields = ['property_id', 'buyer_name', 'origin_type', 'sale_type', 'county', 'state', 'contract_date', 'contract_price', 'cost_basis', 'down_payment'];
+    
+    requiredFields.forEach(field => {
+      if (!row[field] || row[field].toString().trim() === '') {
+        errors.push({ row: index + 2, field, message: `Campo obrigatório vazio: ${field}` });
+      }
+    });
+    
+    // Validate origin_type
+    if (row.origin_type && !['DIRECT', 'ASSUMED'].includes(row.origin_type)) {
+      errors.push({ row: index + 2, field: 'origin_type', message: `Valor inválido: deve ser DIRECT ou ASSUMED` });
+    }
+    
+    // Validate sale_type
+    if (row.sale_type && !['CFD', 'CASH'].includes(row.sale_type)) {
+      errors.push({ row: index + 2, field: 'sale_type', message: `Valor inválido: deve ser CFD ou CASH` });
+    }
+    
+    // Validate dates
+    if (row.contract_date && !/^\d{4}-\d{2}-\d{2}$/.test(row.contract_date)) {
+      errors.push({ row: index + 2, field: 'contract_date', message: `Data inválida: use formato YYYY-MM-DD` });
+    }
+    
+    // Validate numbers
+    ['contract_price', 'cost_basis', 'down_payment'].forEach(field => {
+      if (row[field] && isNaN(parseFloat(row[field]))) {
+        errors.push({ row: index + 2, field, message: `Valor numérico inválido` });
+      }
+    });
+    
+    // Conditional validations
+    if (row.origin_type === 'ASSUMED') {
+      if (!row.transfer_date) errors.push({ row: index + 2, field: 'transfer_date', message: `transfer_date obrigatório para ASSUMED` });
+      if (!row.opening_receivable) errors.push({ row: index + 2, field: 'opening_receivable', message: `opening_receivable obrigatório para ASSUMED` });
+    }
+    
+    if (row.sale_type === 'CFD') {
+      if (!row.installment_amount) errors.push({ row: index + 2, field: 'installment_amount', message: `installment_amount obrigatório para CFD` });
+      if (!row.installment_count) errors.push({ row: index + 2, field: 'installment_count', message: `installment_count obrigatório para CFD` });
+    }
+    
+    if (row.sale_type === 'CASH' && !row.close_date) {
+      errors.push({ row: index + 2, field: 'close_date', message: `close_date obrigatório para CASH` });
+    }
+    
+    return errors;
+  };
+
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -104,17 +157,40 @@ export default function Contracts() {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const rows = results.data.map((row: any) => ({
-          ...row,
-          installmentCount: row.installmentCount ? parseInt(row.installmentCount) : undefined,
-        }));
-        importCSV.mutate({ rows });
+        const rows = results.data as any[];
+        
+        // Validate all rows
+        const allErrors: {row: number, field: string, message: string}[] = [];
+        rows.forEach((row, index) => {
+          const errors = validateCSVRow(row, index);
+          allErrors.push(...errors);
+        });
+        
+        setCsvPreviewData(rows);
+        setCsvValidationErrors(allErrors);
+        setIsPreviewModalOpen(true);
       },
       error: (error: any) => {
         toast.error(`CSV parse error: ${error.message}`);
       }
     });
     e.target.value = '';
+  };
+  
+  const confirmImport = () => {
+    if (csvValidationErrors.length > 0) {
+      toast.error('Corrija os erros antes de importar');
+      return;
+    }
+    
+    const rows = csvPreviewData.map((row: any) => ({
+      ...row,
+      installmentCount: row.installment_count ? parseInt(row.installment_count) : undefined,
+    }));
+    importCSV.mutate({ rows });
+    setIsPreviewModalOpen(false);
+    setCsvPreviewData([]);
+    setCsvValidationErrors([]);
   };
 
   const filteredContracts = useMemo(() => {
@@ -499,6 +575,77 @@ export default function Contracts() {
               <Button type="submit" disabled={createContract.isPending}>Criar Contrato</Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* CSV Preview Modal */}
+      <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Preview CSV Import</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {csvValidationErrors.length > 0 && (
+              <div className="bg-destructive/10 border border-destructive rounded-lg p-4">
+                <h3 className="font-semibold text-destructive mb-2">{csvValidationErrors.length} Erros Encontrados:</h3>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {csvValidationErrors.map((err, i) => (
+                    <p key={i} className="text-sm text-destructive">Linha {err.row}, Campo "{err.field}": {err.message}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+            {csvValidationErrors.length === 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-800 font-medium">✓ Todos os {csvPreviewData.length} registros estão válidos!</p>
+              </div>
+            )}
+            <div>
+              <h3 className="font-semibold mb-2">Preview dos Dados ({csvPreviewData.length} contratos):</h3>
+              <div className="border rounded-lg overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Property ID</TableHead>
+                      <TableHead>Buyer</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Sale Type</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>County</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {csvPreviewData.slice(0, 10).map((row, i) => (
+                      <TableRow key={i}>
+                        <TableCell>{row.property_id}</TableCell>
+                        <TableCell>{row.buyer_name}</TableCell>
+                        <TableCell>{row.origin_type}</TableCell>
+                        <TableCell>{row.sale_type}</TableCell>
+                        <TableCell>{row.contract_price}</TableCell>
+                        <TableCell>{row.county}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {csvPreviewData.length > 10 && (
+                  <p className="text-sm text-muted-foreground text-center py-2">... e mais {csvPreviewData.length - 10} registros</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => {
+                setIsPreviewModalOpen(false);
+                setCsvPreviewData([]);
+                setCsvValidationErrors([]);
+              }}>Cancelar</Button>
+              <Button 
+                onClick={confirmImport} 
+                disabled={csvValidationErrors.length > 0 || importCSV.isPending}
+              >
+                {csvValidationErrors.length > 0 ? 'Corrija os Erros' : `Importar ${csvPreviewData.length} Contratos`}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
