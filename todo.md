@@ -309,3 +309,12 @@
 - [x] Rules: costBasis NULL, ASSUMED missing transferDate/openingReceivable, receivable<0, principal+lateFee!=total, CASH missing closeDate, missing docs
 - [x] UI: list with deep-links to fix each issue
 - [x] Backend: validation procedure returning all exceptions
+
+
+## GT Lands Branding (Identidade Visual)
+- [x] Copiar logo GT Lands para client/public/
+- [x] Atualizar CSS variables no index.css com paleta GT Lands (verde #2F4F4F + dourado #B8956A)
+- [x] Adicionar logo no DashboardLayout sidebar header
+- [x] Aplicar cores GT Lands em cards, badges, botões (via CSS variables)
+- [x] Ajustar contraste para acessibilidade
+- [ ] Atualizar VITE_APP_LOGO env variable (opcional)

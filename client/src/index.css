@@ -54,8 +54,8 @@
   --popover: oklch(100% 0 0);
   --popover-foreground: oklch(15% 0.02 240);
   
-  /* Primary: Deep Navy Blue - Professional and trustworthy */
-  --primary: oklch(35% 0.12 250);
+  /* Primary: GT Lands Dark Green - Professional and earthy */
+  --primary: oklch(35% 0.05 150);
   --primary-foreground: oklch(98% 0.01 240);
   
   /* Secondary: Warm Taupe - Elegant and sophisticated */
@@ -66,8 +66,8 @@
   --muted: oklch(94% 0.01 240);
   --muted-foreground: oklch(45% 0.02 240);
   
-  /* Accent: Rich Gold - Luxury and success */
-  --accent: oklch(65% 0.15 80);
+  /* Accent: GT Lands Bronze/Gold - Luxury and success */
+  --accent: oklch(65% 0.08 70);
   --accent-foreground: oklch(15% 0.02 240);
   
   /* Destructive: Deep Red */
