@@ -10,15 +10,49 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ExternalLink, Upload } from "lucide-react";
+import { Search, Plus, ExternalLink, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Contracts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    propertyId: "",
+    buyerName: "",
+    county: "",
+    state: "FL",
+    originType: "DIRECT" as "DIRECT" | "ASSUMED",
+    saleType: "CFD" as "CFD" | "CASH",
+    contractDate: "",
+    transferDate: "",
+    closeDate: "",
+    contractPrice: "",
+    costBasis: "",
+    downPayment: "",
+    openingReceivable: "",
+    installmentAmount: "",
+    installmentCount: "",
+    balloonAmount: "",
+    balloonDate: "",
+    status: "active" as "active" | "paid_off" | "defaulted",
+    notes: "",
+  });
 
-  const { data: contracts, isLoading } = trpc.contracts.list.useQuery();
+  const { data: contracts, isLoading, refetch } = trpc.contracts.list.useQuery();
+  const deleteContract = trpc.contracts.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Contrato deletado com sucesso!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao deletar contrato: ${error.message}`);
+    },
+  });
   const importCSV = trpc.contracts.importCSV.useMutation({
     onSuccess: (result) => {
       if (result.success) {
@@ -254,11 +288,26 @@ export default function Contracts() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Link href={`/contracts/${contract.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <ExternalLink className="h-4 w-4" />
+                          <div className="flex justify-end gap-2">
+                            <Link href={`/contracts/${contract.id}`}>
+                              <Button variant="ghost" size="sm">
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Tem certeza que deseja deletar o contrato ${contract.propertyId}? Esta ação não pode ser desfeita.`)) {
+                                  deleteContract.mutate({ id: contract.id });
+                                }
+                              }}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </Button>
-                          </Link>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
