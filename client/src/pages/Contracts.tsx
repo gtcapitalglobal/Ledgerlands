@@ -183,10 +183,29 @@ export default function Contracts() {
       return;
     }
     
+    // Map CSV fields (snake_case) to backend fields (camelCase)
     const rows = csvPreviewData.map((row: any) => ({
-      ...row,
+      propertyId: row.property_id,
+      buyerName: row.buyer_name,
+      county: row.county,
+      state: row.state,
+      originType: row.origin_type,
+      saleType: row.sale_type,
+      contractDate: row.contract_date,
+      transferDate: row.transfer_date || undefined,
+      closeDate: row.close_date || undefined,
+      contractPrice: row.contract_price,
+      costBasis: row.cost_basis,
+      downPayment: row.down_payment,
+      openingReceivable: row.opening_receivable || undefined,
+      installmentAmount: row.installment_amount || undefined,
       installmentCount: row.installment_count ? parseInt(row.installment_count) : undefined,
+      balloonAmount: row.balloon_amount || undefined,
+      balloonDate: row.balloon_date || undefined,
+      status: 'Active' as 'Active' | 'PaidOff' | 'Default' | 'Repossessed',
+      notes: row.notes || undefined,
     }));
+    
     importCSV.mutate({ rows });
     setIsPreviewModalOpen(false);
     setCsvPreviewData([]);

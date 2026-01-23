@@ -263,3 +263,7 @@
 - [x] Adicionar validação de CSV com preview antes de importar contratos
 - [x] Mostrar erros de validação (campos obrigatórios, formatos incorretos, datas inválidas)
 - [x] Permitir correção de erros antes de confirmar import
+
+
+## Bugs Ativos
+- [x] CSV import não está funcionando - usuário clica em "Importar" mas nada acontece (CORRIGIDO: mapeamento de campos snake_case para camelCase)
