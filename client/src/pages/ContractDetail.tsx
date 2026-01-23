@@ -23,6 +23,9 @@ export default function ContractDetail() {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadDocType, setUploadDocType] = useState<string>('Other');
 
   const { data, isLoading } = trpc.contracts.getWithCalculations.useQuery({ 
     id: contractId,
@@ -46,42 +49,51 @@ export default function ContractDetail() {
     onSuccess: () => toast.success('Attachment deleted'),
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !data?.contract) return;
+    if (!file) return;
+    setUploadFile(file);
+    setIsUploadDialogOpen(true);
+    e.target.value = '';
+  };
+
+  const handleFileUpload = async () => {
+    if (!uploadFile || !data?.contract) return;
 
     toast.info('Uploading...');
-    const fileKey = `contracts/${data.contract.propertyId}/${Date.now()}-${file.name}`;
-    const arrayBuffer = await file.arrayBuffer();
+    const fileKey = `contracts/${data.contract.propertyId}/${Date.now()}-${uploadFile.name}`;
     
     try {
       const response = await fetch('/api/storage/upload?path=' + encodeURIComponent(fileKey), {
         method: 'POST',
-        body: file,
+        body: uploadFile,
       });
       const { url } = await response.json();
 
       await uploadAttachment.mutateAsync({
         contractId,
-        fileName: file.name,
+        fileName: uploadFile.name,
         fileUrl: url,
         fileKey,
-        fileType: file.type,
-        docType: 'Other',
+        fileType: uploadFile.type,
+        docType: uploadDocType as any,
         propertyId: data.contract.propertyId,
       });
 
       toast.success('File uploaded');
+      setIsUploadDialogOpen(false);
+      setUploadFile(null);
+      setUploadDocType('Other');
+      utils.attachments.list.invalidate({ contractId });
     } catch (error) {
       toast.error('Upload failed');
     }
-
-    e.target.value = '';
   };
 
-  const handleDeleteAttachment = async (id: number) => {
-    if (!confirm('Delete this attachment?')) return;
+  const handleDeleteAttachment = async (id: number, fileName: string) => {
+    if (!confirm(`Deletar documento "${fileName}"? Esta ação não pode ser desfeita.`)) return;
     await deleteAttachment.mutateAsync({ id });
+    utils.attachments.list.invalidate({ contractId });
   };
 
   const formatCurrency = (value: string | number) => {
@@ -454,7 +466,7 @@ export default function ContractDetail() {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 className="hidden"
-                onChange={handleFileUpload}
+                onChange={handleFileSelect}
               />
             </div>
           </CardHeader>
@@ -478,7 +490,7 @@ export default function ContractDetail() {
                       <Button variant="outline" size="sm" onClick={() => window.open(att.fileUrl, '_blank')}>
                         Open
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteAttachment(att.id)}>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteAttachment(att.id, att.fileName)}>
                         Delete
                       </Button>
                     </div>
@@ -588,6 +600,42 @@ export default function ContractDetail() {
               <Button type="submit" disabled={updateContract.isPending}>Salvar</Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Document Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Documento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Arquivo</Label>
+              <p className="text-sm text-muted-foreground">{uploadFile?.name}</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo de Documento *</Label>
+              <Select value={uploadDocType} onValueChange={setUploadDocType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Contract">Contract</SelectItem>
+                  <SelectItem value="Notice">Notice</SelectItem>
+                  <SelectItem value="Deed">Deed</SelectItem>
+                  <SelectItem value="Assignment">Assignment</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => {
+                setIsUploadDialogOpen(false);
+                setUploadFile(null);
+                setUploadDocType('Other');
+              }}>Cancelar</Button>
+              <Button onClick={handleFileUpload} disabled={uploadAttachment.isPending}>Upload</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

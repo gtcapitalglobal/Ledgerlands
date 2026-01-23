@@ -8,17 +8,75 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Upload, Download, Plus } from "lucide-react";
+import { Search, Upload, Download, Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Payments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [receivedByFilter, setReceivedByFilter] = useState<string>("all");
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    contractId: "",
+    propertyId: "",
+    paymentDate: "",
+    amountTotal: "",
+    principalAmount: "",
+    lateFeeAmount: "",
+    receivedBy: "GT_REAL_BANK",
+    channel: "ZELLE",
+    memo: "",
+  });
 
   const { data: payments, isLoading, refetch } = trpc.payments.list.useQuery();
   const { data: contracts } = trpc.contracts.list.useQuery();
+  const createPayment = trpc.payments.create.useMutation({
+    onSuccess: () => {
+      toast.success("Pagamento criado com sucesso!");
+      setIsCreateModalOpen(false);
+      setFormData({
+        contractId: "",
+        propertyId: "",
+        paymentDate: "",
+        amountTotal: "",
+        principalAmount: "",
+        lateFeeAmount: "",
+        receivedBy: "GT_REAL_BANK",
+        channel: "ZELLE",
+        memo: "",
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`);
+    },
+  });
+  const updatePayment = trpc.payments.update.useMutation({
+    onSuccess: () => {
+      toast.success("Pagamento atualizado!");
+      setIsEditModalOpen(false);
+      setEditingPayment(null);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`);
+    },
+  });
+  const deletePayment = trpc.payments.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Pagamento deletado!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`);
+    },
+  });
 
   const filteredPayments = useMemo(() => {
     if (!payments) return [];
@@ -176,7 +234,7 @@ export default function Payments() {
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
-            <Button className="shadow-elegant">
+            <Button className="shadow-elegant" onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Pagamento
             </Button>
@@ -309,6 +367,7 @@ export default function Payments() {
                       <TableHead>Received By</TableHead>
                       <TableHead>Channel</TableHead>
                       <TableHead>Memo</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -340,6 +399,32 @@ export default function Payments() {
                         <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
                           {payment.memo || '-'}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingPayment(payment);
+                                setIsEditModalOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm(`Deletar pagamento de ${payment.propertyId}?`)) {
+                                  deletePayment.mutate({ id: payment.id });
+                                }
+                              }}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -349,6 +434,172 @@ export default function Payments() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Create Payment Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Novo Pagamento</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const selectedContract = contracts?.find(c => c.id.toString() === formData.contractId);
+            if (!selectedContract) return;
+            createPayment.mutate({
+              contractId: parseInt(formData.contractId),
+              propertyId: selectedContract.propertyId,
+              paymentDate: formData.paymentDate,
+              amountTotal: formData.amountTotal,
+              principalAmount: formData.principalAmount,
+              lateFeeAmount: formData.lateFeeAmount,
+              receivedBy: formData.receivedBy as any,
+              channel: formData.channel as any,
+              memo: formData.memo,
+            });
+          }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Contrato *</Label>
+                <Select value={formData.contractId} onValueChange={(v) => setFormData({...formData, contractId: v})} required>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {contracts?.map(c => (
+                      <SelectItem key={c.id} value={c.id.toString()}>{c.propertyId} - {c.buyerName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Data *</Label>
+                <Input type="date" value={formData.paymentDate} onChange={(e) => setFormData({...formData, paymentDate: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Total Amount *</Label>
+                <Input type="number" step="0.01" value={formData.amountTotal} onChange={(e) => setFormData({...formData, amountTotal: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Principal *</Label>
+                <Input type="number" step="0.01" value={formData.principalAmount} onChange={(e) => setFormData({...formData, principalAmount: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Late Fee *</Label>
+                <Input type="number" step="0.01" value={formData.lateFeeAmount} onChange={(e) => setFormData({...formData, lateFeeAmount: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Received By *</Label>
+                <Select value={formData.receivedBy} onValueChange={(v) => setFormData({...formData, receivedBy: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GT_REAL_BANK">GT Real Bank</SelectItem>
+                    <SelectItem value="LEGACY_G&T">Legacy G&T</SelectItem>
+                    <SelectItem value="PERSONAL">Personal</SelectItem>
+                    <SelectItem value="UNKNOWN">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Channel *</Label>
+                <Select value={formData.channel} onValueChange={(v) => setFormData({...formData, channel: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ZELLE">Zelle</SelectItem>
+                    <SelectItem value="ACH">ACH</SelectItem>
+                    <SelectItem value="CASH">Cash</SelectItem>
+                    <SelectItem value="CHECK">Check</SelectItem>
+                    <SelectItem value="WIRE">Wire</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Memo</Label>
+              <Textarea value={formData.memo} onChange={(e) => setFormData({...formData, memo: e.target.value})} rows={2} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={createPayment.isPending}>Criar</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payment Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Pagamento</DialogTitle>
+          </DialogHeader>
+          {editingPayment && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              updatePayment.mutate({
+                id: editingPayment.id,
+                paymentDate: editingPayment.paymentDate,
+                amountTotal: editingPayment.amountTotal,
+                principalAmount: editingPayment.principalAmount,
+                lateFeeAmount: editingPayment.lateFeeAmount,
+                receivedBy: editingPayment.receivedBy,
+                channel: editingPayment.channel,
+                memo: editingPayment.memo,
+              });
+            }} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data *</Label>
+                  <Input type="date" value={editingPayment.paymentDate?.split('T')[0] || ''} onChange={(e) => setEditingPayment({...editingPayment, paymentDate: e.target.value})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Total Amount *</Label>
+                  <Input type="number" step="0.01" value={editingPayment.amountTotal} onChange={(e) => setEditingPayment({...editingPayment, amountTotal: e.target.value})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Principal *</Label>
+                  <Input type="number" step="0.01" value={editingPayment.principalAmount} onChange={(e) => setEditingPayment({...editingPayment, principalAmount: e.target.value})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Late Fee *</Label>
+                  <Input type="number" step="0.01" value={editingPayment.lateFeeAmount} onChange={(e) => setEditingPayment({...editingPayment, lateFeeAmount: e.target.value})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Received By *</Label>
+                  <Select value={editingPayment.receivedBy} onValueChange={(v) => setEditingPayment({...editingPayment, receivedBy: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GT_REAL_BANK">GT Real Bank</SelectItem>
+                      <SelectItem value="LEGACY_G&T">Legacy G&T</SelectItem>
+                      <SelectItem value="PERSONAL">Personal</SelectItem>
+                      <SelectItem value="UNKNOWN">Unknown</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Channel *</Label>
+                  <Select value={editingPayment.channel} onValueChange={(v) => setEditingPayment({...editingPayment, channel: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ZELLE">Zelle</SelectItem>
+                      <SelectItem value="ACH">ACH</SelectItem>
+                      <SelectItem value="CASH">Cash</SelectItem>
+                      <SelectItem value="CHECK">Check</SelectItem>
+                      <SelectItem value="WIRE">Wire</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Memo</Label>
+                <Textarea value={editingPayment.memo || ''} onChange={(e) => setEditingPayment({...editingPayment, memo: e.target.value})} rows={2} />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+                <Button type="submit" disabled={updatePayment.isPending}>Salvar</Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

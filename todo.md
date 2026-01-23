@@ -224,3 +224,34 @@
 - [x] Fix "Novo Contrato" button not working in Contracts page (sem onClick handler)
 - [x] Adicionar botão "Editar" na página Contract Detail
 - [x] Verificar por que botão "Deletar" não aparece na tabela de contratos (foi implementado mas usuário não vê)
+
+
+## CRUD Completo - Implementação Total
+
+### Contratos (Contracts)
+- [x] Criar novo contrato (modal form com validação)
+- [x] Editar contrato existente (modal form)
+- [x] Deletar contrato (com confirmação)
+- [x] Importar CSV de contratos
+- [ ] Exportar CSV de contratos
+
+### Pagamentos (Payments)
+- [x] Criar novo pagamento manual (modal form)
+- [x] Editar pagamento existente (modal form)
+- [x] Deletar pagamento (com confirmação)
+- [x] Importar CSV de pagamentos
+- [x] Exportar CSV de pagamentos (botão já existe)
+
+### Tax Schedule
+- [x] Exportar CSV do Tax Schedule (botão já existe)
+
+### Attachments
+- [x] Upload de documentos
+- [x] Deletar documentos
+- [x] Adicionar selector de docType no upload (Contract/Notice/Deed/Assignment/Other)
+- [x] Melhorar confirmação de delete
+
+### Configurações/Settings
+- [ ] Configurar anos fiscais disponíveis
+- [ ] Configurar status personalizados de contratos
+- [ ] Configurar counties padrão (dropdown)
