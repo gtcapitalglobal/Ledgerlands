@@ -99,6 +99,7 @@ export const appRouter = router({
         county: z.string().optional(),
         contractDate: z.string().optional(),
         transferDate: z.string().optional(),
+        closeDate: z.string().optional(),
         contractPrice: z.string().optional(),
         costBasis: z.string().optional(),
         downPayment: z.string().optional(),
@@ -110,14 +111,40 @@ export const appRouter = router({
         notes: z.string().optional(),
         attachmentLinks: z.string().optional(),
         openingReceivable: z.string().optional(),
+        reason: z.string().min(1, "Reason required for audit"), // REQUIRED for tax audit
       }))
-      .mutation(async ({ input }) => {
-        const { id, contractDate, transferDate, balloonDate, ...rest } = input;
+      .mutation(async ({ input, ctx }) => {
+        const { id, contractDate, transferDate, closeDate, balloonDate, reason, ...rest } = input;
+        
+        // Get old values for audit
+        const oldContract = await db.getContractById(id);
+        if (!oldContract) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
+        }
+
         const updates: any = { ...rest };
         if (contractDate) updates.contractDate = new Date(contractDate);
         if (transferDate) updates.transferDate = new Date(transferDate);
+        if (closeDate) updates.closeDate = new Date(closeDate);
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
+        
         await db.updateContract(id, updates);
+
+        // Audit log for tracked fields
+        const { logContractChange } = await import("./auditLog");
+        const changedBy = ctx.user?.name || ctx.user?.openId || "unknown";
+        
+        const trackedFields = ['contractPrice', 'costBasis', 'downPayment', 'openingReceivable', 'transferDate', 'closeDate'];
+        for (const field of trackedFields) {
+          if (input[field as keyof typeof input] !== undefined) {
+            const oldValue = oldContract[field as keyof typeof oldContract];
+            const newValue = field === 'transferDate' || field === 'closeDate' 
+              ? updates[field] 
+              : input[field as keyof typeof input];
+            await logContractChange(id, field, oldValue, newValue, changedBy, reason);
+          }
+        }
+
         return { success: true };
       }),
 
@@ -320,14 +347,36 @@ export const appRouter = router({
         receivedBy: z.enum(["GT_REAL_BANK", "LEGACY_G&T", "PERSONAL", "UNKNOWN"]).optional(),
         channel: z.enum(["ZELLE", "ACH", "CASH", "CHECK", "WIRE", "OTHER"]).optional(),
         memo: z.string().optional(),
+        reason: z.string().min(1, "Reason required for audit"), // REQUIRED for tax audit
       }))
-      .mutation(async ({ input }) => {
-        const { id, paymentDate, ...rest } = input;
+      .mutation(async ({ input, ctx }) => {
+        const { id, paymentDate, reason, ...rest } = input;
+        
+        // Get old values for audit
+        const oldPayment = await db.getPaymentById(id);
+        if (!oldPayment) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Payment not found" });
+        }
+
         const updates: any = { ...rest };
         if (paymentDate) {
           updates.paymentDate = new Date(paymentDate);
         }
         await db.updatePayment(id, updates);
+
+        // Audit log for tracked fields
+        const { logPaymentChange } = await import("./auditLog");
+        const changedBy = ctx.user?.name || ctx.user?.openId || "unknown";
+        
+        const trackedFields = ['paymentDate', 'amountTotal', 'principalAmount', 'lateFeeAmount'];
+        for (const field of trackedFields) {
+          if (input[field as keyof typeof input] !== undefined) {
+            const oldValue = oldPayment[field as keyof typeof oldPayment];
+            const newValue = field === 'paymentDate' ? updates[field] : input[field as keyof typeof input];
+            await logPaymentChange(id, field, oldValue, newValue, changedBy, reason);
+          }
+        }
+
         return { success: true };
       }),
 
@@ -566,6 +615,88 @@ export const appRouter = router({
   }),
 
   taxSchedule: router({
+    getByPeriod: protectedProcedure
+      .input(z.object({ 
+        period: z.enum(["YEAR", "Q1", "Q2", "Q3", "Q4", "RANGE"]),
+        year: z.number(),
+        startDate: z.string().optional(), // for RANGE
+        endDate: z.string().optional(), // for RANGE
+      }))
+      .query(async ({ input }) => {
+        const contracts = await db.getAllContracts();
+        const allPayments = await db.getAllPayments();
+
+        // Determine date range based on period
+        let startDate: Date, endDate: Date;
+        if (input.period === "RANGE" && input.startDate && input.endDate) {
+          startDate = new Date(input.startDate);
+          endDate = new Date(input.endDate);
+        } else if (input.period === "Q1") {
+          startDate = new Date(`${input.year}-01-01`);
+          endDate = new Date(`${input.year}-03-31`);
+        } else if (input.period === "Q2") {
+          startDate = new Date(`${input.year}-04-01`);
+          endDate = new Date(`${input.year}-06-30`);
+        } else if (input.period === "Q3") {
+          startDate = new Date(`${input.year}-07-01`);
+          endDate = new Date(`${input.year}-09-30`);
+        } else if (input.period === "Q4") {
+          startDate = new Date(`${input.year}-10-01`);
+          endDate = new Date(`${input.year}-12-31`);
+        } else { // YEAR
+          startDate = new Date(`${input.year}-01-01`);
+          endDate = new Date(`${input.year}-12-31`);
+        }
+
+        const schedule = [];
+
+        for (const contract of contracts) {
+          let periodPayments = allPayments.filter(p => {
+            const paymentDate = new Date(p.paymentDate);
+            return paymentDate >= startDate && paymentDate <= endDate && p.contractId === contract.id;
+          });
+          
+          // ASSUMED: only count payments after transferDate
+          if (contract.originType === 'ASSUMED' && contract.transferDate) {
+            periodPayments = periodPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+          }
+
+          const principalReceived = periodPayments.reduce((sum, p) => {
+            const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
+            return sum + amount;
+          }, 0);
+
+          const lateFees = periodPayments.reduce((sum, p) => {
+            const amount = typeof p.lateFeeAmount === 'string' ? parseFloat(p.lateFeeAmount) : p.lateFeeAmount;
+            return sum + amount;
+          }, 0);
+
+          const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
+          const gainRecognized = principalReceived * (grossProfitPercent / 100);
+
+          schedule.push({
+            propertyId: contract.propertyId,
+            buyerName: contract.buyerName,
+            originType: contract.originType,
+            saleType: contract.saleType,
+            contractPrice: contract.contractPrice,
+            costBasis: contract.costBasis,
+            grossProfitPercent,
+            principalReceived,
+            gainRecognized,
+            lateFees,
+          });
+        }
+
+        return {
+          period: input.period,
+          year: input.year,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          schedule,
+        };
+      }),
+
     getByYear: protectedProcedure
       .input(z.object({ year: z.number() }))
       .query(async ({ input }) => {

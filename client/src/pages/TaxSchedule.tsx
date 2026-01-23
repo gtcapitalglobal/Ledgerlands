@@ -13,8 +13,17 @@ import { toast } from "sonner";
 export default function TaxSchedule() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedPeriod, setSelectedPeriod] = useState<"YEAR" | "Q1" | "Q2" | "Q3" | "Q4" | "RANGE">("YEAR");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  const { data: schedule, isLoading } = trpc.taxSchedule.getByYear.useQuery({ year: selectedYear });
+  const { data, isLoading } = trpc.taxSchedule.getByPeriod.useQuery({ 
+    period: selectedPeriod, 
+    year: selectedYear,
+    startDate: selectedPeriod === "RANGE" ? startDate : undefined,
+    endDate: selectedPeriod === "RANGE" ? endDate : undefined,
+  });
+  const schedule = data?.schedule || [];
 
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
@@ -43,7 +52,7 @@ export default function TaxSchedule() {
       principalReceived: acc.principalReceived + item.principalReceived,
       gainRecognized: acc.gainRecognized + item.gainRecognized,
       lateFees: acc.lateFees + item.lateFees,
-      totalProfitRecognized: acc.totalProfitRecognized + item.totalProfitRecognized,
+      totalProfitRecognized: acc.totalProfitRecognized + item.gainRecognized + item.lateFees,
     }), {
       principalReceived: 0,
       gainRecognized: 0,
@@ -77,7 +86,7 @@ export default function TaxSchedule() {
       item.grossProfitPercent.toFixed(2),
       item.gainRecognized.toFixed(2),
       item.lateFees.toFixed(2),
-      item.totalProfitRecognized.toFixed(2),
+      (item.gainRecognized + item.lateFees).toFixed(2),
     ]);
 
     // Add totals row
@@ -101,7 +110,8 @@ export default function TaxSchedule() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tax_profit_schedule_${selectedYear}.csv`;
+    const periodLabel = selectedPeriod === "YEAR" ? "" : `_${selectedPeriod}`;
+    a.download = `tax_profit_schedule_${selectedYear}${periodLabel}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     
@@ -138,19 +148,37 @@ export default function TaxSchedule() {
             <CardDescription>Visualize o schedule de lucro reconhecido para o ano selecionado</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="max-w-xs">
-              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Ano Fiscal</label>
+                <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map(year => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Período</label>
+                <Select value={selectedPeriod} onValueChange={(v: any) => setSelectedPeriod(v)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="YEAR">Ano Completo</SelectItem>
+                    <SelectItem value="Q1">Q1 (Jan-Mar)</SelectItem>
+                    <SelectItem value="Q2">Q2 (Apr-Jun)</SelectItem>
+                    <SelectItem value="Q3">Q3 (Jul-Sep)</SelectItem>
+                    <SelectItem value="Q4">Q4 (Oct-Dec)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -260,7 +288,7 @@ export default function TaxSchedule() {
                   </TableHeader>
                   <TableBody>
                     {schedule.map((item) => (
-                      <TableRow key={item.contractId} className="hover:bg-muted/50">
+                      <TableRow key={item.propertyId} className="hover:bg-muted/50">
                         <TableCell className="font-medium text-primary">
                           {item.propertyId}
                         </TableCell>
@@ -283,7 +311,7 @@ export default function TaxSchedule() {
                           {formatCurrency(item.lateFees)}
                         </TableCell>
                         <TableCell className="text-right font-bold text-green-600">
-                          {formatCurrency(item.totalProfitRecognized)}
+                          {formatCurrency(item.gainRecognized + item.lateFees)}
                         </TableCell>
                       </TableRow>
                     ))}

@@ -533,6 +533,10 @@ export default function Payments() {
           {editingPayment && (
             <form onSubmit={(e) => {
               e.preventDefault();
+              if (!editingPayment.reason || editingPayment.reason.trim() === '') {
+                toast.error('Reason is required for audit compliance');
+                return;
+              }
               updatePayment.mutate({
                 id: editingPayment.id,
                 paymentDate: editingPayment.paymentDate,
@@ -542,6 +546,7 @@ export default function Payments() {
                 receivedBy: editingPayment.receivedBy,
                 channel: editingPayment.channel,
                 memo: editingPayment.memo,
+                reason: editingPayment.reason,
               });
             }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -591,6 +596,10 @@ export default function Payments() {
               <div className="space-y-2">
                 <Label>Memo</Label>
                 <Textarea value={editingPayment.memo || ''} onChange={(e) => setEditingPayment({...editingPayment, memo: e.target.value})} rows={2} />
+              </div>
+              <div className="space-y-2">
+                <Label>Reason for Edit (Audit Required) *</Label>
+                <Textarea value={editingPayment.reason || ''} onChange={(e) => setEditingPayment({...editingPayment, reason: e.target.value})} rows={2} placeholder="Explain why this payment is being modified (required for tax audit)" required />
               </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>

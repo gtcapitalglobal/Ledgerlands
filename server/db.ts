@@ -160,6 +160,13 @@ export async function getAllPayments() {
   return await db.select().from(payments).orderBy(desc(payments.paymentDate));
 }
 
+export async function getPaymentById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(payments).where(eq(payments.id, id));
+  return results[0] || null;
+}
+
 export async function getPaymentsByContractId(contractId: number) {
   const db = await getDb();
   if (!db) return [];

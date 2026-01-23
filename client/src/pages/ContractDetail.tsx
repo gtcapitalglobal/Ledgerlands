@@ -8,13 +8,58 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText } from "lucide-react";
+import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+function AuditHistoryTable({ contractId }: { contractId: number }) {
+  const { data: auditLog = [], isLoading } = trpc.auditLog.getForContract.useQuery({ contractId });
+
+  if (isLoading) {
+    return <div className="text-center py-8 text-muted-foreground">Carregando histórico...</div>;
+  }
+
+  if (auditLog.length === 0) {
+    return <div className="text-center py-8 text-muted-foreground">Nenhuma alteração registrada</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {auditLog.map((entry: any) => (
+        <div key={entry.id} className="border-l-4 border-primary/30 pl-4 py-2">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{entry.field}</span>
+                <Badge variant="outline" className="text-xs">{entry.entityType}</Badge>
+              </div>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <div>
+                  <span className="font-medium">De:</span> {entry.oldValue || '(vazio)'}
+                </div>
+                <div>
+                  <span className="font-medium">Para:</span> {entry.newValue || '(vazio)'}
+                </div>
+                <div className="mt-2 text-xs">
+                  <span className="font-medium">Razão:</span> {entry.reason}
+                </div>
+              </div>
+            </div>
+            <div className="text-right text-xs text-muted-foreground">
+              <div>{entry.changedBy}</div>
+              <div>{new Date(entry.changedAt).toLocaleString('pt-BR')}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function ContractDetail() {
   const [, params] = useRoute("/contracts/:id");
@@ -498,6 +543,17 @@ export default function ContractDetail() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Audit History */}
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle>Histórico de Alterações (Audit Trail)</CardTitle>
+            <CardDescription>Registro de mudanças em campos fiscais críticos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AuditHistoryTable contractId={contractId} />
           </CardContent>
         </Card>
       </div>

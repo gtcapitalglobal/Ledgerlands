@@ -295,13 +295,14 @@
 - [x] Track Contract fields: contractPrice, costBasis, downPayment, openingReceivable, transferDate, closeDate
 - [x] Track Payment fields: paymentDate, amountTotal, principalAmount, lateFeeAmount
 - [x] Backend: audit log helpers (logContractChange, logPaymentChange, getAuditLogForContract)
-- [ ] UI: per-contract "History" modal showing audit trail (backend ready, UI pending)
-- [ ] Backend: auto-capture changes on update mutations (helpers ready, integration pending)
+- [x] Integrate audit log in contracts.update mutation (auto-capture with reason required)
+- [x] Integrate audit log in payments.update mutation (auto-capture with reason required)
+- [x] UI: Contract Detail "History" tab/modal showing tax_audit_log (newest first)
 
 ### 3. Period Tax Reporting
-- [ ] Add period selector: YEAR | Q1 | Q2 | Q3 | Q4 | RANGE(start, end) (pending)
-- [ ] TaxSchedule page: filter by period (pending)
-- [ ] CSV export: include period in filename and data (pending)
+- [x] Backend: taxSchedule.getByPeriod with period ENUM(YEAR,Q1,Q2,Q3,Q4,RANGE)
+- [x] TaxSchedule UI: period selector dropdown
+- [x] CSV export: include period in filename (e.g., tax_schedule_2026_Q1.csv) and scope data to period
 
 ### 4. Blocking Exceptions View
 - [x] Create Exceptions page listing validation failures
