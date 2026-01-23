@@ -297,9 +297,86 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Helper to suggest late fee split
-    suggestSplit: protectedProcedure
+    exportCSV: protectedProcedure.query(async () => {
+      const payments = await db.getAllPayments();
+      const contracts = await db.getAllContracts();
+      const contractMap = new Map(contracts.map(c => [c.id, c.propertyId]));
+      
+      return payments.map(p => ({
+        paymentDate: new Date(p.paymentDate).toISOString().split('T')[0],
+        propertyId: contractMap.get(p.contractId) || '',
+        principalAmount: p.principalAmount,
+        lateFeeAmount: p.lateFeeAmount,
+        totalAmount: p.amountTotal,
+        receivedBy: p.receivedBy || '',
+        paymentChannel: p.channel || '',
+        memo: p.memo || '',
+      }));
+    }),
+  }),
+
+  attachments: router({
+    upload: protectedProcedure
       .input(z.object({
+        contractId: z.number(),
+        fileName: z.string(),
+        fileUrl: z.string(),
+        fileKey: z.string(),
+        fileType: z.string(),
+        docType: z.enum(["Contract", "Notice", "Deed", "Assignment", "Other"]),
+        propertyId: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await import("./db").then(m => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { contractAttachments } = await import("../drizzle/schema");
+        await db.insert(contractAttachments).values({
+          contractId: input.contractId,
+          fileName: input.fileName,
+          fileUrl: input.fileUrl,
+          fileKey: input.fileKey,
+          fileType: input.fileType,
+          docType: input.docType,
+          propertyId: input.propertyId,
+          uploadedBy: ctx.user?.name || "Unknown",
+        });
+        return { success: true };
+      }),
+
+    list: protectedProcedure
+      .input(z.object({ contractId: z.number() }))
+      .query(async ({ input }) => {
+        const db = await import("./db").then(m => m.getDb());
+        if (!db) return [];
+        const { contractAttachments } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        return await db.select().from(contractAttachments).where(eq(contractAttachments.contractId, input.contractId));
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then(m => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { contractAttachments } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        // Get attachment to retrieve fileKey
+        const attachment = await db.select().from(contractAttachments).where(eq(contractAttachments.id, input.id)).limit(1);
+        if (attachment.length > 0 && attachment[0].fileKey) {
+          const { storageDelete } = await import("./storage");
+          await storageDelete(attachment[0].fileKey);
+        }
+        
+        // Delete DB record
+        await db.delete(contractAttachments).where(eq(contractAttachments.id, input.id));
+        return { success: true };
+      }),
+  }),
+
+  // Helper to suggest late fee split
+  suggestSplit: router({
+    calculate: protectedProcedure      .input(z.object({
         amountTotal: z.number(),
         installmentAmount: z.number(),
       }))
@@ -500,16 +577,61 @@ export const appRouter = router({
             propertyId: contract.propertyId,
             buyerName: contract.buyerName,
             originType: contract.originType,
-            saleType: contract.saleType,
             principalReceived,
             grossProfitPercent,
             gainRecognized,
             lateFees,
-            totalProfitRecognized,
+            totalProfitRecognized: gainRecognized + lateFees,
           });
         }
 
         return schedule;
+      }),
+
+    exportCSV: protectedProcedure
+      .input(z.object({ year: z.number() }))
+      .query(async ({ input }) => {
+        const contracts = await db.getAllContracts();
+        const allPayments = await db.getAllPayments();
+        const rows = [];
+
+        for (const contract of contracts) {
+          let yearPayments = allPayments.filter(p => {
+            const paymentYear = new Date(p.paymentDate).getFullYear();
+            return paymentYear === input.year && p.contractId === contract.id;
+          });
+          
+          if (contract.originType === 'ASSUMED' && contract.transferDate) {
+            yearPayments = yearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+          }
+
+          const principalReceived = yearPayments.reduce((sum, p) => sum + parseFloat(p.principalAmount as string), 0);
+          const lateFees = yearPayments.reduce((sum, p) => sum + parseFloat(p.lateFeeAmount as string), 0);
+          const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
+          let gainRecognized = 0;
+
+          if (contract.saleType === 'CASH' && contract.closeDate) {
+            const closeYear = new Date(contract.closeDate).getFullYear();
+            if (closeYear === input.year) {
+              gainRecognized = parseFloat(contract.contractPrice as string) - parseFloat(contract.costBasis as string);
+            }
+          } else {
+            gainRecognized = db.calculateGainRecognized(principalReceived, grossProfitPercent);
+          }
+
+          rows.push({
+            propertyId: contract.propertyId,
+            buyerName: contract.buyerName,
+            saleType: contract.saleType,
+            principalReceived: principalReceived.toFixed(2),
+            grossProfitPercent: grossProfitPercent.toFixed(2),
+            gainRecognized: gainRecognized.toFixed(2),
+            lateFees: lateFees.toFixed(2),
+            totalProfitRecognized: (gainRecognized + lateFees).toFixed(2),
+          });
+        }
+
+        return rows;
       }),
   }),
 });

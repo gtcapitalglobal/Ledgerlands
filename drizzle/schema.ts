@@ -102,6 +102,7 @@ export const contractAttachments = mysqlTable("contractAttachments", {
   propertyId: varchar("propertyId", { length: 50 }).notNull(),
   fileName: varchar("fileName", { length: 255 }).notNull(),
   fileUrl: text("fileUrl").notNull(),
+  fileKey: varchar("fileKey", { length: 500 }),
   fileType: varchar("fileType", { length: 50 }).notNull(),
   fileSize: int("fileSize"),
   docType: mysqlEnum("docType", ["Contract", "Notice", "Deed", "Assignment", "Other"]).notNull().default("Other"),
