@@ -297,6 +297,7 @@ export const appRouter = router({
         originType: z.union([z.enum(["DIRECT", "ASSUMED"]), z.literal("all")]).optional(),
         saleType: z.union([z.enum(["CFD", "CASH"]), z.literal("all")]).optional(),
         county: z.string().optional(),
+        reportingMode: z.enum(["BOOK", "TAX"]).default("TAX"),
       }))
       .query(async ({ input }) => {
         let contracts = await db.getAllContracts();
@@ -359,7 +360,7 @@ export const appRouter = router({
           return sum + amount;
         }, 0);
 
-        // Calculate gain recognized YTD (weighted by each contract's gross profit %)
+        // Calculate gain recognized YTD (TAX mode - installment method)
         let gainRecognizedYTD = 0;
         for (const contract of contracts) {
           const contractYearPayments = filteredYearPayments.filter(p => p.contractId === contract.id);
@@ -368,8 +369,32 @@ export const appRouter = router({
             return sum + amount;
           }, 0);
           
-          const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
-          gainRecognizedYTD += db.calculateGainRecognized(contractPrincipalYTD, grossProfitPercent);
+          // CASH: 100% gain in closeDate year
+          if (contract.saleType === 'CASH' && contract.closeDate) {
+            const closeYear = new Date(contract.closeDate).getFullYear();
+            if (closeYear === currentYear) {
+              const price = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
+              const cost = typeof contract.costBasis === 'string' ? parseFloat(contract.costBasis) : contract.costBasis;
+              gainRecognizedYTD += (price - cost);
+            }
+          } else {
+            // CFD: installment method
+            const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
+            gainRecognizedYTD += db.calculateGainRecognized(contractPrincipalYTD, grossProfitPercent);
+          }
+        }
+        
+        // BOOK mode: Contract revenue opened in selected period
+        let contractRevenueOpened = 0;
+        if (input.reportingMode === 'BOOK') {
+          for (const contract of contracts) {
+            const contractYear = new Date(contract.contractDate).getFullYear();
+            if (contractYear === currentYear) {
+              const price = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
+              const cost = typeof contract.costBasis === 'string' ? parseFloat(contract.costBasis) : contract.costBasis;
+              contractRevenueOpened += (price - cost);
+            }
+          }
         }
 
         return {
@@ -381,6 +406,8 @@ export const appRouter = router({
           principalReceivedYTD,
           gainRecognizedYTD,
           lateFeesYTD,
+          contractRevenueOpened,
+          reportingMode: input.reportingMode,
           currentYear,
         };
       }),

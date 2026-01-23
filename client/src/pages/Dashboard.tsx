@@ -12,18 +12,19 @@ export default function Dashboard() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCounty, setSelectedCounty] = useState<string>("all");
+  const [reportingMode, setReportingMode] = useState<"BOOK" | "TAX">("TAX");
 
   // Fetch contracts to get unique counties
   const { data: contracts } = trpc.contracts.list.useQuery();
   
   // Build filter object
   const filters = useMemo(() => {
-    const f: any = { year: selectedYear };
+    const f: any = { year: selectedYear, reportingMode };
     if (selectedStatus !== "all") f.status = selectedStatus;
-    if (selectedType !== "all") f.type = selectedType;
+    if (selectedType !== "all") f.originType = selectedType;
     if (selectedCounty !== "all") f.county = selectedCounty;
     return f;
-  }, [selectedYear, selectedStatus, selectedType, selectedCounty]);
+  }, [selectedYear, selectedStatus, selectedType, selectedCounty, reportingMode]);
 
   const { data: kpis, isLoading } = trpc.dashboard.getKPIs.useQuery(filters);
 
@@ -67,7 +68,19 @@ export default function Dashboard() {
             <CardDescription>Refine a visualização dos dados</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Modo de Relatório</label>
+                <Select value={reportingMode} onValueChange={(v: "BOOK" | "TAX") => setReportingMode(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TAX">TAX (Installment Method)</SelectItem>
+                    <SelectItem value="BOOK">BOOK (Model 1)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ano</label>
                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
@@ -254,20 +267,19 @@ export default function Dashboard() {
             <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Ganho Reconhecido YTD
+                  {reportingMode === "TAX" ? "Ganho Reconhecido YTD" : "Receita de Contrato Aberta YTD"}
                 </CardTitle>
                 <TrendingUp className="h-5 w-5 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
-                  {formatCurrency(kpis.gainRecognizedYTD)}
+                  {formatCurrency(reportingMode === "TAX" ? kpis.gainRecognizedYTD : kpis.contractRevenueOpened)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Lucro fiscal reconhecido
+                  {reportingMode === "TAX" ? "Lucro fiscal reconhecido" : "Revenue recognized at execution (Model 1)"}
                 </p>
               </CardContent>
             </Card>
-
             {/* Late Fees YTD */}
             <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between pb-2">

@@ -183,7 +183,7 @@
 ### Testing
 - [ ] Test Model 1 receivable calculation (DIRECT = contractPrice)
 - [ ] Test ASSUMED payment filtering (paymentDate >= transferDate)
-- [ ] Test BOOK vs TAX reporting modes
+- [x] Test BOOK vs TAX reporting modes (manual)
 - [x] Test CASH receivable = 0
 - [x] Test CASH gain calculation
 - [ ] Test attachment delete (DB + S3)
