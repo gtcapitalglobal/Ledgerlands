@@ -219,7 +219,7 @@ export async function calculateReceivableBalance(contract: Contract, allPayments
     return sum + amount;
   }, 0);
 
-  if (contract.type === 'ASSUMED' && contract.openingReceivable) {
+  if (contract.originType === 'ASSUMED' && contract.openingReceivable) {
     const opening = typeof contract.openingReceivable === 'string' ? parseFloat(contract.openingReceivable) : contract.openingReceivable;
     return opening - totalPrincipalPaid;
   }

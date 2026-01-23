@@ -19,29 +19,50 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
- * Contract for Deed table
- * Stores land sale contracts with installment payment terms
+ * Contract table - supports both CFD (Contract for Deed) and CASH sales
+ * 
+ * Two axes:
+ * - origin_type: DIRECT (originated by GT Real) or ASSUMED (transferred from G&T)
+ * - sale_type: CFD (installment payments) or CASH (full payment at closing)
  */
 export const contracts = mysqlTable("contracts", {
   id: int("id").autoincrement().primaryKey(),
   propertyId: varchar("propertyId", { length: 50 }).notNull().unique(), // e.g., "#33"
   buyerName: varchar("buyerName", { length: 255 }).notNull(),
-  type: mysqlEnum("type", ["DIRECT", "ASSUMED"]).notNull(),
+  
+  // V2.0: Renamed from "type" to "origin_type" for clarity
+  originType: mysqlEnum("originType", ["DIRECT", "ASSUMED"]).notNull(),
+  
+  // V2.0: New field - sale format
+  saleType: mysqlEnum("saleType", ["CFD", "CASH"]).notNull().default("CFD"),
+  
   county: varchar("county", { length: 100 }).notNull(),
+  
+  // V2.0: New field - state
+  state: varchar("state", { length: 2 }).notNull().default("FL"),
+  
   contractDate: date("contractDate").notNull(),
   transferDate: date("transferDate"), // nullable, only for ASSUMED contracts
+  
+  // V2.0: New field - closing date (required for CASH, optional for CFD)
+  closeDate: date("closeDate"),
+  
   contractPrice: decimal("contractPrice", { precision: 15, scale: 2 }).notNull(),
   costBasis: decimal("costBasis", { precision: 15, scale: 2 }).notNull(),
   downPayment: decimal("downPayment", { precision: 15, scale: 2 }).notNull(),
-  installmentAmount: decimal("installmentAmount", { precision: 15, scale: 2 }).notNull(),
-  installmentCount: int("installmentCount").notNull(),
-  balloonAmount: decimal("balloonAmount", { precision: 15, scale: 2 }), // nullable
-  balloonDate: date("balloonDate"), // nullable
+  
+  // V2.0: These fields are nullable for CASH sales
+  installmentAmount: decimal("installmentAmount", { precision: 15, scale: 2 }),
+  installmentCount: int("installmentCount"),
+  balloonAmount: decimal("balloonAmount", { precision: 15, scale: 2 }),
+  balloonDate: date("balloonDate"),
+  
   status: mysqlEnum("status", ["Active", "PaidOff", "Default", "Repossessed"]).default("Active").notNull(),
   notes: text("notes"),
-  attachmentLinks: text("attachmentLinks"), // JSON string of links
+  
   // For ASSUMED contracts: opening receivable as of transfer date
   openingReceivable: decimal("openingReceivable", { precision: 15, scale: 2 }),
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -70,3 +91,23 @@ export const payments = mysqlTable("payments", {
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = typeof payments.$inferInsert;
+
+/**
+ * V2.0: Contract Attachments table
+ * Stores uploaded documents (PDFs, images) for each contract
+ */
+export const contractAttachments = mysqlTable("contractAttachments", {
+  id: int("id").autoincrement().primaryKey(),
+  contractId: int("contractId").notNull(),
+  propertyId: varchar("propertyId", { length: 50 }).notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  fileType: varchar("fileType", { length: 50 }).notNull(),
+  fileSize: int("fileSize"),
+  docType: mysqlEnum("docType", ["Contract", "Notice", "Deed", "Assignment", "Other"]).notNull().default("Other"),
+  uploadedBy: varchar("uploadedBy", { length: 255 }).notNull().default("System"),
+  uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
+});
+
+export type ContractAttachment = typeof contractAttachments.$inferSelect;
+export type InsertContractAttachment = typeof contractAttachments.$inferInsert;

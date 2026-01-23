@@ -119,8 +119,8 @@ export default function ContractDetail() {
             <p className="text-muted-foreground">{contract.buyerName}</p>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className={getTypeColor(contract.type)} variant="outline">
-              {contract.type}
+            <Badge className={getTypeColor(contract.originType)} variant="outline">
+              {contract.originType}
             </Badge>
             <Badge className={getStatusColor(contract.status)}>
               {contract.status}
@@ -251,7 +251,7 @@ export default function ContractDetail() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Installment Amount</p>
-                  <p className="text-lg">{formatCurrency(contract.installmentAmount)}</p>
+                  <p className="text-lg">{contract.installmentAmount ? formatCurrency(contract.installmentAmount) : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Installment Count</p>

@@ -72,7 +72,7 @@ export default function TaxSchedule() {
     const rows = schedule.map(item => [
       item.propertyId,
       item.buyerName,
-      item.type,
+      item.originType,
       item.principalReceived.toFixed(2),
       item.grossProfitPercent.toFixed(2),
       item.gainRecognized.toFixed(2),
@@ -266,8 +266,8 @@ export default function TaxSchedule() {
                         </TableCell>
                         <TableCell>{item.buyerName}</TableCell>
                         <TableCell>
-                          <Badge className={getTypeColor(item.type)}>
-                            {item.type}
+                          <Badge className={getTypeColor(item.originType)}>
+                            {item.originType}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">

@@ -151,7 +151,7 @@ describe("tax schedule procedures", () => {
       return; // Skip if not enough data
     }
 
-    const types = new Set(schedule.map(item => item.type));
+    const types = new Set(schedule.map(item => item.originType));
     expect(types.size).toBeGreaterThan(0);
   });
 });
@@ -173,7 +173,7 @@ describe("dashboard KPIs", () => {
     const kpis = await caller.dashboard.getKPIs({ 
       year: 2024,
       status: "all",
-      type: "all",
+      originType: "all",
       county: "all"
     });
     
@@ -192,14 +192,14 @@ describe("dashboard KPIs", () => {
     const allKPIs = await caller.dashboard.getKPIs({ 
       year: 2024,
       status: "all",
-      type: "all",
+      originType: "all",
       county: "all"
     });
     
     const activeKPIs = await caller.dashboard.getKPIs({ 
       year: 2024,
       status: "Active",
-      type: "all",
+      originType: "all",
       county: "all"
     });
     
@@ -210,14 +210,14 @@ describe("dashboard KPIs", () => {
     const directKPIs = await caller.dashboard.getKPIs({ 
       year: 2024,
       status: "all",
-      type: "DIRECT",
+      originType: "DIRECT",
       county: "all"
     });
     
     const assumedKPIs = await caller.dashboard.getKPIs({ 
       year: 2024,
       status: "all",
-      type: "ASSUMED",
+      originType: "ASSUMED",
       county: "all"
     });
     

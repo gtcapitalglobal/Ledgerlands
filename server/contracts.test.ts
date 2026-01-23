@@ -74,7 +74,7 @@ describe("contracts procedures", () => {
 
   it("should calculate gross profit percentage correctly", async () => {
     const contracts = await caller.contracts.list();
-    const directContract = contracts.find(c => c.type === "DIRECT");
+    const directContract = contracts.find(c => c.originType === "DIRECT");
     
     if (!directContract) {
       throw new Error("No DIRECT contract found for testing");
@@ -96,7 +96,7 @@ describe("contracts procedures", () => {
 
   it("should calculate receivable balance correctly for DIRECT contract", async () => {
     const contracts = await caller.contracts.list();
-    const directContract = contracts.find(c => c.type === "DIRECT");
+    const directContract = contracts.find(c => c.originType === "DIRECT");
     
     if (!directContract) {
       throw new Error("No DIRECT contract found for testing");
@@ -120,7 +120,7 @@ describe("contracts procedures", () => {
 
   it("should calculate receivable balance correctly for ASSUMED contract", async () => {
     const contracts = await caller.contracts.list();
-    const assumedContract = contracts.find(c => c.type === "ASSUMED");
+    const assumedContract = contracts.find(c => c.originType === "ASSUMED");
     
     if (!assumedContract) {
       throw new Error("No ASSUMED contract found for testing");
@@ -153,18 +153,18 @@ describe("contracts procedures", () => {
 
   it("should filter contracts by type", async () => {
     const allContracts = await caller.contracts.list();
-    const directContracts = allContracts.filter(c => c.type === "DIRECT");
-    const assumedContracts = allContracts.filter(c => c.type === "ASSUMED");
+    const directContracts = allContracts.filter(c => c.originType === "DIRECT");
+    const assumedContracts = allContracts.filter(c => c.originType === "ASSUMED");
     
     expect(directContracts.length).toBeGreaterThan(0);
     expect(assumedContracts.length).toBeGreaterThan(0);
     
     directContracts.forEach(contract => {
-      expect(contract.type).toBe("DIRECT");
+      expect(contract.originType).toBe("DIRECT");
     });
     
     assumedContracts.forEach(contract => {
-      expect(contract.type).toBe("ASSUMED");
+      expect(contract.originType).toBe("ASSUMED");
     });
   });
 });

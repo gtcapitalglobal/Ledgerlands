@@ -28,7 +28,7 @@ export default function Contracts() {
         contract.county.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || contract.status === statusFilter;
-      const matchesType = typeFilter === "all" || contract.type === typeFilter;
+      const matchesType = typeFilter === "all" || contract.originType === typeFilter;
       
       return matchesSearch && matchesStatus && matchesType;
     });
@@ -190,8 +190,8 @@ export default function Contracts() {
                         </TableCell>
                         <TableCell>{contract.buyerName}</TableCell>
                         <TableCell>
-                          <Badge className={getTypeColor(contract.type)}>
-                            {contract.type}
+                          <Badge className={getTypeColor(contract.originType)}>
+                            {contract.originType}
                           </Badge>
                         </TableCell>
                         <TableCell>{contract.county}</TableCell>

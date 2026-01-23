@@ -44,7 +44,8 @@ export const appRouter = router({
       .input(z.object({
         propertyId: z.string(),
         buyerName: z.string(),
-        type: z.enum(["DIRECT", "ASSUMED"]),
+        originType: z.enum(["DIRECT", "ASSUMED"]),
+        saleType: z.enum(["CFD", "CASH"]).default("CFD"),
         county: z.string(),
         contractDate: z.string(),
         transferDate: z.string().optional(),
@@ -76,7 +77,8 @@ export const appRouter = router({
         id: z.number(),
         propertyId: z.string().optional(),
         buyerName: z.string().optional(),
-        type: z.enum(["DIRECT", "ASSUMED"]).optional(),
+        originType: z.enum(["DIRECT", "ASSUMED"]).optional(),
+        saleType: z.enum(["CFD", "CASH"]).optional(),
         county: z.string().optional(),
         contractDate: z.string().optional(),
         transferDate: z.string().optional(),
@@ -276,7 +278,8 @@ export const appRouter = router({
       .input(z.object({
         year: z.number().optional(),
         status: z.union([z.enum(["Active", "PaidOff", "Default", "Repossessed"]), z.literal("all")]).optional(),
-        type: z.union([z.enum(["DIRECT", "ASSUMED"]), z.literal("all")]).optional(),
+        originType: z.union([z.enum(["DIRECT", "ASSUMED"]), z.literal("all")]).optional(),
+        saleType: z.union([z.enum(["CFD", "CASH"]), z.literal("all")]).optional(),
         county: z.string().optional(),
       }))
       .query(async ({ input }) => {
@@ -287,8 +290,11 @@ export const appRouter = router({
         if (input.status && input.status !== "all") {
           contracts = contracts.filter(c => c.status === input.status);
         }
-        if (input.type && input.type !== "all") {
-          contracts = contracts.filter(c => c.type === input.type);
+        if (input.originType && input.originType !== "all") {
+          contracts = contracts.filter(c => c.originType === input.originType);
+        }
+        if (input.saleType && input.saleType !== "all") {
+          contracts = contracts.filter(c => c.saleType === input.saleType);
         }
         if (input.county) {
           contracts = contracts.filter(c => c.county === input.county);
@@ -397,7 +403,8 @@ export const appRouter = router({
             contractId: contract.id,
             propertyId: contract.propertyId,
             buyerName: contract.buyerName,
-            type: contract.type,
+            originType: contract.originType,
+            saleType: contract.saleType,
             principalReceived,
             grossProfitPercent,
             gainRecognized,

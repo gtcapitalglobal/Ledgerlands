@@ -67,3 +67,122 @@
 - [x] Escrever testes vitest para cálculos de Gain Recognized
 - [x] Escrever testes vitest para import CSV
 - [x] Escrever testes vitest para validação de dados
+
+
+## V2.0 - CASH SALES & DOCUMENT UPLOAD
+
+### Database Schema Updates
+- [x] Adicionar campo `state` (string) ao schema de contracts
+- [x] Adicionar campo `origin_type` (DIRECT/ASSUMED) ao schema - renomear `type` atual
+- [x] Adicionar campo `sale_type` (CFD/CASH) ao schema
+- [x] Adicionar campo `close_date` (date, opcional) ao schema
+- [x] Tornar campos opcionais para CASH: installment_amount, installment_count, balloon_amount, balloon_date
+- [x] Criar tabela `contract_attachments` (id, contract_id, file_name, file_url, file_type, uploaded_at)
+- [x] Executar migration do banco de dados
+
+### Backend - CASH Sales Logic
+- [ ] Atualizar helpers para calcular profit de CASH: gain = sale_price - cost_basis (100% no ano)
+- [ ] Atualizar cálculo de receivable balance: CASH = 0 sempre
+- [ ] Auto-gerar payment quando criar contrato CASH (1 payment = sale_price no close_date)
+- [ ] Atualizar routers tRPC para suportar sale_type CFD/CASH
+- [ ] Atualizar tax schedule para incluir CASH sales
+
+### Backend - Document Upload
+- [ ] Criar procedures tRPC para upload de documentos (usando S3)
+- [ ] Criar procedures tRPC para listar documentos de um contrato
+- [ ] Criar procedure tRPC para deletar documento
+
+### Frontend - Dynamic Year Filters
+- [ ] Gerar lista de anos automaticamente a partir de contract_date, payment_date, close_date
+- [ ] Adicionar opção "Year Range" (ex: 2025-2026)
+- [ ] Adicionar opção "All years"
+- [ ] Atualizar Dashboard para suportar year range e all years
+- [ ] Atualizar Tax Schedule para suportar year range e all years
+
+### Frontend - CASH Sales Support
+- [ ] Atualizar Dashboard KPIs para incluir CASH sales
+- [ ] Atualizar filtros para incluir sale_type (CFD/CASH/All)
+- [ ] Atualizar Contracts Master para exibir sale_type
+- [ ] Atualizar Contract Detail para exibir campos de CASH (close_date)
+- [ ] Atualizar formulários para suportar criação de CASH sales
+
+### Frontend - Document Upload
+- [ ] Adicionar seção "Documents" na página Contract Detail
+- [ ] Implementar upload de arquivos (PDF, JPG, PNG)
+- [ ] Exibir lista de documentos com preview/download
+- [ ] Adicionar botão para deletar documento
+
+### Data & Templates
+- [ ] Atualizar seed data para incluir 1-2 contratos CASH
+- [ ] Atualizar template CSV de contracts com novos campos
+- [ ] Atualizar documentação com explicação de CASH sales
+
+### Testing
+- [ ] Atualizar testes vitest para CASH sales
+- [ ] Criar testes para document upload
+- [ ] Validar cálculos de profit para CASH
+
+
+## V2.0 - IMPLEMENTATION (FINAL APPROVED PLAN)
+
+### Schema Migration (Attachments Enhancement)
+- [x] Add propertyId to contractAttachments table
+- [x] Add docType enum to contractAttachments table
+- [x] Add uploadedBy to contractAttachments table
+
+### Backend - Helpers & Utils
+- [x] Create shared/utils.ts with normalizePropertyId function
+- [ ] Update db.ts: createContract with Model 1 logic (openingReceivable = contractPrice for DIRECT+CFD)
+- [ ] Update db.ts: calculateReceivableBalance with ASSUMED payment filter (paymentDate >= transferDate)
+- [ ] Add storage.ts: storageDelete function for S3 cleanup
+- [ ] Add db.ts: getContractAttachmentById helper
+- [ ] Update db.ts: createContractAttachment with new fields (propertyId, docType, uploadedBy)
+
+### Backend - Routers
+- [ ] Update routers.ts: contracts.create with originType, saleType, state, closeDate
+- [ ] Update routers.ts: contracts.create with propertyId normalization + duplicate check
+- [ ] Update routers.ts: contracts.create with CASH auto-payment safeguards
+- [ ] Update routers.ts: contracts.update with new fields
+- [ ] Update routers.ts: dashboard.getKPIs with reportingMode (BOOK/TAX)
+- [ ] Update routers.ts: dashboard.getKPIs with BOOK mode KPIs (Contract Revenue Opened)
+- [ ] Update routers.ts: taxSchedule.getByYear with ASSUMED payment filter
+- [ ] Update routers.ts: contracts.attachments.delete with S3 cleanup
+- [ ] Add routers.ts: dashboard.getAvailableYears procedure
+
+### Frontend - Dashboard
+- [ ] Add reportingMode state (BOOK/TAX) with toggle
+- [ ] Implement BOOK mode KPI set (show Contract Revenue Opened, hide Gain Recognized)
+- [ ] Implement TAX mode KPI set (show Gain Recognized)
+- [ ] Update year filter with dynamic labels (YTD vs Selected Period)
+- [ ] Add saleType filter (All/CFD/CASH)
+- [ ] Update all type references from type → originType/saleType
+
+### Frontend - Contracts & Detail
+- [ ] Update Contracts Master table with originType and saleType columns
+- [ ] Update Contract Detail with new fields (state, closeDate, originType, saleType)
+- [ ] Add propertyId normalization on blur in forms
+- [ ] Add docType selector in attachment upload dialog
+- [ ] Update attachments list with docType badge, uploadedBy, uploadedAt
+
+### Frontend - Year Filters
+- [ ] Create useAvailableYears hook
+- [ ] Implement year range selector (from/to)
+- [ ] Add "All Years" option
+- [ ] Update KPI labels based on yearMode
+
+### CSV Import/Export
+- [ ] Add propertyId normalization in CSV parser
+- [ ] Add duplicate detection after normalization
+- [ ] Update validation: ASSUMED requires transferDate + openingReceivable
+- [ ] Update validation: DIRECT must have blank transferDate + openingReceivable
+- [ ] Update CSV export with new fields
+
+### Testing
+- [ ] Test Model 1 receivable calculation (DIRECT = contractPrice)
+- [ ] Test ASSUMED payment filtering (paymentDate >= transferDate)
+- [ ] Test BOOK vs TAX reporting modes
+- [ ] Test CASH auto-payment with safeguards
+- [ ] Test attachment delete (DB + S3)
+- [ ] Test propertyId normalization
+- [ ] Test duplicate prevention
+- [x] Update existing vitest tests for new schema

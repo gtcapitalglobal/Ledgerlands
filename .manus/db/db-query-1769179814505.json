@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, propertyId, saleType, originType FROM contracts LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT id, propertyId, saleType, originType FROM contracts LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "propertyId": "#33",
+      "saleType": "DIRECT",
+      "originType": "DIRECT"
+    },
+    {
+      "id": "2",
+      "propertyId": "#45",
+      "saleType": "DIRECT",
+      "originType": "DIRECT"
+    },
+    {
+      "id": "3",
+      "propertyId": "#12",
+      "saleType": "ASSUMED",
+      "originType": "ASSUMED"
+    },
+    {
+      "id": "4",
+      "propertyId": "#28",
+      "saleType": "ASSUMED",
+      "originType": "ASSUMED"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpropertyId\tsaleType\toriginType\n1\t#33\tDIRECT\tDIRECT\n2\t#45\tDIRECT\tDIRECT\n3\t#12\tASSUMED\tASSUMED\n4\t#28\tASSUMED\tASSUMED\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

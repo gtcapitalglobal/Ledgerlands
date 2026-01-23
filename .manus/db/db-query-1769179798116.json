@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'contracts' AND COLUMN_NAME IN ('type', 'saleType', 'originType', 'state', 'closeDate');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'contracts' AND COLUMN_NAME IN ('type', 'saleType', 'originType', 'state', 'closeDate');",
+  "rows": [
+    {
+      "COLUMN_NAME": "saleType",
+      "DATA_TYPE": "enum",
+      "COLUMN_TYPE": "enum('DIRECT','ASSUMED')"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\tDATA_TYPE\tCOLUMN_TYPE\nsaleType\tenum\tenum('DIRECT','ASSUMED')\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

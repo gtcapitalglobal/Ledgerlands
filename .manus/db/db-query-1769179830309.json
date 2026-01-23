@@ -1,0 +1,9 @@
+{
+  "query": "-- Primeiro modificar o enum para aceitar CFD\nALTER TABLE `contracts` MODIFY COLUMN `saleType` enum('DIRECT','ASSUMED','CFD','CASH') NOT NULL DEFAULT 'CFD';\n\n-- Atualizar DIRECT para CFD\nUPDATE `contracts` SET `saleType` = 'CFD' WHERE `saleType` = 'DIRECT';\n\n-- Atualizar ASSUMED para CFD  \nUPDATE `contracts` SET `saleType` = 'CFD' WHERE `saleType` = 'ASSUMED';\n\n-- Agora modificar enum para remover DIRECT e ASSUMED\nALTER TABLE `contracts` MODIFY COLUMN `saleType` enum('CFD','CASH') NOT NULL DEFAULT 'CFD';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute -- Primeiro modificar o enum para aceitar CFD\nALTER TABLE `contracts` MODIFY COLUMN `saleType` enum('DIRECT','ASSUMED','CFD','CASH') NOT NULL DEFAULT 'CFD';\n\n-- Atualizar DIRECT para CFD\nUPDATE `contracts` SET `saleType` = 'CFD' WHERE `saleType` = 'DIRECT';\n\n-- Atualizar ASSUMED para CFD  \nUPDATE `contracts` SET `saleType` = 'CFD' WHERE `saleType` = 'ASSUMED';\n\n-- Agora modificar enum para remover DIRECT e ASSUMED\nALTER TABLE `contracts` MODIFY COLUMN `saleType` enum('CFD','CASH') NOT NULL DEFAULT 'CFD';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 671
+}

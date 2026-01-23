@@ -15,6 +15,20 @@
       "when": 1769178193125,
       "tag": "0001_giant_sabra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769179724024,
+      "tag": "0002_bizarre_stick",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1769182191540,
+      "tag": "0003_boring_captain_stacy",
+      "breakpoints": true
     }
   ]
 }
