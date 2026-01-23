@@ -193,3 +193,22 @@
 - [ ] Test propertyId normalization
 - [ ] Test duplicate prevention
 - [x] Update existing vitest tests for new schema
+
+
+## V1.8 - Frontend UI (MVP Final)
+
+### Contracts CSV Import UI
+- [x] Add Import CSV button to Contracts page
+- [x] Create CSV file picker and parser
+- [x] Display validation errors with row numbers
+- [x] Show success/failure summary
+- [x] Refresh contracts list after import
+
+### Attachments UI (Contract Detail)
+- [x] Add Attachments section to Contract Detail page
+- [x] Create upload button with file picker
+- [x] Add docType dropdown selector (defaults to Other)
+- [x] Display attachments list with docType badges
+- [x] Add open/download button for each attachment
+- [x] Add delete button with confirmation
+- [x] Refresh attachments list after upload/delete

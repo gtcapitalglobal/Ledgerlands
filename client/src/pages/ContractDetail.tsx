@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ContractDetail() {
   const [, params] = useRoute("/contracts/:id");
@@ -20,6 +21,50 @@ export default function ContractDetail() {
     id: contractId,
     year: selectedYear 
   });
+  
+  const { data: attachments = [] } = trpc.attachments.list.useQuery({ contractId });
+  const uploadAttachment = trpc.attachments.upload.useMutation();
+  const deleteAttachment = trpc.attachments.delete.useMutation({
+    onSuccess: () => toast.success('Attachment deleted'),
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !data?.contract) return;
+
+    toast.info('Uploading...');
+    const fileKey = `contracts/${data.contract.propertyId}/${Date.now()}-${file.name}`;
+    const arrayBuffer = await file.arrayBuffer();
+    
+    try {
+      const response = await fetch('/api/storage/upload?path=' + encodeURIComponent(fileKey), {
+        method: 'POST',
+        body: file,
+      });
+      const { url } = await response.json();
+
+      await uploadAttachment.mutateAsync({
+        contractId,
+        fileName: file.name,
+        fileUrl: url,
+        fileKey,
+        fileType: file.type,
+        docType: 'Other',
+        propertyId: data.contract.propertyId,
+      });
+
+      toast.success('File uploaded');
+    } catch (error) {
+      toast.error('Upload failed');
+    }
+
+    e.target.value = '';
+  };
+
+  const handleDeleteAttachment = async (id: number) => {
+    if (!confirm('Delete this attachment?')) return;
+    await deleteAttachment.mutateAsync({ id });
+  };
 
   const formatCurrency = (value: string | number) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -353,6 +398,57 @@ export default function ContractDetail() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Attachments */}
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Documentos Anexados</CardTitle>
+                <CardDescription>Upload e gestão de documentos do contrato</CardDescription>
+              </div>
+              <Button onClick={() => document.getElementById('file-upload')?.click()}>
+                Upload
+              </Button>
+              <input
+                id="file-upload"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {attachments.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Nenhum documento anexado</p>
+            ) : (
+              <div className="space-y-2">
+                {attachments.map((att) => (
+                  <div key={att.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Badge>{att.docType}</Badge>
+                      <div>
+                        <p className="font-medium">{att.fileName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Uploaded by {att.uploadedBy} on {formatDate(att.uploadedAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => window.open(att.fileUrl, '_blank')}>
+                        Open
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteAttachment(att.id)}>
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

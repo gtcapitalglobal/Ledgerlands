@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ExternalLink } from "lucide-react";
+import { Search, Plus, ExternalLink, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Contracts() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +18,39 @@ export default function Contracts() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const { data: contracts, isLoading } = trpc.contracts.list.useQuery();
+  const importCSV = trpc.contracts.importCSV.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(`Imported ${result.imported} contracts`);
+      } else {
+        toast.error(`Import failed: ${result.errors.length} errors`);
+        result.errors.forEach(err => toast.error(`Row ${err.row}: ${err.message}`));
+      }
+    },
+  });
+
+  const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const lines = text.split('\n').filter(l => l.trim());
+    const headers = lines[0].split(',');
+    const rows = lines.slice(1).map(line => {
+      const values = line.split(',');
+      const row: any = {};
+      headers.forEach((h, i) => {
+        const key = h.trim();
+        const val = values[i]?.trim();
+        if (key === 'installmentCount') row[key] = val ? parseInt(val) : undefined;
+        else row[key] = val || undefined;
+      });
+      return row;
+    });
+
+    importCSV.mutate({ rows });
+    e.target.value = '';
+  };
 
   const filteredContracts = useMemo(() => {
     if (!contracts) return [];
@@ -84,10 +118,22 @@ export default function Contracts() {
               Gestão completa de contratos de financiamento
             </p>
           </div>
-          <Button className="shadow-elegant">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Contrato
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => document.getElementById('csv-import')?.click()}>
+              Importar CSV
+            </Button>
+            <input
+              id="csv-import"
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={handleCSVImport}
+            />
+            <Button className="shadow-elegant">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Contrato
+            </Button>
+          </div>
         </div>
 
         {/* Filters and Search */}
