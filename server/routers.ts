@@ -1,4 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
+import { normalizePropertyId } from "@shared/utils";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
@@ -42,7 +43,7 @@ export const appRouter = router({
 
     create: protectedProcedure
       .input(z.object({
-        propertyId: z.string(),
+        propertyId: z.string().transform(val => normalizePropertyId(val)),
         buyerName: z.string(),
         originType: z.enum(["DIRECT", "ASSUMED"]),
         saleType: z.enum(["CFD", "CASH"]).default("CFD"),
@@ -91,7 +92,7 @@ export const appRouter = router({
     update: protectedProcedure
       .input(z.object({
         id: z.number(),
-        propertyId: z.string().optional(),
+        propertyId: z.string().transform(val => normalizePropertyId(val)).optional(),
         buyerName: z.string().optional(),
         originType: z.enum(["DIRECT", "ASSUMED"]).optional(),
         saleType: z.enum(["CFD", "CASH"]).optional(),
