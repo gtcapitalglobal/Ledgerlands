@@ -110,8 +110,15 @@ export default function TaxSchedule() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    const periodLabel = selectedPeriod === "YEAR" ? "" : `_${selectedPeriod}`;
-    a.download = `tax_profit_schedule_${selectedYear}${periodLabel}.csv`;
+    let filename = 'tax_schedule_';
+    if (selectedPeriod === "RANGE") {
+      filename += `RANGE_${startDate}_${endDate}.csv`;
+    } else if (selectedPeriod === "YEAR") {
+      filename += `${selectedYear}.csv`;
+    } else {
+      filename += `${selectedYear}_${selectedPeriod}.csv`;
+    }
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
     
@@ -176,9 +183,34 @@ export default function TaxSchedule() {
                     <SelectItem value="Q2">Q2 (Apr-Jun)</SelectItem>
                     <SelectItem value="Q3">Q3 (Jul-Sep)</SelectItem>
                     <SelectItem value="Q4">Q4 (Oct-Dec)</SelectItem>
+                    <SelectItem value="RANGE">Custom Range</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {selectedPeriod === "RANGE" && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Start Date</label>
+                    <input 
+                      type="date" 
+                      value={startDate} 
+                      onChange={(e) => setStartDate(e.target.value)} 
+                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">End Date</label>
+                    <input 
+                      type="date" 
+                      value={endDate} 
+                      onChange={(e) => setEndDate(e.target.value)} 
+                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+                      required
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

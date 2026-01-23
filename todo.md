@@ -318,3 +318,13 @@
 - [x] Aplicar cores GT Lands em cards, badges, botões (via CSS variables)
 - [x] Ajustar contraste para acessibilidade
 - [ ] Atualizar VITE_APP_LOGO env variable (opcional)
+
+
+## Final Audit Log + Period Reporting (Tax/Audit Annex Only)
+- [x] contracts.update: require input.reason when tracked fields change
+- [x] contracts.update: auto-diff old vs new and insert tax_audit_log rows
+- [x] payments.update: already has reason field (DONE)
+- [x] Verify History UI works end-to-end in ContractDetail
+- [x] taxSchedule.exportCSV: add procedure with period params
+- [x] TaxSchedule UI: add RANGE date inputs (start/end)
+- [x] CSV filename includes period (e.g., tax_schedule_2026_Q1.csv or tax_schedule_RANGE_2026-01-01_2026-03-31.csv)

@@ -577,6 +577,7 @@ export default function ContractDetail() {
               contractPrice: editFormData.contractPrice,
               costBasis: editFormData.costBasis,
               downPayment: editFormData.downPayment || "0",
+              reason: editFormData.reason, // Required for audit log
             };
             if (contract?.saleType === "CFD") {
               data.installmentAmount = editFormData.installmentAmount;
@@ -650,6 +651,10 @@ export default function ContractDetail() {
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Notes</Label>
               <Textarea id="edit-notes" value={editFormData.notes} onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})} rows={3} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-reason">Reason for Edit (Audit Required) *</Label>
+              <Textarea id="edit-reason" value={editFormData.reason || ''} onChange={(e) => setEditFormData({...editFormData, reason: e.target.value})} rows={2} placeholder="Explain why this contract is being modified (required for tax audit)" required />
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>

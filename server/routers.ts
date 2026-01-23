@@ -761,30 +761,58 @@ export const appRouter = router({
       }),
 
     exportCSV: protectedProcedure
-      .input(z.object({ year: z.number() }))
+      .input(z.object({ 
+        period: z.enum(["YEAR", "Q1", "Q2", "Q3", "Q4", "RANGE"]),
+        year: z.number(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
       .query(async ({ input }) => {
         const contracts = await db.getAllContracts();
         const allPayments = await db.getAllPayments();
+        
+        // Determine date range based on period
+        let startDate: Date, endDate: Date;
+        if (input.period === "RANGE" && input.startDate && input.endDate) {
+          startDate = new Date(input.startDate);
+          endDate = new Date(input.endDate);
+        } else if (input.period === "Q1") {
+          startDate = new Date(`${input.year}-01-01`);
+          endDate = new Date(`${input.year}-03-31`);
+        } else if (input.period === "Q2") {
+          startDate = new Date(`${input.year}-04-01`);
+          endDate = new Date(`${input.year}-06-30`);
+        } else if (input.period === "Q3") {
+          startDate = new Date(`${input.year}-07-01`);
+          endDate = new Date(`${input.year}-09-30`);
+        } else if (input.period === "Q4") {
+          startDate = new Date(`${input.year}-10-01`);
+          endDate = new Date(`${input.year}-12-31`);
+        } else { // YEAR
+          startDate = new Date(`${input.year}-01-01`);
+          endDate = new Date(`${input.year}-12-31`);
+        }
+        
         const rows = [];
 
         for (const contract of contracts) {
-          let yearPayments = allPayments.filter(p => {
-            const paymentYear = new Date(p.paymentDate).getFullYear();
-            return paymentYear === input.year && p.contractId === contract.id;
+          let periodPayments = allPayments.filter(p => {
+            const paymentDate = new Date(p.paymentDate);
+            return paymentDate >= startDate && paymentDate <= endDate && p.contractId === contract.id;
           });
           
           if (contract.originType === 'ASSUMED' && contract.transferDate) {
-            yearPayments = yearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+            periodPayments = periodPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
           }
 
-          const principalReceived = yearPayments.reduce((sum, p) => sum + parseFloat(p.principalAmount as string), 0);
-          const lateFees = yearPayments.reduce((sum, p) => sum + parseFloat(p.lateFeeAmount as string), 0);
+          const principalReceived = periodPayments.reduce((sum, p) => sum + parseFloat(p.principalAmount as string), 0);
+          const lateFees = periodPayments.reduce((sum, p) => sum + parseFloat(p.lateFeeAmount as string), 0);
           const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
           let gainRecognized = 0;
 
           if (contract.saleType === 'CASH' && contract.closeDate) {
-            const closeYear = new Date(contract.closeDate).getFullYear();
-            if (closeYear === input.year) {
+            const closeDate = new Date(contract.closeDate);
+            if (closeDate >= startDate && closeDate <= endDate) {
               gainRecognized = parseFloat(contract.contractPrice as string) - parseFloat(contract.costBasis as string);
             }
           } else {
