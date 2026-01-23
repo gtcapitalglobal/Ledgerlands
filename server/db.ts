@@ -90,6 +90,11 @@ export async function getUserByOpenId(openId: string) {
 
 // ==================== CONTRACT QUERIES ====================
 
+export function normalizePropertyId(propertyId: string): string {
+  // Remove # prefix if present and trim
+  return propertyId.replace(/^#/, '').trim();
+}
+
 export async function getAllContracts() {
   const db = await getDb();
   if (!db) return [];

@@ -328,3 +328,13 @@
 - [x] taxSchedule.exportCSV: add procedure with period params
 - [x] TaxSchedule UI: add RANGE date inputs (start/end)
 - [x] CSV filename includes period (e.g., tax_schedule_2026_Q1.csv or tax_schedule_RANGE_2026-01-01_2026-03-31.csv)
+
+
+## Payments CSV Import (property_id mapping)
+- [x] Add getContractByPropertyId helper to db.ts (already existed)
+- [x] Add normalizePropertyId helper to db.ts
+- [x] Create payments.importCSV procedure with property_id→contract_id mapping
+- [x] Accept headers: payment_date,(contract_id|property_id),amount_total,principal_amount,late_fee_amount,received_by,(channel?),memo
+- [x] Default channel to "OTHER" if missing
+- [x] Validate contract exists, error "unknown property_id" if not found
+- [x] UI import CSV already exists in Payments page, updated to use importCSV mutation

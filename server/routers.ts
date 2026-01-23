@@ -387,6 +387,127 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    importCSV: protectedProcedure
+      .input(z.object({
+        rows: z.array(z.object({
+          payment_date: z.string(),
+          contract_id: z.number().optional(),
+          property_id: z.string().optional(),
+          amount_total: z.string(),
+          principal_amount: z.string(),
+          late_fee_amount: z.string(),
+          received_by: z.string(),
+          channel: z.string().optional(),
+          memo: z.string().optional(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const results = [];
+        const errors = [];
+
+        for (let i = 0; i < input.rows.length; i++) {
+          const row = input.rows[i];
+          try {
+            // Determine contract_id
+            let contractId = row.contract_id;
+            
+            if (!contractId && row.property_id) {
+              // Map property_id to contract_id
+              const normalizedPropertyId = db.normalizePropertyId(row.property_id);
+              const contract = await db.getContractByPropertyId(normalizedPropertyId);
+              
+              if (!contract) {
+                errors.push({
+                  row: i + 1,
+                  error: `Unknown property_id: ${row.property_id}`
+                });
+                continue;
+              }
+              
+              contractId = contract.id;
+            }
+            
+            if (!contractId) {
+              errors.push({
+                row: i + 1,
+                error: "Missing contract_id or property_id"
+              });
+              continue;
+            }
+
+            // Validate amounts
+            const total = parseFloat(row.amount_total);
+            const principal = parseFloat(row.principal_amount);
+            const lateFee = parseFloat(row.late_fee_amount);
+            
+            if (Math.abs(total - (principal + lateFee)) > 0.01) {
+              errors.push({
+                row: i + 1,
+                error: "Principal + Late fee must equal Total amount"
+              });
+              continue;
+            }
+
+            // Get contract for propertyId
+            const contract = await db.getContractById(contractId);
+            if (!contract) {
+              errors.push({
+                row: i + 1,
+                error: `Contract not found for id: ${contractId}`
+              });
+              continue;
+            }
+
+            // Map received_by string to enum
+            const receivedByMap: Record<string, string> = {
+              'GT_REAL_BANK': 'GT_REAL_BANK',
+              'LEGACY_G&T': 'LEGACY_G&T',
+              'PERSONAL': 'PERSONAL',
+              'UNKNOWN': 'UNKNOWN',
+            };
+            const receivedBy = receivedByMap[row.received_by.toUpperCase()] || 'UNKNOWN';
+
+            // Map channel string to enum, default to OTHER
+            const channelMap: Record<string, string> = {
+              'ZELLE': 'ZELLE',
+              'ACH': 'ACH',
+              'CASH': 'CASH',
+              'CHECK': 'CHECK',
+              'WIRE': 'WIRE',
+              'OTHER': 'OTHER',
+            };
+            const channel = row.channel ? (channelMap[row.channel.toUpperCase()] || 'OTHER') : 'OTHER';
+
+            // Create payment
+            const paymentData = {
+              contractId,
+              propertyId: contract.propertyId,
+              paymentDate: new Date(row.payment_date),
+              amountTotal: row.amount_total,
+              principalAmount: row.principal_amount,
+              lateFeeAmount: row.late_fee_amount,
+              receivedBy: receivedBy as any,
+              channel: channel as any,
+              memo: row.memo || '',
+            };
+            
+            const id = await db.createPayment(paymentData);
+            results.push({ row: i + 1, id });
+          } catch (error: any) {
+            errors.push({
+              row: i + 1,
+              error: error.message || 'Unknown error'
+            });
+          }
+        }
+
+        return {
+          success: errors.length === 0,
+          imported: results.length,
+          errors,
+        };
+      }),
+
     exportCSV: protectedProcedure.query(async () => {
       const payments = await db.getAllPayments();
       const contracts = await db.getAllContracts();

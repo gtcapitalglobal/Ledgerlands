@@ -123,6 +123,23 @@ export default function Payments() {
     reader.readAsText(file);
   };
 
+  const importCSV = trpc.payments.importCSV.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(`${result.imported} pagamentos importados com sucesso!`);
+      } else {
+        toast.error(`Importação parcial: ${result.imported} importados, ${result.errors.length} erros`);
+        result.errors.forEach(err => {
+          console.error(`Linha ${err.row}: ${err.error}`);
+        });
+      }
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro na importação: ${error.message}`);
+    },
+  });
+
   const parseCSV = (text: string) => {
     try {
       const lines = text.split('\n').filter(line => line.trim());
@@ -132,8 +149,17 @@ export default function Payments() {
       }
 
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const requiredHeaders = ['property_id', 'payment_date', 'amount_total', 'principal_amount', 'late_fee_amount', 'received_by', 'channel'];
       
+      // Accept either contract_id OR property_id
+      const hasContractId = headers.includes('contract_id');
+      const hasPropertyId = headers.includes('property_id');
+      
+      if (!hasContractId && !hasPropertyId) {
+        toast.error("CSV must have either 'contract_id' or 'property_id' column");
+        return;
+      }
+
+      const requiredHeaders = ['payment_date', 'amount_total', 'principal_amount', 'late_fee_amount', 'received_by'];
       const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
       if (missingHeaders.length > 0) {
         toast.error(`Missing required columns: ${missingHeaders.join(', ')}`);
@@ -141,7 +167,7 @@ export default function Payments() {
       }
 
       const rows = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim());
+        const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
         const row: any = {};
         headers.forEach((header, index) => {
           row[header] = values[index];
@@ -149,7 +175,8 @@ export default function Payments() {
         return row;
       });
 
-      toast.success(`Parsed ${rows.length} payments from CSV. Import functionality coming soon.`);
+      // Call importCSV mutation
+      importCSV.mutate({ rows });
       
     } catch (error) {
       toast.error("Failed to parse CSV file");
