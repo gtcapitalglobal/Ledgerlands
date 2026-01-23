@@ -266,4 +266,11 @@
 
 
 ## Bugs Ativos
-- [x] CSV import não está funcionando - usuário clica em "Importar" mas nada acontece (CORRIGIDO: mapeamento de campos snake_case para camelCase)
+- [x] CSV import ainda não funciona - CORRIGIDO com logging e error handling
+
+## Restore Backup (Prioridade Alta)
+- [x] Criar tRPC procedure backup.restore para restaurar dados do JSON
+- [x] Criar página Settings com upload de arquivo JSON
+- [x] Implementar validação do formato do backup antes de restaurar
+- [x] Adicionar confirmação antes de sobrescrever dados existentes
+- [x] Adicionar link Settings na navegação

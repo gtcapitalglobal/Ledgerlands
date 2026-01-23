@@ -661,6 +661,91 @@ export const appRouter = router({
         exportedAt: new Date().toISOString(),
       };
     }),
+
+    restore: protectedProcedure
+      .input(z.object({
+        contracts: z.array(z.any()),
+        payments: z.array(z.any()),
+        clearExisting: z.boolean().default(false),
+      }))
+      .mutation(async ({ input }) => {
+        const dbConn = await import("./db").then(m => m.getDb());
+        if (!dbConn) throw new Error("Database not available");
+
+        const { contracts: contractsTable, payments: paymentsTable } = await import("../drizzle/schema");
+        const { sql } = await import("drizzle-orm");
+
+        try {
+          // Clear existing data if requested
+          if (input.clearExisting) {
+            await dbConn.delete(paymentsTable);
+            await dbConn.delete(contractsTable);
+          }
+
+          // Insert contracts
+          let contractsImported = 0;
+          for (const contract of input.contracts) {
+            try {
+              await dbConn.insert(contractsTable).values({
+                propertyId: contract.propertyId,
+                buyerName: contract.buyerName,
+                originType: contract.originType,
+                saleType: contract.saleType,
+                county: contract.county,
+                state: contract.state,
+                contractDate: new Date(contract.contractDate),
+                transferDate: contract.transferDate ? new Date(contract.transferDate) : null,
+                closeDate: contract.closeDate ? new Date(contract.closeDate) : null,
+                contractPrice: contract.contractPrice,
+                costBasis: contract.costBasis,
+                downPayment: contract.downPayment,
+                openingReceivable: contract.openingReceivable || null,
+                installmentAmount: contract.installmentAmount || null,
+                installmentCount: contract.installmentCount || null,
+                balloonAmount: contract.balloonAmount || null,
+                balloonDate: contract.balloonDate ? new Date(contract.balloonDate) : null,
+                status: contract.status,
+                notes: contract.notes || null,
+              });
+              contractsImported++;
+            } catch (err: any) {
+              console.error(`Failed to import contract ${contract.propertyId}:`, err.message);
+            }
+          }
+
+          // Insert payments
+          let paymentsImported = 0;
+          for (const payment of input.payments) {
+            try {
+              await dbConn.insert(paymentsTable).values({
+                contractId: payment.contractId,
+                propertyId: payment.propertyId,
+                paymentDate: new Date(payment.paymentDate),
+                amountTotal: payment.amountTotal.toString(),
+                principalAmount: payment.principalAmount.toString(),
+                lateFeeAmount: payment.lateFeeAmount.toString(),
+                receivedBy: payment.receivedBy || 'UNKNOWN',
+                channel: payment.channel || 'OTHER',
+                memo: payment.memo || null,
+              });
+              paymentsImported++;
+            } catch (err: any) {
+              console.error(`Failed to import payment for ${payment.propertyId}:`, err.message);
+            }
+          }
+
+          return {
+            success: true,
+            contractsImported,
+            paymentsImported,
+          };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Restore failed: ${error.message}`,
+          });
+        }
+      }),
   }),
 });
 

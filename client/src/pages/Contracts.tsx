@@ -91,10 +91,15 @@ export default function Contracts() {
     onSuccess: (result) => {
       if (result.success) {
         toast.success(`Imported ${result.imported} contracts`);
+        refetch(); // Refresh contracts list
       } else {
         toast.error(`Import failed: ${result.errors.length} errors`);
         result.errors.forEach(err => toast.error(`Row ${err.row}: ${err.message}`));
       }
+    },
+    onError: (error) => {
+      toast.error(`Import error: ${error.message}`);
+      console.error('Import CSV error:', error);
     },
   });
 
@@ -178,10 +183,15 @@ export default function Contracts() {
   };
   
   const confirmImport = () => {
+    console.log('[CSV Import] Starting import...');
+    console.log('[CSV Import] Validation errors:', csvValidationErrors.length);
+    
     if (csvValidationErrors.length > 0) {
       toast.error('Corrija os erros antes de importar');
       return;
     }
+    
+    console.log('[CSV Import] Raw CSV data:', csvPreviewData);
     
     // Map CSV fields (snake_case) to backend fields (camelCase)
     const rows = csvPreviewData.map((row: any) => ({
@@ -205,6 +215,9 @@ export default function Contracts() {
       status: 'Active' as 'Active' | 'PaidOff' | 'Default' | 'Repossessed',
       notes: row.notes || undefined,
     }));
+    
+    console.log('[CSV Import] Mapped rows:', rows);
+    console.log('[CSV Import] Calling mutation...');
     
     importCSV.mutate({ rows });
     setIsPreviewModalOpen(false);

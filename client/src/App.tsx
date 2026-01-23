@@ -10,6 +10,7 @@ import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
 import TaxSchedule from "./pages/TaxSchedule";
 import Documentation from "./pages/Documentation";
+import Settings from "./pages/Settings";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/payments"} component={Payments} />
       <Route path={"/tax-schedule"} component={TaxSchedule} />
       <Route path={"/documentation"} component={Documentation} />
+      <Route path={"/settings"} component={Settings} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
