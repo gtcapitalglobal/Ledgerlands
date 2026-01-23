@@ -216,3 +216,5 @@
 
 ## UX Improvements
 - [x] Fix DashboardLayout navigation menu (Dashboard, Contratos, Pagamentos, Tax Schedule, Documentação)
+
+- [x] Make KPI cards clickable with smart navigation (Contratos Ativos → /contracts?status=active, etc.)

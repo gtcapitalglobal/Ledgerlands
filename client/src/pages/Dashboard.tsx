@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ export default function Dashboard() {
   };
 
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+  const [, setLocation] = useLocation();
 
   return (
     <DashboardLayout>
@@ -166,7 +168,7 @@ export default function Dashboard() {
         ) : kpis ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Active Contracts */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/contracts?status=active')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Contratos Ativos
@@ -182,7 +184,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Total Contract Price */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/contracts')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Preço Total de Contratos
@@ -232,7 +234,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Total Receivable Balance */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/contracts')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Saldo a Receber
@@ -248,7 +250,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Principal Received YTD */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/payments')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Principal Recebido YTD
@@ -264,7 +266,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Gain Recognized YTD */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/tax-schedule')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {reportingMode === "TAX" ? "Ganho Reconhecido YTD" : "Receita de Contrato Aberta YTD"}
@@ -281,7 +283,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
             {/* Late Fees YTD */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow">
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/payments')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Late Fees YTD
