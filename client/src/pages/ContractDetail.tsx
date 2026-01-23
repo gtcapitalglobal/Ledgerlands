@@ -10,12 +10,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ContractDetail() {
   const [, params] = useRoute("/contracts/:id");
   const contractId = params?.id ? parseInt(params.id) : 0;
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>({});
 
   const { data, isLoading } = trpc.contracts.getWithCalculations.useQuery({ 
     id: contractId,
@@ -23,6 +30,17 @@ export default function ContractDetail() {
   });
   
   const { data: attachments = [] } = trpc.attachments.list.useQuery({ contractId });
+  const utils = trpc.useUtils();
+  const updateContract = trpc.contracts.update.useMutation({
+    onSuccess: () => {
+      toast.success('Contrato atualizado com sucesso!');
+      setIsEditModalOpen(false);
+      utils.contracts.getWithCalculations.invalidate({ id: contractId, year: selectedYear });
+    },
+    onError: (error) => {
+      toast.error(`Erro ao atualizar: ${error.message}`);
+    },
+  });
   const uploadAttachment = trpc.attachments.upload.useMutation();
   const deleteAttachment = trpc.attachments.delete.useMutation({
     onSuccess: () => toast.success('Attachment deleted'),
@@ -170,7 +188,24 @@ export default function ContractDetail() {
             <Badge className={getStatusColor(contract.status)}>
               {contract.status}
             </Badge>
-            <Button className="shadow-elegant">
+            <Button className="shadow-elegant" onClick={() => {
+              setEditFormData({
+                propertyId: contract.propertyId,
+                buyerName: contract.buyerName,
+                county: contract.county,
+                state: contract.state || 'FL',
+                status: contract.status,
+                notes: contract.notes || '',
+                contractPrice: contract.contractPrice,
+                costBasis: contract.costBasis,
+                downPayment: contract.downPayment || '0',
+                installmentAmount: contract.installmentAmount || '',
+                installmentCount: contract.installmentCount?.toString() || '',
+                balloonAmount: contract.balloonAmount || '',
+                balloonDate: contract.balloonDate || '',
+              });
+              setIsEditModalOpen(true);
+            }}>
               <Edit className="h-4 w-4 mr-2" />
               Editar
             </Button>
@@ -454,6 +489,107 @@ export default function ContractDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Contract Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Contrato {contract?.propertyId}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const data: any = {
+              id: contractId,
+              propertyId: editFormData.propertyId,
+              buyerName: editFormData.buyerName,
+              county: editFormData.county,
+              state: editFormData.state,
+              status: editFormData.status,
+              notes: editFormData.notes,
+              contractPrice: editFormData.contractPrice,
+              costBasis: editFormData.costBasis,
+              downPayment: editFormData.downPayment || "0",
+            };
+            if (contract?.saleType === "CFD") {
+              data.installmentAmount = editFormData.installmentAmount;
+              data.installmentCount = parseInt(editFormData.installmentCount);
+              if (editFormData.balloonAmount) data.balloonAmount = editFormData.balloonAmount;
+              if (editFormData.balloonDate) data.balloonDate = editFormData.balloonDate;
+            }
+            updateContract.mutate(data);
+          }} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-propertyId">Property ID *</Label>
+                <Input id="edit-propertyId" value={editFormData.propertyId} onChange={(e) => setEditFormData({...editFormData, propertyId: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-buyerName">Buyer Name *</Label>
+                <Input id="edit-buyerName" value={editFormData.buyerName} onChange={(e) => setEditFormData({...editFormData, buyerName: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-county">County *</Label>
+                <Input id="edit-county" value={editFormData.county} onChange={(e) => setEditFormData({...editFormData, county: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-state">State *</Label>
+                <Input id="edit-state" value={editFormData.state} onChange={(e) => setEditFormData({...editFormData, state: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-contractPrice">Contract Price *</Label>
+                <Input id="edit-contractPrice" type="number" step="0.01" value={editFormData.contractPrice} onChange={(e) => setEditFormData({...editFormData, contractPrice: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-costBasis">Cost Basis *</Label>
+                <Input id="edit-costBasis" type="number" step="0.01" value={editFormData.costBasis} onChange={(e) => setEditFormData({...editFormData, costBasis: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-downPayment">Down Payment</Label>
+                <Input id="edit-downPayment" type="number" step="0.01" value={editFormData.downPayment} onChange={(e) => setEditFormData({...editFormData, downPayment: e.target.value})} />
+              </div>
+              {contract?.saleType === "CFD" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-installmentAmount">Installment Amount</Label>
+                    <Input id="edit-installmentAmount" type="number" step="0.01" value={editFormData.installmentAmount} onChange={(e) => setEditFormData({...editFormData, installmentAmount: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-installmentCount">Installment Count</Label>
+                    <Input id="edit-installmentCount" type="number" value={editFormData.installmentCount} onChange={(e) => setEditFormData({...editFormData, installmentCount: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-balloonAmount">Balloon Amount</Label>
+                    <Input id="edit-balloonAmount" type="number" step="0.01" value={editFormData.balloonAmount} onChange={(e) => setEditFormData({...editFormData, balloonAmount: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-balloonDate">Balloon Date</Label>
+                    <Input id="edit-balloonDate" type="date" value={editFormData.balloonDate} onChange={(e) => setEditFormData({...editFormData, balloonDate: e.target.value})} />
+                  </div>
+                </>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status *</Label>
+                <Select value={editFormData.status} onValueChange={(v: any) => setEditFormData({...editFormData, status: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="paid_off">Paid Off</SelectItem>
+                    <SelectItem value="defaulted">Defaulted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea id="edit-notes" value={editFormData.notes} onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})} rows={3} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={updateContract.isPending}>Salvar</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

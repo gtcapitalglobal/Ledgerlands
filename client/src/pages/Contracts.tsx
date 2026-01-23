@@ -44,6 +44,37 @@ export default function Contracts() {
   });
 
   const { data: contracts, isLoading, refetch } = trpc.contracts.list.useQuery();
+  const createContract = trpc.contracts.create.useMutation({
+    onSuccess: () => {
+      toast.success("Contrato criado com sucesso!");
+      setIsCreateModalOpen(false);
+      setFormData({
+        propertyId: "",
+        buyerName: "",
+        county: "",
+        state: "FL",
+        originType: "DIRECT",
+        saleType: "CFD",
+        contractDate: "",
+        transferDate: "",
+        closeDate: "",
+        contractPrice: "",
+        costBasis: "",
+        downPayment: "",
+        openingReceivable: "",
+        installmentAmount: "",
+        installmentCount: "",
+        balloonAmount: "",
+        balloonDate: "",
+        status: "active",
+        notes: "",
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao criar contrato: ${error.message}`);
+    },
+  });
   const deleteContract = trpc.contracts.delete.useMutation({
     onSuccess: () => {
       toast.success("Contrato deletado com sucesso!");
@@ -163,7 +194,7 @@ export default function Contracts() {
               className="hidden"
               onChange={handleCSVImport}
             />
-            <Button className="shadow-elegant">
+            <Button className="shadow-elegant" onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Contrato
             </Button>
@@ -318,6 +349,158 @@ export default function Contracts() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Create Contract Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Contrato</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const data: any = {
+              propertyId: formData.propertyId,
+              buyerName: formData.buyerName,
+              county: formData.county,
+              state: formData.state,
+              originType: formData.originType,
+              saleType: formData.saleType,
+              contractDate: formData.contractDate,
+              contractPrice: formData.contractPrice,
+              costBasis: formData.costBasis,
+              downPayment: formData.downPayment || "0",
+              status: formData.status,
+              notes: formData.notes || "",
+            };
+            if (formData.originType === "ASSUMED") {
+              data.transferDate = formData.transferDate;
+              data.openingReceivable = formData.openingReceivable;
+            }
+            if (formData.saleType === "CFD") {
+              data.installmentAmount = formData.installmentAmount;
+              data.installmentCount = parseInt(formData.installmentCount);
+              if (formData.balloonAmount) data.balloonAmount = formData.balloonAmount;
+              if (formData.balloonDate) data.balloonDate = formData.balloonDate;
+            }
+            if (formData.saleType === "CASH") {
+              data.closeDate = formData.closeDate;
+            }
+            createContract.mutate(data);
+          }} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="propertyId">Property ID *</Label>
+                <Input id="propertyId" value={formData.propertyId} onChange={(e) => setFormData({...formData, propertyId: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="buyerName">Buyer Name *</Label>
+                <Input id="buyerName" value={formData.buyerName} onChange={(e) => setFormData({...formData, buyerName: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="county">County *</Label>
+                <Input id="county" value={formData.county} onChange={(e) => setFormData({...formData, county: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State *</Label>
+                <Input id="state" value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="originType">Origin Type *</Label>
+                <Select value={formData.originType} onValueChange={(v: any) => setFormData({...formData, originType: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DIRECT">DIRECT</SelectItem>
+                    <SelectItem value="ASSUMED">ASSUMED</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="saleType">Sale Type *</Label>
+                <Select value={formData.saleType} onValueChange={(v: any) => setFormData({...formData, saleType: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CFD">CFD</SelectItem>
+                    <SelectItem value="CASH">CASH</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contractDate">Contract Date *</Label>
+                <Input id="contractDate" type="date" value={formData.contractDate} onChange={(e) => setFormData({...formData, contractDate: e.target.value})} required />
+              </div>
+              {formData.originType === "ASSUMED" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="transferDate">Transfer Date *</Label>
+                    <Input id="transferDate" type="date" value={formData.transferDate} onChange={(e) => setFormData({...formData, transferDate: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="openingReceivable">Opening Receivable *</Label>
+                    <Input id="openingReceivable" type="number" step="0.01" value={formData.openingReceivable} onChange={(e) => setFormData({...formData, openingReceivable: e.target.value})} required />
+                  </div>
+                </>
+              )}
+              {formData.saleType === "CASH" && (
+                <div className="space-y-2">
+                  <Label htmlFor="closeDate">Close Date *</Label>
+                  <Input id="closeDate" type="date" value={formData.closeDate} onChange={(e) => setFormData({...formData, closeDate: e.target.value})} required />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="contractPrice">Contract Price *</Label>
+                <Input id="contractPrice" type="number" step="0.01" value={formData.contractPrice} onChange={(e) => setFormData({...formData, contractPrice: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costBasis">Cost Basis *</Label>
+                <Input id="costBasis" type="number" step="0.01" value={formData.costBasis} onChange={(e) => setFormData({...formData, costBasis: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="downPayment">Down Payment</Label>
+                <Input id="downPayment" type="number" step="0.01" value={formData.downPayment} onChange={(e) => setFormData({...formData, downPayment: e.target.value})} />
+              </div>
+              {formData.saleType === "CFD" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="installmentAmount">Installment Amount *</Label>
+                    <Input id="installmentAmount" type="number" step="0.01" value={formData.installmentAmount} onChange={(e) => setFormData({...formData, installmentAmount: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="installmentCount">Installment Count *</Label>
+                    <Input id="installmentCount" type="number" value={formData.installmentCount} onChange={(e) => setFormData({...formData, installmentCount: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="balloonAmount">Balloon Amount</Label>
+                    <Input id="balloonAmount" type="number" step="0.01" value={formData.balloonAmount} onChange={(e) => setFormData({...formData, balloonAmount: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="balloonDate">Balloon Date</Label>
+                    <Input id="balloonDate" type="date" value={formData.balloonDate} onChange={(e) => setFormData({...formData, balloonDate: e.target.value})} />
+                  </div>
+                </>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="status">Status *</Label>
+                <Select value={formData.status} onValueChange={(v: any) => setFormData({...formData, status: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="paid_off">Paid Off</SelectItem>
+                    <SelectItem value="defaulted">Defaulted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={createContract.isPending}>Criar Contrato</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

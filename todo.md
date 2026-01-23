@@ -221,6 +221,6 @@
 
 
 ## Bug Fixes
-- [ ] Fix "Novo Contrato" button not working in Contracts page (partial - modal form pending)
-- [ ] Implement contract creation modal form with validation (partial - form added, needs completion)
-- [x] Add delete contract functionality with confirmation dialog
+- [x] Fix "Novo Contrato" button not working in Contracts page (sem onClick handler)
+- [x] Adicionar botão "Editar" na página Contract Detail
+- [x] Verificar por que botão "Deletar" não aparece na tabela de contratos (foi implementado mas usuário não vê)
