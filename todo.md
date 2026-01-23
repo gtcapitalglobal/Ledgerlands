@@ -338,3 +338,7 @@
 - [x] Default channel to "OTHER" if missing
 - [x] Validate contract exists, error "unknown property_id" if not found
 - [x] UI import CSV already exists in Payments page, updated to use importCSV mutation
+
+
+## Bugs Ativos
+- [x] Payments import: "Unknown property_id: 17" mesmo com contrato #17 existente (CORRIGIDO: getContractByPropertyId agora tenta com e sem # prefix)

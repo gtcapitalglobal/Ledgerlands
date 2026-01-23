@@ -104,7 +104,20 @@ export async function getAllContracts() {
 export async function getContractByPropertyId(propertyId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(contracts).where(eq(contracts.propertyId, propertyId)).limit(1);
+  
+  // Try exact match first
+  let result = await db.select().from(contracts).where(eq(contracts.propertyId, propertyId)).limit(1);
+  
+  // If not found and doesn't start with #, try with # prefix
+  if (result.length === 0 && !propertyId.startsWith('#')) {
+    result = await db.select().from(contracts).where(eq(contracts.propertyId, `#${propertyId}`)).limit(1);
+  }
+  
+  // If not found and starts with #, try without # prefix
+  if (result.length === 0 && propertyId.startsWith('#')) {
+    result = await db.select().from(contracts).where(eq(contracts.propertyId, propertyId.substring(1))).limit(1);
+  }
+  
   return result.length > 0 ? result[0] : undefined;
 }
 
