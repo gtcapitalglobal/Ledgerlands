@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, contracts, payments, Contract, Payment, InsertContract, InsertPayment } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,4 +88,144 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ==================== CONTRACT QUERIES ====================
+
+export async function getAllContracts() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(contracts).orderBy(desc(contracts.createdAt));
+}
+
+export async function getContractById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(contracts).where(eq(contracts.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getContractByPropertyId(propertyId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(contracts).where(eq(contracts.propertyId, propertyId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createContract(contract: InsertContract) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contracts).values(contract);
+  return Number(result[0].insertId);
+}
+
+export async function updateContract(id: number, updates: Partial<InsertContract>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(contracts).set(updates).where(eq(contracts.id, id));
+}
+
+export async function deleteContract(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(contracts).where(eq(contracts.id, id));
+}
+
+// ==================== PAYMENT QUERIES ====================
+
+export async function getAllPayments() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(payments).orderBy(desc(payments.paymentDate));
+}
+
+export async function getPaymentsByContractId(contractId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(payments).where(eq(payments.contractId, contractId)).orderBy(desc(payments.paymentDate));
+}
+
+export async function getPaymentsByYear(year: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const startDate = new Date(`${year}-01-01`);
+  const endDate = new Date(`${year}-12-31`);
+  return await db.select().from(payments).where(
+    and(
+      gte(payments.paymentDate, startDate),
+      lte(payments.paymentDate, endDate)
+    )
+  ).orderBy(desc(payments.paymentDate));
+}
+
+export async function createPayment(payment: InsertPayment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(payments).values(payment);
+  return Number(result[0].insertId);
+}
+
+export async function updatePayment(id: number, updates: Partial<InsertPayment>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(payments).set(updates).where(eq(payments.id, id));
+}
+
+export async function deletePayment(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(payments).where(eq(payments.id, id));
+}
+
+// ==================== BUSINESS LOGIC HELPERS ====================
+
+/**
+ * Calculate Gross Profit % for a contract
+ * Formula: (Contract Price - Cost Basis) / Contract Price
+ */
+export function calculateGrossProfitPercent(contractPrice: string | number, costBasis: string | number): number {
+  const price = typeof contractPrice === 'string' ? parseFloat(contractPrice) : contractPrice;
+  const cost = typeof costBasis === 'string' ? parseFloat(costBasis) : costBasis;
+  if (price === 0) return 0;
+  return ((price - cost) / price) * 100;
+}
+
+/**
+ * Calculate Gross Profit amount
+ * Formula: Contract Price - Cost Basis
+ */
+export function calculateGrossProfit(contractPrice: string | number, costBasis: string | number): number {
+  const price = typeof contractPrice === 'string' ? parseFloat(contractPrice) : contractPrice;
+  const cost = typeof costBasis === 'string' ? parseFloat(costBasis) : costBasis;
+  return price - cost;
+}
+
+/**
+ * Calculate Gain Recognized for a given principal amount
+ * Formula: Principal Amount × (Gross Profit % / 100)
+ */
+export function calculateGainRecognized(principalAmount: string | number, grossProfitPercent: number): number {
+  const principal = typeof principalAmount === 'string' ? parseFloat(principalAmount) : principalAmount;
+  return principal * (grossProfitPercent / 100);
+}
+
+/**
+ * Calculate Receivable Balance for a contract
+ * For DIRECT: Contract Price - Down Payment - Sum(Principal Payments)
+ * For ASSUMED: Opening Receivable - Sum(Principal Payments after transfer)
+ */
+export async function calculateReceivableBalance(contract: Contract, allPayments: Payment[]): Promise<number> {
+  const contractPayments = allPayments.filter(p => p.contractId === contract.id);
+  const totalPrincipalPaid = contractPayments.reduce((sum, p) => {
+    const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
+    return sum + amount;
+  }, 0);
+
+  if (contract.type === 'ASSUMED' && contract.openingReceivable) {
+    const opening = typeof contract.openingReceivable === 'string' ? parseFloat(contract.openingReceivable) : contract.openingReceivable;
+    return opening - totalPrincipalPaid;
+  }
+
+  // DIRECT contract
+  const price = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
+  const down = typeof contract.downPayment === 'string' ? parseFloat(contract.downPayment) : contract.downPayment;
+  return price - down - totalPrincipalPaid;
+}

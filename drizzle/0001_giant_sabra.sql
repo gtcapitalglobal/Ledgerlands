@@ -1,0 +1,40 @@
+CREATE TABLE `contracts` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`propertyId` varchar(50) NOT NULL,
+	`buyerName` varchar(255) NOT NULL,
+	`type` enum('DIRECT','ASSUMED') NOT NULL,
+	`county` varchar(100) NOT NULL,
+	`contractDate` date NOT NULL,
+	`transferDate` date,
+	`contractPrice` decimal(15,2) NOT NULL,
+	`costBasis` decimal(15,2) NOT NULL,
+	`downPayment` decimal(15,2) NOT NULL,
+	`installmentAmount` decimal(15,2) NOT NULL,
+	`installmentCount` int NOT NULL,
+	`balloonAmount` decimal(15,2),
+	`balloonDate` date,
+	`status` enum('Active','PaidOff','Default','Repossessed') NOT NULL DEFAULT 'Active',
+	`notes` text,
+	`attachmentLinks` text,
+	`openingReceivable` decimal(15,2),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `contracts_id` PRIMARY KEY(`id`),
+	CONSTRAINT `contracts_propertyId_unique` UNIQUE(`propertyId`)
+);
+--> statement-breakpoint
+CREATE TABLE `payments` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`contractId` int NOT NULL,
+	`propertyId` varchar(50) NOT NULL,
+	`paymentDate` date NOT NULL,
+	`amountTotal` decimal(15,2) NOT NULL,
+	`principalAmount` decimal(15,2) NOT NULL,
+	`lateFeeAmount` decimal(15,2) NOT NULL,
+	`receivedBy` enum('GT_REAL_BANK','LEGACY_G&T','PERSONAL','UNKNOWN') NOT NULL,
+	`channel` enum('ZELLE','ACH','CASH','CHECK','WIRE','OTHER') NOT NULL,
+	`memo` text,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `payments_id` PRIMARY KEY(`id`)
+);
