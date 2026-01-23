@@ -212,3 +212,7 @@
 - [x] Add open/download button for each attachment
 - [x] Add delete button with confirmation
 - [x] Refresh attachments list after upload/delete
+
+
+## UX Improvements
+- [x] Fix DashboardLayout navigation menu (Dashboard, Contratos, Pagamentos, Tax Schedule, Documentação)
