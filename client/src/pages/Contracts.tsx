@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ExternalLink, Upload, Trash2 } from "lucide-react";
+import { Search, Plus, ExternalLink, Upload, Trash2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,7 @@ export default function Contracts() {
   });
 
   const { data: contracts, isLoading, refetch } = trpc.contracts.list.useQuery();
+  const exportCSV = trpc.contracts.exportCSV.useQuery(undefined, { enabled: false });
   const createContract = trpc.contracts.create.useMutation({
     onSuccess: () => {
       toast.success("Contrato criado com sucesso!");
@@ -292,7 +293,27 @@ export default function Contracts() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const result = await exportCSV.refetch();
+                if (result.data) {
+                  const blob = new Blob([result.data.csv], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = result.data.filename;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success('CSV exportado com sucesso');
+                }
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
             <Button variant="outline" onClick={() => document.getElementById('csv-import')?.click()}>
+              <Upload className="h-4 w-4 mr-2" />
               Importar CSV
             </Button>
             <input

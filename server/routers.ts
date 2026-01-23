@@ -157,6 +157,46 @@ export const appRouter = router({
         return await importContracts(input.rows);
       }),
 
+    exportCSV: protectedProcedure.query(async () => {
+      const contracts = await db.getAllContracts();
+      
+      // CSV header
+      const header = [
+        'property_id', 'buyer_name', 'origin_type', 'sale_type', 'county', 'state',
+        'contract_date', 'transfer_date', 'close_date', 'contract_price', 'cost_basis',
+        'down_payment', 'opening_receivable', 'installment_amount', 'installment_count',
+        'balloon_amount', 'balloon_date', 'status', 'notes'
+      ].join(',');
+
+      // CSV rows
+      const rows = contracts.map(c => [
+        c.propertyId,
+        c.buyerName,
+        c.originType,
+        c.saleType,
+        c.county,
+        c.state,
+        c.contractDate,
+        c.transferDate || '',
+        c.closeDate || '',
+        c.contractPrice,
+        c.costBasis,
+        c.downPayment,
+        c.openingReceivable || '',
+        c.installmentAmount || '',
+        c.installmentCount || '',
+        c.balloonAmount || '',
+        c.balloonDate || '',
+        c.status,
+        c.notes || ''
+      ].join(','));
+
+      return {
+        csv: [header, ...rows].join('\n'),
+        filename: `contracts_${new Date().toISOString().split('T')[0]}.csv`
+      };
+    }),
+
     // Get contract with calculated fields
     getWithCalculations: protectedProcedure
       .input(z.object({ 

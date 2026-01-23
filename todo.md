@@ -274,3 +274,9 @@
 - [x] Implementar validação do formato do backup antes de restaurar
 - [x] Adicionar confirmação antes de sobrescrever dados existentes
 - [x] Adicionar link Settings na navegação
+
+
+## Export Contracts CSV
+- [x] Criar tRPC procedure contracts.exportCSV para gerar CSV de contratos
+- [x] Adicionar botão "Exportar CSV" na página Contracts (header)
+- [x] Implementar download automático do arquivo CSV
