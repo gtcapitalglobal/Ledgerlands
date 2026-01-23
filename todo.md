@@ -136,6 +136,9 @@
 - [ ] Update db.ts: calculateReceivableBalance with ASSUMED payment filter (paymentDate >= transferDate)
 - [ ] Add storage.ts: storageDelete function for S3 cleanup
 - [ ] Add db.ts: getContractAttachmentById helper
+- [x] CASH: createContract auto-payment logic
+- [x] CASH: calculateReceivableBalance returns 0
+- [x] CASH: tax schedule 100% gain recognition
 - [ ] Update db.ts: createContractAttachment with new fields (propertyId, docType, uploadedBy)
 
 ### Backend - Routers
@@ -181,7 +184,8 @@
 - [ ] Test Model 1 receivable calculation (DIRECT = contractPrice)
 - [ ] Test ASSUMED payment filtering (paymentDate >= transferDate)
 - [ ] Test BOOK vs TAX reporting modes
-- [ ] Test CASH auto-payment with safeguards
+- [x] Test CASH receivable = 0
+- [x] Test CASH gain calculation
 - [ ] Test attachment delete (DB + S3)
 - [ ] Test propertyId normalization
 - [ ] Test duplicate prevention

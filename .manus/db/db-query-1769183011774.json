@@ -1,0 +1,42 @@
+{
+  "query": "SHOW COLUMNS FROM contracts WHERE Field IN ('installmentAmount', 'installmentCount', 'contractPrice', 'costBasis');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SHOW COLUMNS FROM contracts WHERE Field IN ('installmentAmount', 'installmentCount', 'contractPrice', 'costBasis');",
+  "rows": [
+    {
+      "Field": "contractPrice",
+      "Type": "decimal(15,2)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "costBasis",
+      "Type": "decimal(15,2)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "installmentAmount",
+      "Type": "varchar(20)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "installmentCount",
+      "Type": "int(11)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\ncontractPrice\tdecimal(15,2)\tNO\t\tNULL\t\ncostBasis\tdecimal(15,2)\tNO\t\tNULL\t\ninstallmentAmount\tvarchar(20)\tYES\t\tNULL\t\ninstallmentCount\tint(11)\tYES\t\tNULL\t\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

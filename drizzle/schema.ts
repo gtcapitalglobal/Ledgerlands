@@ -47,21 +47,21 @@ export const contracts = mysqlTable("contracts", {
   // V2.0: New field - closing date (required for CASH, optional for CFD)
   closeDate: date("closeDate"),
   
-  contractPrice: decimal("contractPrice", { precision: 15, scale: 2 }).notNull(),
-  costBasis: decimal("costBasis", { precision: 15, scale: 2 }).notNull(),
-  downPayment: decimal("downPayment", { precision: 15, scale: 2 }).notNull(),
+  contractPrice: varchar("contractPrice", { length: 20 }).notNull(),
+  costBasis: varchar("costBasis", { length: 20 }).notNull(),
+  downPayment: varchar("downPayment", { length: 20 }).notNull(),
   
   // V2.0: These fields are nullable for CASH sales
-  installmentAmount: decimal("installmentAmount", { precision: 15, scale: 2 }),
+  installmentAmount: varchar("installmentAmount", { length: 20 }),
   installmentCount: int("installmentCount"),
-  balloonAmount: decimal("balloonAmount", { precision: 15, scale: 2 }),
+  balloonAmount: varchar("balloonAmount", { length: 20 }),
   balloonDate: date("balloonDate"),
   
   status: mysqlEnum("status", ["Active", "PaidOff", "Default", "Repossessed"]).default("Active").notNull(),
   notes: text("notes"),
   
   // For ASSUMED contracts: opening receivable as of transfer date
-  openingReceivable: decimal("openingReceivable", { precision: 15, scale: 2 }),
+  openingReceivable: varchar("openingReceivable", { length: 20 }),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -113,8 +113,31 @@ export async function getContractByPropertyId(propertyId: string) {
 export async function createContract(contract: InsertContract) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  
   const result = await db.insert(contracts).values(contract);
-  return Number(result[0].insertId);
+  const contractId = Number(result[0].insertId);
+  
+  // CASH sales: auto-create payment if closeDate exists and no payments exist
+  if (contract.saleType === 'CASH' && contract.closeDate) {
+    const existingPayments = await db.select().from(payments).where(eq(payments.contractId, contractId)).limit(1);
+    
+    if (existingPayments.length === 0) {
+      const contractPrice = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
+      await db.insert(payments).values({
+        contractId,
+        propertyId: contract.propertyId,
+        paymentDate: contract.closeDate,
+        amountTotal: contractPrice.toString(),
+        principalAmount: contractPrice.toString(),
+        lateFeeAmount: '0',
+        receivedBy: 'GT_REAL_BANK',
+        channel: 'WIRE',
+        memo: 'CASH sale - full payment at closing',
+      });
+    }
+  }
+  
+  return contractId;
 }
 
 export async function updateContract(id: number, updates: Partial<InsertContract>) {
@@ -213,6 +236,11 @@ export function calculateGainRecognized(principalAmount: string | number, grossP
  * For ASSUMED: Opening Receivable - Sum(Principal Payments after transfer)
  */
 export async function calculateReceivableBalance(contract: Contract, allPayments: Payment[]): Promise<number> {
+  // CASH sales always have 0 receivable
+  if (contract.saleType === 'CASH') {
+    return 0;
+  }
+  
   const contractPayments = allPayments.filter(p => p.contractId === contract.id);
   const totalPrincipalPaid = contractPayments.reduce((sum, p) => {
     const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;

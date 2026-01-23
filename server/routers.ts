@@ -47,13 +47,15 @@ export const appRouter = router({
         originType: z.enum(["DIRECT", "ASSUMED"]),
         saleType: z.enum(["CFD", "CASH"]).default("CFD"),
         county: z.string(),
+        state: z.string().default("FL"),
         contractDate: z.string(),
+        closeDate: z.string().optional(),
         transferDate: z.string().optional(),
         contractPrice: z.string(),
         costBasis: z.string(),
         downPayment: z.string(),
-        installmentAmount: z.string(),
-        installmentCount: z.number(),
+        installmentAmount: z.string().optional(),
+        installmentCount: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
         status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]).default("Active"),
@@ -62,11 +64,25 @@ export const appRouter = router({
         openingReceivable: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
+        // Validation: CFD requires installment fields, CASH requires closeDate
+        if (input.saleType === 'CFD') {
+          if (!input.installmentAmount || !input.installmentCount) {
+            throw new Error('CFD contracts require installmentAmount and installmentCount');
+          }
+        }
+        if (input.saleType === 'CASH' && !input.closeDate) {
+          throw new Error('CASH contracts require closeDate');
+        }
+        
         const contractData = {
           ...input,
           contractDate: new Date(input.contractDate),
+          closeDate: input.closeDate ? new Date(input.closeDate) : undefined,
           transferDate: input.transferDate ? new Date(input.transferDate) : undefined,
           balloonDate: input.balloonDate ? new Date(input.balloonDate) : undefined,
+          // CASH: explicitly set installment fields to null
+          installmentAmount: input.saleType === 'CASH' ? null : input.installmentAmount,
+          installmentCount: input.saleType === 'CASH' ? null : input.installmentCount,
         };
         const id = await db.createContract(contractData);
         return { id, success: true };
@@ -396,7 +412,21 @@ export const appRouter = router({
           }, 0);
 
           const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
-          const gainRecognized = db.calculateGainRecognized(principalReceived, grossProfitPercent);
+          
+          // CASH sales: 100% gain recognized in closeDate year
+          let gainRecognized = 0;
+          if (contract.saleType === 'CASH' && contract.closeDate) {
+            const closeYear = new Date(contract.closeDate).getFullYear();
+            if (closeYear === input.year) {
+              const contractPrice = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
+              const costBasis = typeof contract.costBasis === 'string' ? parseFloat(contract.costBasis) : contract.costBasis;
+              gainRecognized = contractPrice - costBasis;
+            }
+          } else {
+            // CFD: installment method
+            gainRecognized = db.calculateGainRecognized(principalReceived, grossProfitPercent);
+          }
+          
           const totalProfitRecognized = gainRecognized + lateFees;
 
           schedule.push({
