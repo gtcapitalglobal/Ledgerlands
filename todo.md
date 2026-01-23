@@ -133,7 +133,8 @@
 ### Backend - Helpers & Utils
 - [x] Create shared/utils.ts with normalizePropertyId function
 - [ ] Update db.ts: createContract with Model 1 logic (openingReceivable = contractPrice for DIRECT+CFD)
-- [ ] Update db.ts: calculateReceivableBalance with ASSUMED payment filter (paymentDate >= transferDate)
+- [x] Update db.ts: calculateReceivableBalance with ASSUMED payment filter (paymentDate >= transferDate)
+- [x] Add db.ts: getContractByPropertyId helper
 - [ ] Add storage.ts: storageDelete function for S3 cleanup
 - [ ] Add db.ts: getContractAttachmentById helper
 - [x] CASH: createContract auto-payment logic
@@ -141,10 +142,12 @@
 - [x] CASH: tax schedule 100% gain recognition
 - [ ] Update db.ts: createContractAttachment with new fields (propertyId, docType, uploadedBy)
 
-### Backend - Routers
-- [ ] Update routers.ts: contracts.create with originType, saleType, state, closeDate
-- [ ] Update routers.ts: contracts.create with propertyId normalization + duplicate check
-- [ ] Update routers.ts: contracts.create with CASH auto-payment safeguards
+### ### Backend - Routers
+- [x] Update routers.ts: contracts.create with originType, saleType, state, closeDate
+- [ ] Update routers.ts: contracts.update with new fields
+- [x] Update routers.ts: contracts.importCSV with CSV parsing and validation
+- [x] Apply ASSUMED filter in dashboard KPIs
+- [x] Apply ASSUMED filter in tax scheduleASH auto-payment safeguards
 - [ ] Update routers.ts: contracts.update with new fields
 - [ ] Update routers.ts: dashboard.getKPIs with reportingMode (BOOK/TAX)
 - [ ] Update routers.ts: dashboard.getKPIs with BOOK mode KPIs (Contract Revenue Opened)
@@ -182,7 +185,7 @@
 
 ### Testing
 - [ ] Test Model 1 receivable calculation (DIRECT = contractPrice)
-- [ ] Test ASSUMED payment filtering (paymentDate >= transferDate)
+- [x] Test ASSUMED payment filtering (paymentDate >= transferDate)
 - [x] Test BOOK vs TAX reporting modes (manual)
 - [x] Test CASH receivable = 0
 - [x] Test CASH gain calculation

@@ -127,6 +127,35 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    importCSV: protectedProcedure
+      .input(z.object({
+        rows: z.array(z.object({
+          propertyId: z.string(),
+          buyerName: z.string(),
+          county: z.string(),
+          state: z.string(),
+          originType: z.enum(["DIRECT", "ASSUMED"]),
+          saleType: z.enum(["CFD", "CASH"]),
+          contractDate: z.string(),
+          transferDate: z.string().optional(),
+          closeDate: z.string().optional(),
+          contractPrice: z.string(),
+          costBasis: z.string(),
+          downPayment: z.string(),
+          installmentAmount: z.string().optional(),
+          installmentCount: z.number().optional(),
+          balloonAmount: z.string().optional(),
+          balloonDate: z.string().optional(),
+          status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]),
+          notes: z.string().optional(),
+          openingReceivable: z.string().optional(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const { importContracts } = await import("./contractsImport");
+        return await importContracts(input.rows);
+      }),
+
     // Get contract with calculated fields
     getWithCalculations: protectedProcedure
       .input(z.object({ 
@@ -363,7 +392,12 @@ export const appRouter = router({
         // Calculate gain recognized YTD (TAX mode - installment method)
         let gainRecognizedYTD = 0;
         for (const contract of contracts) {
-          const contractYearPayments = filteredYearPayments.filter(p => p.contractId === contract.id);
+          let contractYearPayments = filteredYearPayments.filter(p => p.contractId === contract.id);
+          
+          // ASSUMED: only count payments after transferDate
+          if (contract.originType === 'ASSUMED' && contract.transferDate) {
+            contractYearPayments = contractYearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+          }
           const contractPrincipalYTD = contractYearPayments.reduce((sum, p) => {
             const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
             return sum + amount;
@@ -423,10 +457,15 @@ export const appRouter = router({
         const schedule = [];
 
         for (const contract of contracts) {
-          const yearPayments = allPayments.filter(p => {
+          let yearPayments = allPayments.filter(p => {
             const paymentYear = new Date(p.paymentDate).getFullYear();
             return paymentYear === input.year && p.contractId === contract.id;
           });
+          
+          // ASSUMED: only count payments after transferDate
+          if (contract.originType === 'ASSUMED' && contract.transferDate) {
+            yearPayments = yearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+          }
 
           const principalReceived = yearPayments.reduce((sum, p) => {
             const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;

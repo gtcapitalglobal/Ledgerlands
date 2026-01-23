@@ -96,17 +96,17 @@ export async function getAllContracts() {
   return await db.select().from(contracts).orderBy(desc(contracts.createdAt));
 }
 
-export async function getContractById(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(contracts).where(eq(contracts.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
-}
-
 export async function getContractByPropertyId(propertyId: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(contracts).where(eq(contracts.propertyId, propertyId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getContractById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(contracts).where(eq(contracts.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -241,7 +241,13 @@ export async function calculateReceivableBalance(contract: Contract, allPayments
     return 0;
   }
   
-  const contractPayments = allPayments.filter(p => p.contractId === contract.id);
+  let contractPayments = allPayments.filter(p => p.contractId === contract.id);
+  
+  // ASSUMED: only count payments after transferDate
+  if (contract.originType === 'ASSUMED' && contract.transferDate) {
+    contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+  }
+  
   const totalPrincipalPaid = contractPayments.reduce((sum, p) => {
     const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
     return sum + amount;
