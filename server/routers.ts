@@ -84,8 +84,7 @@ export const appRouter = router({
           // CASH: explicitly set installment fields to null
           installmentAmount: input.saleType === 'CASH' ? null : input.installmentAmount,
           installmentCount: input.saleType === 'CASH' ? null : input.installmentCount,
-          // ASSUMED: downPayment must always be 0 (contract was assumed, no initial down payment)
-          downPayment: input.originType === 'ASSUMED' ? "0" : input.downPayment,
+          downPayment: input.downPayment,
         };
         const id = await db.createContract(contractData);
         return { id, success: true };
@@ -129,12 +128,6 @@ export const appRouter = router({
         if (transferDate) updates.transferDate = new Date(transferDate);
         if (closeDate) updates.closeDate = new Date(closeDate);
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
-        
-        // ASSUMED: downPayment must always be 0 (contract was assumed, no initial down payment)
-        const finalOriginType = input.originType || oldContract.originType;
-        if (finalOriginType === 'ASSUMED') {
-          updates.downPayment = "0";
-        }
         
         await db.updateContract(id, updates);
 
@@ -693,10 +686,42 @@ export const appRouter = router({
           return true; // Not ASSUMED, include all payments
         });
         
-        const principalReceivedYTD = filteredYearPayments.reduce((sum, p) => {
+        let principalReceivedYTD = filteredYearPayments.reduce((sum, p) => {
           const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
           return sum + amount;
         }, 0);
+        
+        // Add effective DP for contracts created in selected year (DP date = contractDate)
+        const { parseDecimal, computeEffectiveDownPayment } = await import('../shared/utils');
+        for (const contract of contracts) {
+          const contractYear = new Date(contract.contractDate).getFullYear();
+          
+          // Only add DP if contract was created in selected year
+          if (contractYear === currentYear) {
+            // ASSUMED: DP only counts if contractDate >= transferDate (DP must be after transfer)
+            if (contract.originType === 'ASSUMED' && contract.transferDate) {
+              const contractDate = new Date(contract.contractDate);
+              const transferDate = new Date(contract.transferDate);
+              if (contractDate < transferDate) {
+                continue; // Skip DP for ASSUMED if contract was before transfer
+              }
+            }
+            
+            let contractPayments = allPayments.filter(p => p.contractId === contract.id);
+            
+            // ASSUMED: filter by transferDate
+            if (contract.originType === 'ASSUMED' && contract.transferDate) {
+              contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+            }
+            
+            const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, contractPayments);
+            
+            // Add DP to principalReceivedYTD if not already counted as payment
+            if (effectiveDP > 0 && !dpPaymentId) {
+              principalReceivedYTD += effectiveDP;
+            }
+          }
+        }
         const lateFeesYTD = filteredYearPayments.reduce((sum, p) => {
           const amount = typeof p.lateFeeAmount === 'string' ? parseFloat(p.lateFeeAmount) : p.lateFeeAmount;
           return sum + amount;
@@ -709,10 +734,40 @@ export const appRouter = router({
           if (contract.originType === 'ASSUMED' && contract.transferDate) {
             contractYearPayments = contractYearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
           }
-          const contractPrincipalYTD = contractYearPayments.reduce((sum, p) => {
+          let contractPrincipalYTD = contractYearPayments.reduce((sum, p) => {
             const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
             return sum + amount;
           }, 0);
+          
+          // Add effective DP if contract was created in selected year
+          const contractYear = new Date(contract.contractDate).getFullYear();
+          if (contractYear === currentYear) {
+            // ASSUMED: DP only counts if contractDate >= transferDate (DP must be after transfer)
+            let skipDP = false;
+            if (contract.originType === 'ASSUMED' && contract.transferDate) {
+              const contractDate = new Date(contract.contractDate);
+              const transferDate = new Date(contract.transferDate);
+              if (contractDate < transferDate) {
+                skipDP = true; // Skip DP for ASSUMED if contract was before transfer
+              }
+            }
+            
+            if (!skipDP) {
+              let contractPayments = allPayments.filter(p => p.contractId === contract.id);
+              
+              // ASSUMED: filter by transferDate
+              if (contract.originType === 'ASSUMED' && contract.transferDate) {
+                contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+              }
+            
+              const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, contractPayments);
+              
+              // Add DP to principal if not already counted as payment
+              if (effectiveDP > 0 && !dpPaymentId) {
+                contractPrincipalYTD += effectiveDP;
+              }
+            }
+          }
           
           // CASH: 100% gain in closeDate year
           if (contract.saleType === 'CASH' && contract.closeDate) {

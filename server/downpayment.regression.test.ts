@@ -106,7 +106,7 @@ describe("downPayment Regression Test", () => {
       transferDate: "2024-06-01",
       contractPrice: "20000",
       costBasis: "12000",
-      downPayment: "4000", // User tries to set 4000, but should be forced to 0
+      downPayment: "4000", // User sets 4000 (preserved, not forced to 0)
       installmentAmount: "500",
       installmentCount: 32,
       status: "Active",
@@ -116,32 +116,32 @@ describe("downPayment Regression Test", () => {
     expect(createResult.success).toBe(true);
     const contractId = createResult.id!;
 
-    // Verify downPayment was forced to 0
+    // Verify downPayment was preserved (not forced to 0)
     const contract = await db.getContractById(contractId);
     expect(contract).toBeDefined();
-    expect(parseFloat(contract!.downPayment)).toBe(0); // MUST be 0, not 4000
+    expect(parseFloat(contract!.downPayment)).toBe(4000); // Preserved as entered
 
-    // Verify receivableBalance uses openingReceivable (not downPayment)
+    // Verify receivableBalance uses openingReceivable (downPayment ignored for ASSUMED)
     // Expected: $18,000 (opening) - $0 (no payments yet) = $18,000
     const allPayments = await db.getAllPayments();
     const receivableBalance = await db.calculateReceivableBalance(contract!, allPayments);
     expect(receivableBalance).toBeCloseTo(18000, 2);
 
-    // Try to update downPayment to 5000 (should remain 0)
+    // Try to update downPayment to 5000 (should be preserved)
     await caller.contracts.update({
       id: contractId,
-      downPayment: "5000", // Try to set 5000, but should be forced to 0
-      reason: "Trying to change downPayment (should fail)",
+      downPayment: "5000", // Update to 5000 (should be preserved)
+      reason: "Updating downPayment",
     });
 
     const updatedContract = await db.getContractById(contractId);
-    expect(parseFloat(updatedContract!.downPayment)).toBe(0); // MUST still be 0, not 5000
+    expect(parseFloat(updatedContract!.downPayment)).toBe(5000); // Preserved as entered
 
     // Cleanup
     await caller.contracts.delete({ id: contractId });
   });
 
-  it("CSV Import: DIRECT preserves downPayment, ASSUMED forces to 0", async () => {
+  it("CSV Import: Both DIRECT and ASSUMED preserve downPayment", async () => {
     const testIdDirect = `DIRECT-CSV-DP-${Date.now()}`;
     const testIdAssumed = `ASSUMED-CSV-DP-${Date.now()}`;
 
@@ -173,7 +173,7 @@ describe("downPayment Regression Test", () => {
           transferDate: "2024-03-01",
           contractPrice: "30000",
           costBasis: "18000",
-          downPayment: "7000", // MUST be forced to 0
+          downPayment: "7000", // Preserved as entered
           installmentAmount: "700",
           installmentCount: 40,
           status: "Active",
@@ -190,10 +190,10 @@ describe("downPayment Regression Test", () => {
     expect(directContract).toBeDefined();
     expect(parseFloat(directContract!.downPayment)).toBe(6000); // MUST be 6000
 
-    // Verify ASSUMED contract forced downPayment to 0
+    // Verify ASSUMED contract preserved downPayment
     const assumedContract = await db.getContractByPropertyId(`#${testIdAssumed}`);
     expect(assumedContract).toBeDefined();
-    expect(parseFloat(assumedContract!.downPayment)).toBe(0); // MUST be 0, not 7000
+    expect(parseFloat(assumedContract!.downPayment)).toBe(7000); // Preserved as entered
 
     // Cleanup
     if (directContract) {

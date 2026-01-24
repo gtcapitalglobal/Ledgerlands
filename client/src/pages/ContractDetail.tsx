@@ -641,8 +641,8 @@ export default function ContractDetail() {
                 <Input id="edit-costBasis" type="number" step="0.01" value={editFormData.costBasis} onChange={(e) => setEditFormData({...editFormData, costBasis: e.target.value})} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-downPayment">Down Payment {contract?.originType === "ASSUMED" && <span className="text-xs text-muted-foreground">(always 0 for ASSUMED)</span>}</Label>
-                <Input id="edit-downPayment" type="number" step="0.01" value={contract?.originType === "ASSUMED" ? "0" : editFormData.downPayment} onChange={(e) => setEditFormData({...editFormData, downPayment: e.target.value})} disabled={contract?.originType === "ASSUMED"} />
+                <Label htmlFor="edit-downPayment">Down Payment</Label>
+                <Input id="edit-downPayment" type="number" step="0.01" value={editFormData.downPayment} onChange={(e) => setEditFormData({...editFormData, downPayment: e.target.value})} />
               </div>
               {contract?.saleType === "CFD" && (
                 <>

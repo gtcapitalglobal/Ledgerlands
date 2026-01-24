@@ -621,8 +621,8 @@ export default function Contracts() {
                 <Textarea id="costBasisNotes" value={formData.costBasisNotes} onChange={(e) => setFormData({...formData, costBasisNotes: e.target.value})} rows={2} placeholder="Additional details about cost basis..." />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="downPayment">Down Payment {formData.originType === "ASSUMED" && <span className="text-xs text-muted-foreground">(always 0 for ASSUMED)</span>}</Label>
-                <Input id="downPayment" type="number" step="0.01" value={formData.originType === "ASSUMED" ? "0" : formData.downPayment} onChange={(e) => setFormData({...formData, downPayment: e.target.value})} disabled={formData.originType === "ASSUMED"} />
+                <Label htmlFor="downPayment">Down Payment</Label>
+                <Input id="downPayment" type="number" step="0.01" value={formData.downPayment} onChange={(e) => setFormData({...formData, downPayment: e.target.value})} />
               </div>
               {formData.saleType === "CFD" && (
                 <>

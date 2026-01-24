@@ -101,8 +101,7 @@ export async function importContracts(rows: ContractImportRow[]): Promise<Import
         closeDate: row.closeDate ? new Date(row.closeDate) : undefined,
         contractPrice: row.contractPrice,
         costBasis: row.costBasis,
-        // ASSUMED: downPayment must always be 0 (contract was assumed, no initial down payment)
-        downPayment: row.originType === "ASSUMED" ? "0" : row.downPayment,
+        downPayment: row.downPayment,
         installmentAmount: row.installmentAmount,
         installmentCount: row.installmentCount,
         balloonAmount: row.balloonAmount,

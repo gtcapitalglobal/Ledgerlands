@@ -66,10 +66,10 @@ describe("ASSUMED Contract Regression Test", () => {
     expect(createResult.success).toBe(true);
     const contractId = createResult.id!;
 
-    // Step 2: Verify downPayment was forced to 0
+    // Step 2: Verify contract was created (downPayment preserved as entered)
     const contract = await db.getContractById(contractId);
     expect(contract).toBeDefined();
-    expect(parseFloat(contract!.downPayment)).toBe(0); // MUST be 0, not 2000
+    expect(parseFloat(contract!.downPayment)).toBe(2000); // Preserved as entered (not forced to 0)
     expect(parseFloat(contract!.openingReceivable || "0")).toBe(10000);
     expect(contract!.originType).toBe("ASSUMED");
 
@@ -163,15 +163,15 @@ describe("ASSUMED Contract Regression Test", () => {
     expect(contractSchedule!.lateFees).toBeCloseTo(25, 2); // Filtered late fees
     expect(contractSchedule!.gainRecognized).toBeCloseTo(expectedGain, 2); // Gain from filtered principal
 
-    // Step 10: Test update also forces downPayment=0
+    // Step 10: Test update preserves downPayment
     await caller.contracts.update({
       id: contractId,
-      downPayment: "5000", // Try to set non-zero downPayment
-      reason: "Testing downPayment enforcement on update",
+      downPayment: "5000", // Update downPayment
+      reason: "Testing downPayment update",
     });
 
     const updatedContract = await db.getContractById(contractId);
-    expect(parseFloat(updatedContract!.downPayment)).toBe(0); // MUST still be 0
+    expect(parseFloat(updatedContract!.downPayment)).toBe(5000); // Preserved as entered
 
     // Cleanup
     await caller.contracts.delete({ id: contractId });
@@ -191,7 +191,7 @@ describe("ASSUMED Contract Regression Test", () => {
         transferDate: "2024-03-01",
         contractPrice: "20000",
         costBasis: "12000",
-        downPayment: "3000", // Should be forced to 0
+        downPayment: "3000", // Preserved as entered
         installmentAmount: "600",
         installmentCount: 30,
         status: "Active",
@@ -204,7 +204,7 @@ describe("ASSUMED Contract Regression Test", () => {
 
     const contract = await db.getContractByPropertyId(`#${testId}`);
     expect(contract).toBeDefined();
-    expect(parseFloat(contract!.downPayment)).toBe(0); // MUST be 0, not 3000
+    expect(parseFloat(contract!.downPayment)).toBe(3000); // Preserved as entered
 
     // Cleanup
     if (contract) {

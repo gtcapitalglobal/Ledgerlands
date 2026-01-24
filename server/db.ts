@@ -256,11 +256,16 @@ export function calculateGainRecognized(principalAmount: string | number, grossP
 }
 
 /**
- * Calculate Receivable Balance for a contract
+ * Calculate receivable balance for a contract
  * For DIRECT: Contract Price - Down Payment - Sum(Principal Payments)
  * For ASSUMED: Opening Receivable - Sum(Principal Payments after transfer)
+ * 
+ * Uses computeEffectiveDownPayment to avoid double-counting DP when it exists as both
+ * contract field and payment record.
  */
 export async function calculateReceivableBalance(contract: Contract, allPayments: Payment[]): Promise<number> {
+  const { parseDecimal, computeEffectiveDownPayment } = await import('../shared/utils');
+  
   // CASH sales always have 0 receivable
   if (contract.saleType === 'CASH') {
     return 0;
@@ -273,18 +278,23 @@ export async function calculateReceivableBalance(contract: Contract, allPayments
     contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
   }
   
+  // Compute effective DP (detects if DP is recorded as payment)
+  const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, contractPayments);
+  
+  // Calculate total principal paid (excluding DP payment if it was detected)
   const totalPrincipalPaid = contractPayments.reduce((sum, p) => {
-    const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
-    return sum + amount;
+    // Skip DP payment to avoid double-counting
+    if (dpPaymentId && p.id === dpPaymentId) return sum;
+    return sum + parseDecimal(p.principalAmount);
   }, 0);
 
-  if (contract.originType === 'ASSUMED' && contract.openingReceivable) {
-    const opening = typeof contract.openingReceivable === 'string' ? parseFloat(contract.openingReceivable) : contract.openingReceivable;
+  if (contract.originType === 'ASSUMED') {
+    // ASSUMED: openingReceivable - principal paid (no DP subtraction)
+    const opening = parseDecimal(contract.openingReceivable || 0);
     return opening - totalPrincipalPaid;
   }
 
-  // DIRECT contract
-  const price = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
-  const down = typeof contract.downPayment === 'string' ? parseFloat(contract.downPayment) : contract.downPayment;
-  return price - down - totalPrincipalPaid;
+  // DIRECT contract: contractPrice - effectiveDP - principal paid
+  const price = parseDecimal(contract.contractPrice);
+  return price - effectiveDP - totalPrincipalPaid;
 }

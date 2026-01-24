@@ -401,3 +401,31 @@
 - [x] Criar script de restauração SQL
 - [x] Executar UPDATE para restaurar downPayments
 - [x] Verificar restauração: 8 contratos com downPayments corretos ($10,249 total)
+
+## Down Payment End-to-End Fix (No Data Loss, No Double Count)
+- [x] 1. REMOVER forcing downPayment=0 em contracts.create (server/routers.ts)
+- [x] 2. REMOVER forcing downPayment=0 em contracts.update (server/routers.ts)
+- [x] 3. RE-HABILITAR campo downPayment para ASSUMED na UI (Contracts.tsx)
+- [x] 4. RE-HABILITAR campo downPayment para ASSUMED na UI (ContractDetail.tsx)
+- [x] 5. REMOVER texto "always 0 for ASSUMED" da UI
+- [x] 6. CRIAR helper computeEffectiveDownPayment (detecta DP em payments via memo)
+- [x] 7. ATUALIZAR helper parseDecimal (normaliza vírgula/ponto)
+- [x] 8. ATUALIZAR calculateReceivableBalance para usar effective DP
+- [x] 9. ATUALIZAR dashboard.getKPIs para incluir effective DP no período correto (principalReceivedYTD + gainRecognizedYTD)
+- [ ] 10. ATUALIZAR taxSchedule.getByPeriod para incluir effective DP
+- [ ] 11. SUBSTITUIR parseFloat por parseDecimal nos cálculos
+- [ ] 12. ATUALIZAR testes de regressão (downpayment + assumed)
+- [ ] 13. VALIDAR com contrato #25 (receivable=13021, gainRecognized correto)
+
+## Money Parsing + Tax Schedule Parity + Backfill
+- [ ] 1. Upgrade parseDecimal: handle "23.664,00" (EU) e "23,664.00" (US)
+- [ ] 2. Replace parseFloat → parseDecimal em server/db.ts (todos os cálculos)
+- [ ] 3. Replace parseFloat → parseDecimal em server/routers.ts (todos os cálculos)
+- [ ] 4. Replace parseFloat → parseDecimal em server/contractsImport.ts (CSV import)
+- [ ] 5. Replace parseFloat → parseDecimal em CASH auto-payment logic
+- [ ] 6. TaxSchedule.getByYear: incluir effective DP quando não é payment
+- [ ] 7. TaxSchedule.getByPeriod: incluir effective DP quando não é payment
+- [ ] 8. TaxSchedule.exportCSV: incluir effective DP quando não é payment
+- [ ] 9. Criar backfill script: inferir DP = contractPrice - (installments + balloon)
+- [ ] 10. Validar contrato #25 DIRECT: principal=6643, gain=3451.19, receivable=13021
+- [ ] 11. Validar contrato #25 ASSUMED (se transferDate após Aug/2025): principal~5296, gain~2751
