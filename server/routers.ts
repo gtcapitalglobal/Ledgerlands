@@ -679,22 +679,28 @@ export const appRouter = router({
           const paymentYear = new Date(p.paymentDate).getFullYear();
           return paymentYear === currentYear;
         });
-
         // Filter year payments by contract IDs in filtered contracts
         const contractIds = new Set(contracts.map(c => c.id));
-        const filteredYearPayments = yearPayments.filter(p => contractIds.has(p.contractId));
-
+        let filteredYearPayments = yearPayments.filter(p => contractIds.has(p.contractId));
+        
+        // ASSUMED: filter payments by transferDate for ALL KPIs
+        const assumedContracts = new Map(contracts.filter(c => c.originType === 'ASSUMED' && c.transferDate).map(c => [c.id, c.transferDate!]));
+        filteredYearPayments = filteredYearPayments.filter(p => {
+          const transferDate = assumedContracts.get(p.contractId);
+          if (transferDate) {
+            return new Date(p.paymentDate) >= new Date(transferDate);
+          }
+          return true; // Not ASSUMED, include all payments
+        });
+        
         const principalReceivedYTD = filteredYearPayments.reduce((sum, p) => {
           const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
           return sum + amount;
         }, 0);
-
         const lateFeesYTD = filteredYearPayments.reduce((sum, p) => {
           const amount = typeof p.lateFeeAmount === 'string' ? parseFloat(p.lateFeeAmount) : p.lateFeeAmount;
           return sum + amount;
-        }, 0);
-
-        // Calculate gain recognized YTD (TAX mode - installment method)
+        }, 0);    // Calculate gain recognized YTD (TAX mode - installment method)
         let gainRecognizedYTD = 0;
         for (const contract of contracts) {
           let contractYearPayments = filteredYearPayments.filter(p => p.contractId === contract.id);

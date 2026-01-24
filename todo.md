@@ -368,3 +368,18 @@
 - [x] Dashboard KPIs: Verificar se usa filtered payments (paymentDate >= transferDate) para ASSUMED
 - [x] Tax Schedule: Verificar se usa filtered payments para ASSUMED
 - [x] Todos os cálculos: Garantir que downPayment não é usado em nenhum lugar para ASSUMED
+
+## ASSUMED Full Verification Pass (Real Data)
+- [x] 1. Confirmar downPayment=0 em contracts.create (ler código)
+- [x] 2. Confirmar downPayment=0 em contracts.update (ler código)
+- [x] 3. Confirmar downPayment=0 em contracts.importCSV (ler código)
+- [x] 4. Confirmar downPayment NÃO usado em calculateReceivableBalance (ler código)
+- [x] 5. Confirmar downPayment NÃO usado em dashboard.getKPIs (ler código)
+- [x] 6. Confirmar downPayment NÃO usado em taxSchedule.getByPeriod (ler código)
+- [x] 7. Confirmar downPayment NÃO usado em taxSchedule.exportCSV (ler código)
+- [x] 8. Confirmar filtro paymentDate >= transferDate em calculateReceivableBalance
+- [x] 9. Confirmar filtro paymentDate >= transferDate em dashboard.getKPIs
+- [x] 10. Confirmar filtro paymentDate >= transferDate em taxSchedule.getByPeriod
+- [x] 11. Confirmar filtro paymentDate >= transferDate em taxSchedule.getByYear
+- [x] 12. Criar teste de regressão ASSUMED com payments antes/depois de transferDate
+- [x] 13. Bug encontrado e corrigido: Dashboard KPIs não filtrava payments por transferDate para principalReceivedYTD/lateFeesYTD
