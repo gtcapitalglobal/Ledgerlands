@@ -84,6 +84,8 @@ export const appRouter = router({
           // CASH: explicitly set installment fields to null
           installmentAmount: input.saleType === 'CASH' ? null : input.installmentAmount,
           installmentCount: input.saleType === 'CASH' ? null : input.installmentCount,
+          // ASSUMED: downPayment must always be 0 (contract was assumed, no initial down payment)
+          downPayment: input.originType === 'ASSUMED' ? "0" : input.downPayment,
         };
         const id = await db.createContract(contractData);
         return { id, success: true };
@@ -127,6 +129,12 @@ export const appRouter = router({
         if (transferDate) updates.transferDate = new Date(transferDate);
         if (closeDate) updates.closeDate = new Date(closeDate);
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
+        
+        // ASSUMED: downPayment must always be 0 (contract was assumed, no initial down payment)
+        const finalOriginType = input.originType || oldContract.originType;
+        if (finalOriginType === 'ASSUMED') {
+          updates.downPayment = "0";
+        }
         
         await db.updateContract(id, updates);
 
@@ -236,7 +244,12 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
         }
 
-        const allPayments = await db.getPaymentsByContractId(input.id);
+        let allPayments = await db.getPaymentsByContractId(input.id);
+        
+        // ASSUMED: only count payments after transferDate
+        if (contract.originType === 'ASSUMED' && contract.transferDate) {
+          allPayments = allPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+        }
         
         // Calculate gross profit %
         const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);

@@ -354,3 +354,11 @@
 - [x] Adicionar campo de filtro Property ID na seção Filtros do Dashboard
 - [x] Atualizar backend dashboard.getKPIs para aceitar propertyId filter
 - [x] Recalcular KPIs apenas para o contrato selecionado quando filtro ativo
+
+## ASSUMED Contract Fix (downPayment = 0)
+- [x] Backend: Forçar downPayment="0" em contracts.create quando originType=ASSUMED
+- [x] Backend: Forçar downPayment="0" em contracts.update quando originType=ASSUMED
+- [x] UI: Desabilitar campo downPayment no formulário de criar contrato quando ASSUMED
+- [x] UI: Desabilitar campo downPayment no formulário de editar contrato quando ASSUMED
+- [x] Verificar cálculo calculateReceivableBalance: ASSUMED usa openingReceivable - principal_filtered (sem downPayment)
+- [x] Verificar que payments são filtrados por paymentDate >= transferDate para ASSUMED
