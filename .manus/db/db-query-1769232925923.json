@@ -1,0 +1,58 @@
+{
+  "query": "SELECT propertyId, buyerName, originType, CAST(downPayment AS DECIMAL(10,2)) as downPayment FROM contracts WHERE propertyId IN ('#17', '#22', '#25', '#31', '#33', '#35', '#43', '#45') ORDER BY propertyId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT propertyId, buyerName, originType, CAST(downPayment AS DECIMAL(10,2)) as downPayment FROM contracts WHERE propertyId IN ('#17', '#22', '#25', '#31', '#33', '#35', '#43', '#45') ORDER BY propertyId;",
+  "rows": [
+    {
+      "propertyId": "#17",
+      "buyerName": "Donald Thomas Way",
+      "originType": "DIRECT",
+      "downPayment": "500.00"
+    },
+    {
+      "propertyId": "#22",
+      "buyerName": "Bryan Shawn Hamilton",
+      "originType": "DIRECT",
+      "downPayment": "250.00"
+    },
+    {
+      "propertyId": "#25",
+      "buyerName": "Chase Quinton Menerey",
+      "originType": "ASSUMED",
+      "downPayment": "4000.00"
+    },
+    {
+      "propertyId": "#31",
+      "buyerName": "Tomy Rodriguez Gonzalez",
+      "originType": "DIRECT",
+      "downPayment": "499.00"
+    },
+    {
+      "propertyId": "#33",
+      "buyerName": "Yandri Garcia Leiva",
+      "originType": "ASSUMED",
+      "downPayment": "1000.00"
+    },
+    {
+      "propertyId": "#35",
+      "buyerName": "Rafael Garcia Garcia",
+      "originType": "ASSUMED",
+      "downPayment": "1000.00"
+    },
+    {
+      "propertyId": "#43",
+      "buyerName": "Rafael Garcia Garcia",
+      "originType": "ASSUMED",
+      "downPayment": "1000.00"
+    },
+    {
+      "propertyId": "#45",
+      "buyerName": "Jennifer Lynn Soderlund",
+      "originType": "ASSUMED",
+      "downPayment": "2000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "propertyId\tbuyerName\toriginType\tdownPayment\n#17\tDonald Thomas Way\tDIRECT\t500.00\n#22\tBryan Shawn Hamilton\tDIRECT\t250.00\n#25\tChase Quinton Menerey\tASSUMED\t4000.00\n#31\tTomy Rodriguez Gonzalez\tDIRECT\t499.00\n#33\tYandri Garcia Leiva\tASSUMED\t1000.00\n#35\tRafael Garcia Garcia\tASSUMED\t1000.00\n#43\tRafael Garcia Garcia\tASSUMED\t1000.00\n#45\tJennifer Lynn Soderlund\tASSUMED\t2000.00\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

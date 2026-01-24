@@ -392,3 +392,12 @@
 - [x] Adicionar teste de regressão: DIRECT com downPayment=4000 deve permanecer 4000 após update
 - [x] Adicionar teste de regressão: ASSUMED com downPayment=4000 deve virar 0 após create/update
 - [x] Adicionar teste de regressão: CSV import preserva DIRECT, força ASSUMED a 0
+
+## 🚨 EMERGÊNCIA: Recuperar downPayments zerados
+- [x] Verificar banco de dados: 3 contratos DIRECT encontrados
+- [x] Usuário confirmou: 8 contratos DIRECT originais
+- [x] Usuário forneceu CSVs com dados corretos (contracts_*.csv)
+- [x] Extrair downPayments dos CSVs
+- [x] Criar script de restauração SQL
+- [x] Executar UPDATE para restaurar downPayments
+- [x] Verificar restauração: 8 contratos com downPayments corretos ($10,249 total)
