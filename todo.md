@@ -417,15 +417,15 @@
 - [ ] 12. ATUALIZAR testes de regressão (downpayment + assumed)
 - [ ] 13. VALIDAR com contrato #25 (receivable=13021, gainRecognized correto)
 
-## Money Parsing + Tax Schedule Parity + Backfill
-- [ ] 1. Upgrade parseDecimal: handle "23.664,00" (EU) e "23,664.00" (US)
-- [ ] 2. Replace parseFloat → parseDecimal em server/db.ts (todos os cálculos)
-- [ ] 3. Replace parseFloat → parseDecimal em server/routers.ts (todos os cálculos)
-- [ ] 4. Replace parseFloat → parseDecimal em server/contractsImport.ts (CSV import)
-- [ ] 5. Replace parseFloat → parseDecimal em CASH auto-payment logic
-- [ ] 6. TaxSchedule.getByYear: incluir effective DP quando não é payment
-- [ ] 7. TaxSchedule.getByPeriod: incluir effective DP quando não é payment
-- [ ] 8. TaxSchedule.exportCSV: incluir effective DP quando não é payment
-- [ ] 9. Criar backfill script: inferir DP = contractPrice - (installments + balloon)
-- [ ] 10. Validar contrato #25 DIRECT: principal=6643, gain=3451.19, receivable=13021
-- [ ] 11. Validar contrato #25 ASSUMED (se transferDate após Aug/2025): principal~5296, gain~2751
+## PATCH TAX Annex (Complete)
+- [x] 1. parseDecimal já handle "23.664,00" (EU) e "23,664.00" (US)
+- [ ] 2. TaxSchedule.getByPeriod: parseDecimal + effective DP + CASH logic
+- [ ] 3. TaxSchedule.getByYear: parseDecimal + effective DP + CASH logic
+- [ ] 4. Replace parseFloat → parseDecimal em server/db.ts
+- [ ] 5. Replace parseFloat → parseDecimal em server/routers.ts
+- [ ] 6. Replace parseFloat → parseDecimal em server/contractsImport.ts
+- [ ] 7. Replace parseFloat → parseDecimal em client formatCurrency
+- [ ] 8. Period filter fix: [start, endExclusive) onde endExclusive = endDate + 1 day
+- [ ] 9. Backfill script: dryRun report (inferir DP perdidos)
+- [ ] 10. Backfill script: apply com audit log
+- [ ] 11. Validar contrato #25 DIRECT: principal=6643, gain=3451.19, receivable=13021
