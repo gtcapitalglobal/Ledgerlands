@@ -95,20 +95,33 @@ describe("contracts procedures", () => {
   });
 
   it("should calculate receivable balance correctly for DIRECT contract", async () => {
-    const contracts = await caller.contracts.list();
-    const directContract = contracts.find(c => c.originType === "DIRECT");
-    
-    if (!directContract) {
-      throw new Error("No DIRECT contract found for testing");
-    }
+    // Create a fresh DIRECT contract for testing (avoid relying on existing data)
+    const testId = `DIRECT-TEST-${Date.now()}`;
+    const createResult = await caller.contracts.create({
+      propertyId: testId,
+      buyerName: "Test Buyer (DIRECT)",
+      originType: "DIRECT",
+      saleType: "CFD",
+      county: "Test County",
+      state: "FL",
+      contractDate: "2024-01-01",
+      contractPrice: "20000",
+      costBasis: "12000",
+      downPayment: "4000", // MUST be preserved
+      installmentAmount: "500",
+      installmentCount: 32,
+      status: "Active",
+    });
+
+    const contractId = createResult.id!;
 
     const result = await caller.contracts.getWithCalculations({
-      id: directContract.id,
+      id: contractId,
       year: 2024,
     });
 
-    const contractPrice = parseFloat(directContract.contractPrice);
-    const downPayment = parseFloat(directContract.downPayment);
+    const contractPrice = 20000;
+    const downPayment = 4000;
     const totalPrincipalReceived = result.payments.reduce(
       (sum, p) => sum + parseFloat(p.principalAmount),
       0
@@ -116,6 +129,9 @@ describe("contracts procedures", () => {
     const expectedReceivable = contractPrice - downPayment - totalPrincipalReceived;
 
     expect(result.calculations.receivableBalance).toBeCloseTo(expectedReceivable, 2);
+
+    // Cleanup
+    await caller.contracts.delete({ id: contractId });
   });
 
   it("should calculate receivable balance correctly for ASSUMED contract", async () => {

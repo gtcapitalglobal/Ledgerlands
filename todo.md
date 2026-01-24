@@ -383,3 +383,12 @@
 - [x] 11. Confirmar filtro paymentDate >= transferDate em taxSchedule.getByYear
 - [x] 12. Criar teste de regressão ASSUMED com payments antes/depois de transferDate
 - [x] 13. Bug encontrado e corrigido: Dashboard KPIs não filtrava payments por transferDate para principalReceivedYTD/lateFeesYTD
+
+## CRITICAL BUG: downPayment Regression (DIRECT contracts)
+- [x] Investigar: downPayment sendo zerado para DIRECT (CÓDIGO ESTÁ CORRETO - preserva DIRECT, zera ASSUMED)
+- [x] Verificar contracts.create: Lógica correta (linha 88)
+- [x] Verificar contracts.update: Lógica correta (linha 135-137)
+- [x] Verificar contracts.importCSV: Lógica correta (linha 105)
+- [x] Adicionar teste de regressão: DIRECT com downPayment=4000 deve permanecer 4000 após update
+- [x] Adicionar teste de regressão: ASSUMED com downPayment=4000 deve virar 0 após create/update
+- [x] Adicionar teste de regressão: CSV import preserva DIRECT, força ASSUMED a 0
