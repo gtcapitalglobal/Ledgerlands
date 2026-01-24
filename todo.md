@@ -349,3 +349,8 @@
 - [x] Adicionar campo no formulário de criar contrato
 - [x] Adicionar campo no formulário de editar contrato
 - [x] Adicionar botão "Open Drive Folder" no Contract Detail
+
+## Dashboard Property Filter
+- [x] Adicionar campo de filtro Property ID na seção Filtros do Dashboard
+- [x] Atualizar backend dashboard.getKPIs para aceitar propertyId filter
+- [x] Recalcular KPIs apenas para o contrato selecionado quando filtro ativo

@@ -614,6 +614,7 @@ export const appRouter = router({
         originType: z.union([z.enum(["DIRECT", "ASSUMED"]), z.literal("all")]).optional(),
         saleType: z.union([z.enum(["CFD", "CASH"]), z.literal("all")]).optional(),
         county: z.string().optional(),
+        propertyId: z.string().optional(),
         reportingMode: z.enum(["BOOK", "TAX"]).default("TAX"),
       }))
       .query(async ({ input }) => {
@@ -632,6 +633,9 @@ export const appRouter = router({
         }
         if (input.county) {
           contracts = contracts.filter(c => c.county === input.county);
+        }
+        if (input.propertyId) {
+          contracts = contracts.filter(c => c.propertyId === input.propertyId);
         }
 
         // Calculate KPIs

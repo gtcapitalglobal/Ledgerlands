@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCounty, setSelectedCounty] = useState<string>("all");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>("all");
   const [reportingMode, setReportingMode] = useState<"BOOK" | "TAX">("TAX");
   const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
 
@@ -27,16 +28,22 @@ export default function Dashboard() {
     if (selectedStatus !== "all") f.status = selectedStatus;
     if (selectedType !== "all") f.originType = selectedType;
     if (selectedCounty !== "all") f.county = selectedCounty;
+    if (selectedPropertyId !== "all") f.propertyId = selectedPropertyId;
     return f;
-  }, [selectedYear, selectedStatus, selectedType, selectedCounty, reportingMode]);
+  }, [selectedYear, selectedStatus, selectedType, selectedCounty, selectedPropertyId, reportingMode]);
 
   const { data: kpis, isLoading } = trpc.dashboard.getKPIs.useQuery(filters);
 
-  // Get unique counties
+  // Get unique counties and property IDs
   const uniqueCounties = useMemo(() => {
     if (!contracts) return [];
     const counties = new Set(contracts.map(c => c.county));
     return Array.from(counties).sort();
+  }, [contracts]);
+
+  const uniquePropertyIds = useMemo(() => {
+    if (!contracts) return [];
+    return contracts.map(c => c.propertyId).sort();
   }, [contracts]);
 
   const formatCurrency = (value: number) => {
@@ -109,7 +116,7 @@ export default function Dashboard() {
             <CardDescription>Refine a visualização dos dados</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Modo de Relatório</label>
                 <Select value={reportingMode} onValueChange={(v: "BOOK" | "TAX") => setReportingMode(v)}>
@@ -179,6 +186,23 @@ export default function Dashboard() {
                     {uniqueCounties.map(county => (
                       <SelectItem key={county} value={county}>
                         {county}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Property ID</label>
+                <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    {uniquePropertyIds.map(propId => (
+                      <SelectItem key={propId} value={propId}>
+                        {propId}
                       </SelectItem>
                     ))}
                   </SelectContent>
