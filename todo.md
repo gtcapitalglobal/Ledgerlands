@@ -362,3 +362,9 @@
 - [x] UI: Desabilitar campo downPayment no formulário de editar contrato quando ASSUMED
 - [x] Verificar cálculo calculateReceivableBalance: ASSUMED usa openingReceivable - principal_filtered (sem downPayment)
 - [x] Verificar que payments são filtrados por paymentDate >= transferDate para ASSUMED
+
+## ASSUMED Fix - Comprehensive Verification
+- [x] CSV Import: Verificar se downPayment=0 é forçado para ASSUMED
+- [x] Dashboard KPIs: Verificar se usa filtered payments (paymentDate >= transferDate) para ASSUMED
+- [x] Tax Schedule: Verificar se usa filtered payments para ASSUMED
+- [x] Todos os cálculos: Garantir que downPayment não é usado em nenhum lugar para ASSUMED
