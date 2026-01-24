@@ -50,6 +50,13 @@
       "when": 1769208639353,
       "tag": "0006_loud_spyke",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1769213558169,
+      "tag": "0007_chunky_mentor",
+      "breakpoints": true
     }
   ]
 }

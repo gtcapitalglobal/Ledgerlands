@@ -342,3 +342,10 @@
 
 ## Bugs Ativos
 - [x] Payments import: "Unknown property_id: 17" mesmo com contrato #17 existente (CORRIGIDO: getContractByPropertyId agora tenta com e sem # prefix)
+- [x] Attachment upload: usuário fez upload de PDF no contrato #31 mas documento não aparece na lista (RESOLVIDO: implementar Drive folder link em vez de upload)
+
+## Drive Folder Link Feature
+- [x] Adicionar campo documentFolderLink (TEXT) no schema contracts
+- [x] Adicionar campo no formulário de criar contrato
+- [x] Adicionar campo no formulário de editar contrato
+- [x] Adicionar botão "Open Drive Folder" no Contract Detail

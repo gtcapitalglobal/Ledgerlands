@@ -130,8 +130,9 @@ export default function ContractDetail() {
       setUploadFile(null);
       setUploadDocType('Other');
       utils.attachments.list.invalidate({ contractId });
-    } catch (error) {
-      toast.error('Upload failed');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(`Upload failed: ${error.message || JSON.stringify(error)}`);
     }
   };
 
@@ -253,6 +254,7 @@ export default function ContractDetail() {
                 state: contract.state || 'FL',
                 status: contract.status,
                 notes: contract.notes || '',
+                documentFolderLink: contract.documentFolderLink || '',
                 contractPrice: contract.contractPrice,
                 costBasis: contract.costBasis,
                 downPayment: contract.downPayment || '0',
@@ -495,6 +497,31 @@ export default function ContractDetail() {
           </CardContent>
         </Card>
 
+        {/* Google Drive Folder Link */}
+        {contract.documentFolderLink && (
+          <Card className="shadow-elegant bg-primary/5 border-primary/20">
+            <CardContent className="py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-primary/10 rounded-lg">
+                    <FileText className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Pasta de Documentos no Google Drive</h3>
+                    <p className="text-sm text-muted-foreground">Acesse todos os documentos deste contrato</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => contract.documentFolderLink && window.open(contract.documentFolderLink, '_blank')}
+                  className="shadow-elegant"
+                >
+                  📁 Abrir no Drive
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Attachments */}
         <Card className="shadow-elegant">
           <CardHeader>
@@ -574,6 +601,7 @@ export default function ContractDetail() {
               state: editFormData.state,
               status: editFormData.status,
               notes: editFormData.notes,
+              documentFolderLink: editFormData.documentFolderLink || "",
               contractPrice: editFormData.contractPrice,
               costBasis: editFormData.costBasis,
               downPayment: editFormData.downPayment || "0",
@@ -651,6 +679,11 @@ export default function ContractDetail() {
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Notes</Label>
               <Textarea id="edit-notes" value={editFormData.notes} onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})} rows={3} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-documentFolderLink">Google Drive Folder Link</Label>
+              <Input id="edit-documentFolderLink" type="url" value={editFormData.documentFolderLink || ""} onChange={(e) => setEditFormData({...editFormData, documentFolderLink: e.target.value})} placeholder="https://drive.google.com/drive/folders/..." />
+              <p className="text-xs text-muted-foreground">Cole o link da pasta do Google Drive com os documentos deste contrato</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-reason">Reason for Edit (Audit Required) *</Label>

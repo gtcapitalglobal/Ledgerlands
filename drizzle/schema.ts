@@ -68,6 +68,9 @@ export const contracts = mysqlTable("contracts", {
   costBasisNotes: text("costBasisNotes"),
   openingReceivableSource: mysqlEnum("openingReceivableSource", ["ASSIGNMENT", "LEGACY", "OTHER"]), // ASSUMED only
   
+  // V3.1: Google Drive folder link (replaces file upload)
+  documentFolderLink: text("documentFolderLink"),
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

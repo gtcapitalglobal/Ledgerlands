@@ -47,6 +47,7 @@ export default function Contracts() {
     costBasisSource: "" as "HUD" | "PSA" | "ASSIGNMENT" | "LEGACY" | "OTHER" | "",
     costBasisNotes: "",
     openingReceivableSource: "" as "ASSIGNMENT" | "LEGACY" | "OTHER" | "",
+    documentFolderLink: "",
   });
 
   const { data: contracts, isLoading, refetch } = trpc.contracts.list.useQuery();
@@ -78,6 +79,7 @@ export default function Contracts() {
         costBasisSource: "",
         costBasisNotes: "",
         openingReceivableSource: "",
+        documentFolderLink: "",
       });
       refetch();
     },
@@ -506,6 +508,7 @@ export default function Contracts() {
               downPayment: formData.downPayment || "0",
               status: formData.status,
               notes: formData.notes || "",
+              documentFolderLink: formData.documentFolderLink || "",
             };
             if (formData.originType === "ASSUMED") {
               data.transferDate = formData.transferDate;
@@ -656,6 +659,11 @@ export default function Contracts() {
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="documentFolderLink">Google Drive Folder Link</Label>
+              <Input id="documentFolderLink" type="url" value={formData.documentFolderLink || ""} onChange={(e) => setFormData({...formData, documentFolderLink: e.target.value})} placeholder="https://drive.google.com/drive/folders/..." />
+              <p className="text-xs text-muted-foreground">Cole o link da pasta do Google Drive com os documentos deste contrato</p>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
