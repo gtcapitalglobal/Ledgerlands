@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO contracts (\n    propertyId, buyerName, county, state, originType, saleType,\n    contractDate, transferDate, contractPrice, costBasis, downPayment,\n    installmentAmount, installmentCount, balloonAmount,\n    openingReceivable, notes, createdAt, updatedAt\n) VALUES (\n    '#31', 'Tomy Rodriguez Gonzalez', 'Putnam', 'FL', 'DIRECT', 'CFD',\n    '2026-01-05', NULL, '11059', '6466.55', '499',\n    '220', 48, '0',\n    NULL, 'Only down payment', NOW(), NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute INSERT INTO contracts (\n    propertyId, buyerName, county, state, originType, saleType,\n    contractDate, transferDate, contractPrice, costBasis, downPayment,\n    installmentAmount, installmentCount, balloonAmount,\n    openingReceivable, notes, createdAt, updatedAt\n) VALUES (\n    '#31', 'Tomy Rodriguez Gonzalez', 'Putnam', 'FL', 'DIRECT', 'CFD',\n    '2026-01-05', NULL, '11059', '6466.55', '499',\n    '220', 48, '0',\n    NULL, 'Only down payment', NOW(), NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 115
+}

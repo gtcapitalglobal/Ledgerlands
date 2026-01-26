@@ -429,3 +429,12 @@
 - [ ] 9. Backfill script: dryRun report (inferir DP perdidos)
 - [ ] 10. Backfill script: apply com audit log
 - [ ] 11. Validar contrato #25 DIRECT: principal=6643, gain=3451.19, receivable=13021
+
+
+## Data Cleanup + Reimport from Excel
+- [x] 1. Analisar estrutura do arquivo GT_Lands_Contracts_Ledger_FULL_FINAL.xlsx (8 contratos: 6 ASSUMED + 2 DIRECT)
+- [x] 2. Criar script de limpeza: DELETE ALL contracts + payments
+- [x] 3. Criar script de importação do Excel para banco (import_excel_to_db.py)
+- [x] 4. Executar limpeza do banco (DELETE FROM payments; DELETE FROM contracts;)
+- [x] 5. Executar importação do Excel (8/8 contratos: 3 DIRECT + 5 ASSUMED)
+- [x] 6. Validar dados importados (#17, #22, #25, #31, #33, #35, #43, #45)
