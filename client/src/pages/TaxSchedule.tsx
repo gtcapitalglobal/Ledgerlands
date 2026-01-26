@@ -61,68 +61,59 @@ export default function TaxSchedule() {
     });
   }, [schedule]);
 
-  const handleExportCSV = () => {
+  const exportCSVQuery = trpc.taxSchedule.exportCSV.useQuery(
+    { period: selectedPeriod, year: selectedYear, startDate, endDate },
+    { enabled: false }
+  );
+
+  const handleExportCSV = async () => {
     if (!schedule || schedule.length === 0) {
       toast.error("No data to export");
       return;
     }
 
-    const headers = [
-      'Property ID',
-      'Buyer Name',
-      'Type',
-      'Principal Received',
-      'Gross Profit %',
-      'Gain Recognized',
-      'Late Fees',
-      'Total Profit Recognized'
-    ];
+    try {
+      const result = await exportCSVQuery.refetch();
+      if (result.data) {
+        const { rows, filename } = result.data;
+        
+        // Add totals row
+        const rowsWithTotal = [
+          ...rows,
+          {
+            propertyId: 'TOTAL',
+            buyerName: '',
+            contractPrice: '',
+            costBasis: '',
+            grossProfitPercent: '',
+            principalReceived: totals.principalReceived.toFixed(2),
+            gainRecognized: totals.gainRecognized.toFixed(2),
+            lateFees: totals.lateFees.toFixed(2),
+            totalProfitRecognized: totals.totalProfitRecognized.toFixed(2),
+          }
+        ];
 
-    const rows = schedule.map(item => [
-      item.propertyId,
-      item.buyerName,
-      item.originType,
-      item.principalReceived.toFixed(2),
-      item.grossProfitPercent.toFixed(2),
-      item.gainRecognized.toFixed(2),
-      item.lateFees.toFixed(2),
-      (item.gainRecognized + item.lateFees).toFixed(2),
-    ]);
+        // Convert to CSV
+        const headers = Object.keys(rows[0] || {});
+        const csvContent = [
+          headers.join(','),
+          ...rowsWithTotal.map(row => headers.map(h => `\"${row[h as keyof typeof row]}\"`).join(','))
+        ].join('\n');
 
-    // Add totals row
-    rows.push([
-      'TOTAL',
-      '',
-      '',
-      totals.principalReceived.toFixed(2),
-      '',
-      totals.gainRecognized.toFixed(2),
-      totals.lateFees.toFixed(2),
-      totals.totalProfitRecognized.toFixed(2),
-    ]);
+        // Download
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    let filename = 'tax_schedule_';
-    if (selectedPeriod === "RANGE") {
-      filename += `RANGE_${startDate}_${endDate}.csv`;
-    } else if (selectedPeriod === "YEAR") {
-      filename += `${selectedYear}.csv`;
-    } else {
-      filename += `${selectedYear}_${selectedPeriod}.csv`;
+        toast.success(`Tax schedule exported: ${filename}`);
+      }
+    } catch (error) {
+      toast.error("Failed to export tax schedule");
     }
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    toast.success(`Tax schedule for ${selectedYear} exported successfully`);
   };
 
   const getTypeColor = (type: string) => {

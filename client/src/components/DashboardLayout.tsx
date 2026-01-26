@@ -32,6 +32,7 @@ const menuItems = [
   { icon: FileText, label: "Contratos", path: "/contracts" },
   { icon: DollarSign, label: "Pagamentos", path: "/payments" },
   { icon: Calendar, label: "Tax Schedule", path: "/tax-schedule" },
+  { icon: FileText, label: "Contracts Subledger", path: "/contracts-subledger" },
   { icon: AlertTriangle, label: "Exceções", path: "/exceptions" },
   { icon: BookOpen, label: "Documentação", path: "/documentation" },
   { icon: Settings, label: "Configurações", path: "/settings" },

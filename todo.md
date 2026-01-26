@@ -446,3 +446,13 @@
 - [x] 3. Verificar que Receivable Balance está visível no Dashboard (card "Saldo a Receber" - $71,774)
 - [x] 4. Verificar que Receivable Balance está visível na página Contract Detail (card com formatCurrency)
 - [x] 5. Testar funcionalidade completa (marcar como pago → saldo atualiza) - Testado com contrato #25, funcionando perfeitamente
+
+
+## Seller Financing Export Standards (Audit + Tax Ready)
+- [x] Backend: Create contractsSubledger.exportCSV procedure
+- [x] Backend: Create contractsSubledger.exportExcel procedure  
+- [x] Backend: Update taxSchedule.exportCSV with GT_Lands naming convention
+- [x] Frontend: Create Contracts Subledger page with period selector
+- [x] Frontend: Update Tax Schedule to use backend export with GT_Lands naming
+- [x] Add Contracts Subledger to navigation menu
+- [x] Test exports and verify naming conventions (Annual 2026 tested successfully for both modules)

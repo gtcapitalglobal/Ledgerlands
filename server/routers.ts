@@ -1057,16 +1057,28 @@ export const appRouter = router({
           rows.push({
             propertyId: contract.propertyId,
             buyerName: contract.buyerName,
-            saleType: contract.saleType,
-            principalReceived: principalReceived.toFixed(2),
+            contractPrice: parseFloat(contract.contractPrice as string).toFixed(2),
+            costBasis: parseFloat(contract.costBasis as string).toFixed(2),
             grossProfitPercent: grossProfitPercent.toFixed(2),
+            principalReceived: principalReceived.toFixed(2),
             gainRecognized: gainRecognized.toFixed(2),
             lateFees: lateFees.toFixed(2),
             totalProfitRecognized: (gainRecognized + lateFees).toFixed(2),
           });
         }
 
-        return rows;
+        // Generate filename with GT_Lands naming convention
+        let filename = 'GT_Lands_Installment_Sales_Tax_Schedule_';
+        if (input.period === 'RANGE') {
+          filename += `RANGE_${input.startDate}_${input.endDate}`;
+        } else if (input.period === 'YEAR') {
+          filename += `${input.year}`;
+        } else {
+          filename += `${input.year}_${input.period}`;
+        }
+        filename += '.csv';
+
+        return { rows, filename };
       }),
   }),
 
@@ -1198,6 +1210,119 @@ export const appRouter = router({
       const { validateAllContracts } = await import("./exceptions");
       return await validateAllContracts();
     }),
+  }),
+
+  // V3.10: Contracts Subledger (Operational/Audit Export)
+  contractsSubledger: router({
+    exportCSV: protectedProcedure
+      .input(z.object({ 
+        period: z.enum(["YEAR", "Q1", "Q2", "Q3", "Q4", "RANGE"]),
+        year: z.number(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const contracts = await db.getAllContracts();
+        const allPayments = await db.getAllPayments();
+        
+        const rows = [];
+
+        for (const contract of contracts) {
+          const lifetimePayments = allPayments.filter(p => p.contractId === contract.id);
+          const totalCashCollected = lifetimePayments.reduce((sum, p) => {
+            return sum + parseFloat(p.amountTotal as string);
+          }, 0);
+
+          const receivableBalance = await db.calculateReceivableBalance(contract, allPayments);
+
+          rows.push({
+            propertyId: contract.propertyId,
+            buyerName: contract.buyerName,
+            contractType: contract.originType,
+            currentEntity: 'GT Lands LLC',
+            saleDate: contract.contractDate.toISOString().split('T')[0],
+            transferDate: contract.transferDate ? contract.transferDate.toISOString().split('T')[0] : '',
+            contractPrice: parseFloat(contract.contractPrice as string).toFixed(2),
+            costBasis: parseFloat(contract.costBasis as string).toFixed(2),
+            downPayment: parseFloat(contract.downPayment as string).toFixed(2),
+            installmentAmount: contract.installmentAmount ? parseFloat(contract.installmentAmount as string).toFixed(2) : '',
+            installmentCount: contract.installmentCount || '',
+            balloonAmount: contract.balloonAmount ? parseFloat(contract.balloonAmount as string).toFixed(2) : '',
+            interestRate: '0%',
+            totalCashCollected: totalCashCollected.toFixed(2),
+            principalOutstanding: receivableBalance.toFixed(2),
+            openingReceivable: contract.openingReceivable ? parseFloat(contract.openingReceivable as string).toFixed(2) : '',
+            status: contract.status,
+          });
+        }
+
+        let filename = 'GT_Lands_Seller_Financing_Contracts_Subledger_';
+        if (input.period === 'RANGE') {
+          filename += `RANGE_${input.startDate}_${input.endDate}_FINAL`;
+        } else if (input.period === 'YEAR') {
+          filename += `${input.year}_FINAL`;
+        } else {
+          filename += `${input.year}_${input.period}_FINAL`;
+        }
+        filename += '.csv';
+
+        return { rows, filename };
+      }),
+
+    exportExcel: protectedProcedure
+      .input(z.object({ 
+        period: z.enum(["YEAR", "Q1", "Q2", "Q3", "Q4", "RANGE"]),
+        year: z.number(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const contracts = await db.getAllContracts();
+        const allPayments = await db.getAllPayments();
+        
+        const rows = [];
+
+        for (const contract of contracts) {
+          const lifetimePayments = allPayments.filter(p => p.contractId === contract.id);
+          const totalCashCollected = lifetimePayments.reduce((sum, p) => {
+            return sum + parseFloat(p.amountTotal as string);
+          }, 0);
+
+          const receivableBalance = await db.calculateReceivableBalance(contract, allPayments);
+
+          rows.push({
+            propertyId: contract.propertyId,
+            buyerName: contract.buyerName,
+            contractType: contract.originType,
+            currentEntity: 'GT Lands LLC',
+            saleDate: contract.contractDate.toISOString().split('T')[0],
+            transferDate: contract.transferDate ? contract.transferDate.toISOString().split('T')[0] : '',
+            contractPrice: parseFloat(contract.contractPrice as string).toFixed(2),
+            costBasis: parseFloat(contract.costBasis as string).toFixed(2),
+            downPayment: parseFloat(contract.downPayment as string).toFixed(2),
+            installmentAmount: contract.installmentAmount ? parseFloat(contract.installmentAmount as string).toFixed(2) : '',
+            installmentCount: contract.installmentCount || '',
+            balloonAmount: contract.balloonAmount ? parseFloat(contract.balloonAmount as string).toFixed(2) : '',
+            interestRate: '0%',
+            totalCashCollected: totalCashCollected.toFixed(2),
+            principalOutstanding: receivableBalance.toFixed(2),
+            openingReceivable: contract.openingReceivable ? parseFloat(contract.openingReceivable as string).toFixed(2) : '',
+            status: contract.status,
+          });
+        }
+
+        let filename = 'GT_Lands_Seller_Financing_Contracts_Subledger_';
+        if (input.period === 'RANGE') {
+          filename += `RANGE_${input.startDate}_${input.endDate}_FINAL`;
+        } else if (input.period === 'YEAR') {
+          filename += `${input.year}_FINAL`;
+        } else {
+          filename += `${input.year}_${input.period}_FINAL`;
+        }
+        filename += '.xlsx';
+
+        return { rows, filename };
+      }),
   }),
 });
 

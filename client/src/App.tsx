@@ -9,6 +9,7 @@ import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
 import TaxSchedule from "./pages/TaxSchedule";
+import ContractsSubledger from "./pages/ContractsSubledger";
 import Documentation from "./pages/Documentation";
 import Settings from "./pages/Settings";
 import Exceptions from "./pages/Exceptions";
@@ -21,6 +22,7 @@ function Router() {
       <Route path={"/contracts/:id"} component={ContractDetail} />
       <Route path={"/payments"} component={Payments} />
       <Route path={"/tax-schedule"} component={TaxSchedule} />
+      <Route path={"/contracts-subledger"} component={ContractsSubledger} />
       <Route path={"/documentation"} component={Documentation} />
       <Route path={"/settings"} component={Settings} />
       <Route path={"/exceptions"} component={Exceptions} />
