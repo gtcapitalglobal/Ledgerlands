@@ -438,3 +438,11 @@
 - [x] 4. Executar limpeza do banco (DELETE FROM payments; DELETE FROM contracts;)
 - [x] 5. Executar importação do Excel (8/8 contratos: 3 DIRECT + 5 ASSUMED)
 - [x] 6. Validar dados importados (#17, #22, #25, #31, #33, #35, #43, #45)
+
+
+## Quick Payment Feature ("Marcar como Pago")
+- [x] 1. Criar backend endpoint payments.quickPay (cria payment com installmentAmount)
+- [x] 2. Adicionar botão "Marcar como Pago" na página Contract Detail
+- [x] 3. Verificar que Receivable Balance está visível no Dashboard (card "Saldo a Receber" - $71,774)
+- [x] 4. Verificar que Receivable Balance está visível na página Contract Detail (card com formatCurrency)
+- [x] 5. Testar funcionalidade completa (marcar como pago → saldo atualiza) - Testado com contrato #25, funcionando perfeitamente

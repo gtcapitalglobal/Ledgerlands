@@ -341,6 +341,42 @@ export const appRouter = router({
         return { id, success: true };
       }),
 
+    quickPay: protectedProcedure
+      .input(z.object({
+        contractId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        // Get contract to get installment amount and propertyId
+        const contract = await db.getContractById(input.contractId);
+        if (!contract) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
+        }
+
+        if (!contract.installmentAmount) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Contract has no installment amount" });
+        }
+
+        const installmentAmount = typeof contract.installmentAmount === 'string' 
+          ? parseFloat(contract.installmentAmount) 
+          : contract.installmentAmount;
+
+        // Create payment with installment amount
+        const paymentData = {
+          contractId: input.contractId,
+          propertyId: contract.propertyId,
+          paymentDate: new Date(), // Today
+          amountTotal: installmentAmount.toFixed(2),
+          principalAmount: installmentAmount.toFixed(2),
+          lateFeeAmount: "0.00",
+          receivedBy: "GT_REAL_BANK" as const,
+          channel: "ZELLE" as const,
+          memo: "Quick payment",
+        };
+        
+        const id = await db.createPayment(paymentData);
+        return { id, success: true };
+      }),
+
     update: protectedProcedure
       .input(z.object({
         id: z.number(),

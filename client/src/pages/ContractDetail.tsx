@@ -93,6 +93,17 @@ export default function ContractDetail() {
   const deleteAttachment = trpc.attachments.delete.useMutation({
     onSuccess: () => toast.success('Attachment deleted'),
   });
+  
+  const quickPayMutation = trpc.payments.quickPay.useMutation({
+    onSuccess: () => {
+      toast.success('Pagamento registrado com sucesso!');
+      utils.payments.getByContractId.invalidate({ contractId });
+      utils.contracts.getWithCalculations.invalidate({ id: contractId });
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Erro ao registrar pagamento');
+    },
+  });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -439,10 +450,20 @@ export default function ContractDetail() {
                 <CardTitle>Histórico de Pagamentos</CardTitle>
                 <CardDescription>{payments.length} pagamentos registrados</CardDescription>
               </div>
-              <Button className="shadow-elegant">
-                <FileText className="h-4 w-4 mr-2" />
-                Adicionar Pagamento
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => quickPayMutation.mutate({ contractId: contract.id })}
+                  disabled={quickPayMutation.isPending}
+                  variant="default"
+                  className="shadow-elegant"
+                >
+                  {quickPayMutation.isPending ? "Processando..." : "✓ Marcar como Pago"}
+                </Button>
+                <Button className="shadow-elegant" variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Adicionar Pagamento
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
