@@ -456,3 +456,36 @@
 - [x] Frontend: Update Tax Schedule to use backend export with GT_Lands naming
 - [x] Add Contracts Subledger to navigation menu
 - [x] Test exports and verify naming conventions (Annual 2026 tested successfully for both modules)
+
+
+## Cash Flow Projection (Implementação Atual)
+- [x] Backend: Create cashFlowProjection.get12Months procedure
+- [x] Backend: Calculate expected payments based on installment amounts
+- [x] Backend: Include balloon payments in projection
+- [x] Frontend: Create Cash Flow Projection page with chart
+- [x] Frontend: Add monthly breakdown table
+- [x] Frontend: Add card on Dashboard showing next 3 months projection
+- [x] Add Cash Flow Projection to navigation menu
+
+## Future Features (Anotado para Implementação Futura)
+
+### Document Generation (Prioridade #14)
+- [ ] Generate payment receipts automatically
+- [ ] Generate year-end statements for buyers
+- [ ] Generate tax forms
+- [ ] Customizable templates with logo
+- [ ] PDF export via email or download
+
+### Stripe Integration (Prioridade #16)
+- [ ] Setup Stripe account integration
+- [ ] Create payment links for buyers
+- [ ] Automatic reconciliation with contracts
+- [ ] Payment confirmation emails
+- [ ] Track payment methods and fees
+
+### Google Drive Auto-Backup (Prioridade #18)
+- [ ] Setup Google Drive API integration
+- [ ] Daily automatic backup of all data
+- [ ] Organize exports by date in Drive folders
+- [ ] Backup contracts, payments, and attachments
+- [ ] Disaster recovery documentation

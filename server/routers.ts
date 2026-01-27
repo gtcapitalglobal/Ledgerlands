@@ -1324,6 +1324,74 @@ export const appRouter = router({
         return { rows, filename };
       }),
   }),
+
+  // V3.11: Cash Flow Projection
+  cashFlowProjection: router({
+    get12Months: protectedProcedure.query(async () => {
+      const contracts = await db.getAllContracts();
+      const allPayments = await db.getAllPayments();
+      
+      const today = new Date();
+      const projections = [];
+
+      // Generate 12 months starting from current month
+      for (let i = 0; i < 12; i++) {
+        const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        let expectedInstallments = 0;
+        let expectedBalloons = 0;
+        const contractsWithPayments: string[] = [];
+
+        for (const contract of contracts) {
+          if (contract.status !== 'Active') continue;
+
+          // Calculate expected installment payments
+          if (contract.installmentAmount && contract.saleType === 'CFD') {
+            const installmentAmount = parseFloat(contract.installmentAmount as string);
+            expectedInstallments += installmentAmount;
+            contractsWithPayments.push(contract.propertyId);
+          }
+
+          // Check for balloon payment in this month
+          if (contract.balloonAmount && contract.balloonDate) {
+            const balloonDate = new Date(contract.balloonDate);
+            const balloonMonth = `${balloonDate.getFullYear()}-${String(balloonDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (balloonMonth === monthKey) {
+              const balloonAmount = parseFloat(contract.balloonAmount as string);
+              expectedBalloons += balloonAmount;
+            }
+          }
+        }
+
+        projections.push({
+          month: monthName,
+          monthKey,
+          expectedInstallments,
+          expectedBalloons,
+          totalExpected: expectedInstallments + expectedBalloons,
+          contractCount: contractsWithPayments.length,
+        });
+      }
+
+      // Calculate summary stats
+      const next3Months = projections.slice(0, 3).reduce((sum, p) => sum + p.totalExpected, 0);
+      const next6Months = projections.slice(0, 6).reduce((sum, p) => sum + p.totalExpected, 0);
+      const next12Months = projections.reduce((sum, p) => sum + p.totalExpected, 0);
+
+      return {
+        projections,
+        summary: {
+          next3Months,
+          next6Months,
+          next12Months,
+          activeContracts: contracts.filter(c => c.status === 'Active').length,
+        },
+      };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

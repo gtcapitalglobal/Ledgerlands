@@ -33,6 +33,7 @@ export default function Dashboard() {
   }, [selectedYear, selectedStatus, selectedType, selectedCounty, selectedPropertyId, reportingMode]);
 
   const { data: kpis, isLoading } = trpc.dashboard.getKPIs.useQuery(filters);
+  const { data: cashFlowData } = trpc.cashFlowProjection.get12Months.useQuery();
 
   // Get unique counties and property IDs
   const uniqueCounties = useMemo(() => {
@@ -362,6 +363,50 @@ export default function Dashboard() {
             </Card>
           </div>
         ) : null}
+
+        {/* Cash Flow Projection Card */}
+        {cashFlowData && (
+          <Card className="shadow-elegant">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Projeção de Cash Flow</CardTitle>
+                  <CardDescription className="mt-1">
+                    Recebimentos esperados nos próximos 3 meses
+                  </CardDescription>
+                </div>
+                <Button variant="outline" onClick={() => setLocation('/cash-flow')}>
+                  Ver Detalhes
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {cashFlowData.projections.slice(0, 3).map((projection) => (
+                  <div key={projection.monthKey} className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      {projection.month}
+                    </div>
+                    <div className="text-2xl font-bold">
+                      {formatCurrency(projection.totalExpected)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {projection.contractCount} contratos
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Total (3 meses):</span>
+                  <span className="text-lg font-bold">
+                    {formatCurrency(cashFlowData.summary.next3Months)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
