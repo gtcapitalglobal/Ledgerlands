@@ -489,3 +489,13 @@
 - [ ] Organize exports by date in Drive folders
 - [ ] Backup contracts, payments, and attachments
 - [ ] Disaster recovery documentation
+
+
+## Delete All Contracts and Payments (Settings Page)
+- [x] Backend: Create system.deleteAllData procedure
+- [x] Backend: Delete all payments first (foreign key constraint)
+- [x] Backend: Delete all contracts
+- [x] Frontend: Add "Danger Zone" section in Settings page
+- [x] Frontend: Add "Delete All Data" button with red warning styling
+- [x] Frontend: Implement double confirmation dialog (type "DELETE ALL" to confirm)
+- [x] Test deletion and verify UI works correctly (visual test - dialog opens, confirmation required)
