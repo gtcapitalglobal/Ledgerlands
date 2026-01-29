@@ -72,10 +72,21 @@ export default function ContractDetail() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadDocType, setUploadDocType] = useState<string>('Other');
 
-  const { data, isLoading } = trpc.contracts.getWithCalculations.useQuery({ 
+  const { data: contractData, isLoading: contractLoading } = trpc.contracts.getById.useQuery({ 
+    id: contractId
+  });
+  
+  const { data: calculationsData, isLoading: calculationsLoading } = trpc.contracts.getWithCalculations.useQuery({ 
     id: contractId,
     year: selectedYear 
   });
+  
+  const isLoading = contractLoading || calculationsLoading;
+  const data = contractData && calculationsData ? {
+    contract: { ...calculationsData.contract, financialSummary: contractData.financialSummary },
+    payments: calculationsData.payments,
+    calculations: calculationsData.calculations
+  } : null;
   
   const { data: attachments = [] } = trpc.attachments.list.useQuery({ contractId });
   const utils = trpc.useUtils();
@@ -352,6 +363,81 @@ export default function ContractDetail() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Financial Summary */}
+        <Card className="shadow-elegant border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Financial Summary
+            </CardTitle>
+            <CardDescription>Resumo financeiro completo do contrato (paridade com planilha)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Paid Installments */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Parcelas Pagas</p>
+                <p className="text-2xl font-bold">
+                  {contract.financialSummary?.paidInstallments || 0} de {contract.financialSummary?.totalInstallments || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {contract.financialSummary?.paidInstallments && contract.financialSummary?.totalInstallments
+                    ? `${Math.round((contract.financialSummary.paidInstallments / contract.financialSummary.totalInstallments) * 100)}% completo`
+                    : 'Sem parcelas'}
+                </p>
+              </div>
+
+              {/* Cash Received Total */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Total Recebido</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {formatCurrency(contract.financialSummary?.cashReceivedTotal || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Incluindo down payment
+                </p>
+              </div>
+
+              {/* Financed Amount */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Valor Financiado</p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(contract.financialSummary?.financedAmount || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Preço - Down Payment
+                </p>
+              </div>
+
+              {/* Opening Receivable (ASSUMED only) */}
+              {contract.originType === 'ASSUMED' && contract.financialSummary?.openingReceivable && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Opening Receivable</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatCurrency(contract.financialSummary.openingReceivable)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Saldo na transferência
+                  </p>
+                </div>
+              )}
+
+              {/* Receivable Balance (DIRECT only) */}
+              {contract.originType === 'DIRECT' && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Receivable Balance</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatCurrency(contract.financialSummary?.receivableBalance || 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Saldo pendente atual
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Contract Details */}
         <Card className="shadow-elegant">

@@ -32,7 +32,35 @@ export const appRouter = router({
         if (!contract) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
         }
-        return contract;
+        
+        // Get payments for this contract
+        const payments = await db.getPaymentsByContractId(input.id);
+        
+        // Calculate financial summary
+        const paidInstallments = payments.length;
+        const totalInstallments = contract.installmentCount || 0;
+        
+        const cashReceivedTotal = payments.reduce((sum, p) => {
+          return sum + parseFloat(p.principalAmount.toString()) + 
+                       parseFloat(p.lateFeeAmount?.toString() || '0');
+        }, parseFloat(contract.downPayment.toString()));
+        
+        const financedAmount = parseFloat(contract.contractPrice.toString()) - 
+                               parseFloat(contract.downPayment.toString());
+        
+        const receivableBalance = await db.calculateReceivableBalance(contract, payments);
+        
+        return {
+          ...contract,
+          financialSummary: {
+            paidInstallments,
+            totalInstallments,
+            cashReceivedTotal,
+            financedAmount,
+            openingReceivable: contract.openingReceivable ? parseFloat(contract.openingReceivable.toString()) : null,
+            receivableBalance,
+          },
+        };
       }),
 
     getByPropertyId: protectedProcedure

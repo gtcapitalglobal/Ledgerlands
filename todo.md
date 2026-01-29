@@ -499,3 +499,18 @@
 - [x] Frontend: Add "Delete All Data" button with red warning styling
 - [x] Frontend: Implement double confirmation dialog (type "DELETE ALL" to confirm)
 - [x] Test deletion and verify UI works correctly (visual test - dialog opens, confirmation required)
+
+
+## Financial Summary (Paridade 100% com Planilha) - COMPLETO ✅
+- [x] Backend: Adicionar financialSummary ao contracts.getById
+- [x] Backend: Calcular paidInstallments (contagem de payments)
+- [x] Backend: Calcular cashReceivedTotal (down payment + sum of payments)
+- [x] Backend: Calcular financedAmount (contractPrice - downPayment)
+- [x] Backend: Incluir openingReceivable e receivableBalance
+- [x] Frontend: Criar seção Financial Summary no Contract Detail
+- [x] Frontend: Exibir Parcelas Pagas (X de Y)
+- [x] Frontend: Exibir Total Recebido (incluindo down payment)
+- [x] Frontend: Exibir Valor Financiado
+- [x] Frontend: Exibir Opening Receivable (ASSUMED) ou Receivable Balance (DIRECT)
+- [x] Testar com contrato #25 real (ASSUMED)
+- [x] Validar paridade com planilha
