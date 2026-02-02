@@ -1,0 +1,9 @@
+property_id,buyer_name,origin_type,sale_type,county,state,contract_date,transfer_date,contract_price,cost_basis,down_payment,installment_amount,installment_count,balloon_amount,interest_rate,opening_receivable,notes
+25,Chase Quinton Menerey,ASSUMED,CFD,Levy,FL,2024-05-12,2025-09-08,23664.00,11370.00,4000.00,449.00,36,3500.00,0,19315.00,"Assumed on 2025-09-08. Includes balloon paid 2025-11-11."
+33,Yandri Garcia Leiva,ASSUMED,CFD,Putnam,FL,2025-04-22,2025-09-02,7825.00,4369.20,1000.00,195.00,35,0.00,0,5850.00,"Assumed from G&T -> GT Real on 2025-09-02."
+35,Rafael Garcia Garcia,ASSUMED,CFD,Putnam,FL,2025-04-22,2025-09-02,9260.00,1946.30,1000.00,236.00,35,0.00,0,7320.00,"Assumed from G&T -> GT Real on 2025-09-02."
+43,Rafael Garcia Garcia,ASSUMED,CFD,Putnam,FL,2025-04-22,2025-09-02,9260.00,2968.30,1000.00,236.00,35,0.00,0,7320.00,"Same buyer as #35 but different property. Assumed on 2025-09-02."
+45,Jennifer Lynn Soderlund,ASSUMED,CFD,Putnam,FL,2025-04-30,2025-11-06,11972.00,2953.30,2000.00,277.00,36,0.00,18,8310.00,"Assumed. G&T received installments 1–6; GT Real received installments 7–8. One payment included $23 late fee (cash $300)."
+17,Donald Thomas Way,DIRECT,CFD,Erie,PA,2025-11-03,,8319.20,5998.32,500.00,162.90,48,0.00,0,,"Financed remainder after $500 down."
+22,Bryan Shawn Hamilton,DIRECT,CFD,Putnam,FL,2025-10-24,,5530.00,2322.10,250.00,110.00,48,0.00,0,,"Includes one late-fee payment recorded as $130 (=$110 + $20 fee)."
+31,Tomy Rodriguez Gonzalez,DIRECT,CFD,Putnam,FL,2026-01-05,,11059.00,6466.55,499.00,220.00,48,0.00,0,,"No installments paid yet; only down payment received."
