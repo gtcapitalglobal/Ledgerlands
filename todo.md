@@ -514,3 +514,11 @@
 - [x] Frontend: Exibir Opening Receivable (ASSUMED) ou Receivable Balance (DIRECT)
 - [x] Testar com contrato #25 real (ASSUMED)
 - [x] Validar paridade com planilha
+
+
+## Balloon Payment Validation (Contrato #25)
+- [x] Adicionar balloon payment de $3,500 em 11/11/2025 ao contrato #25
+- [x] Validar que receivable balance atualiza para $11,774 - CORRETO!
+- [x] Verificar que Financial Summary mostra 10 parcelas pagas (9 regulares + 1 balloon) - CORRETO!
+- [x] Verificar que Total Recebido mostra $11,541 ($4,000 down + $4,041 regular + $3,500 balloon) - CORRETO!
+- [x] Sistema validado: todos os cálculos batem com a metodologia GT Lands 2025
