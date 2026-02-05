@@ -50,6 +50,10 @@ export const appRouter = router({
         
         const receivableBalance = await db.calculateReceivableBalance(contract, payments);
         
+        // Calculate ROI and IRR
+        const roi = db.calculateROI(contract.contractPrice, contract.costBasis);
+        const irr = await db.calculateIRR(contract, payments);
+        
         return {
           ...contract,
           financialSummary: {
@@ -59,6 +63,8 @@ export const appRouter = router({
             financedAmount,
             openingReceivable: contract.openingReceivable ? parseFloat(contract.openingReceivable.toString()) : null,
             receivableBalance,
+            roi,
+            irr,
           },
         };
       }),
@@ -861,6 +867,9 @@ export const appRouter = router({
           }
         }
 
+        // Calculate portfolio ROI (weighted average)
+        const portfolioROI = totalCostBasis > 0 ? (totalGrossProfit / totalCostBasis) * 100 : 0;
+        
         return {
           activeContracts,
           totalContractPrice,
@@ -871,6 +880,7 @@ export const appRouter = router({
           gainRecognizedYTD,
           lateFeesYTD,
           contractRevenueOpened,
+          portfolioROI,
           reportingMode: input.reportingMode,
           currentYear,
         };

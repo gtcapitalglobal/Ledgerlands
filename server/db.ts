@@ -298,3 +298,150 @@ export async function calculateReceivableBalance(contract: Contract, allPayments
   const price = parseDecimal(contract.contractPrice);
   return price - effectiveDP - totalPrincipalPaid;
 }
+
+/**
+ * Calculate ROI (Return on Investment) for a contract
+ * Formula: (Gross Profit / Cost Basis) × 100
+ * Returns percentage (e.g., 108.12 for 108.12% ROI)
+ */
+export function calculateROI(contractPrice: string | number, costBasis: string | number): number {
+  const price = typeof contractPrice === 'string' ? parseFloat(contractPrice) : contractPrice;
+  const cost = typeof costBasis === 'string' ? parseFloat(costBasis) : costBasis;
+  
+  if (cost === 0) return 0;
+  
+  const grossProfit = price - cost;
+  return (grossProfit / cost) * 100;
+}
+
+/**
+ * Calculate IRR (Internal Rate of Return) for a contract using XIRR formula
+ * 
+ * IRR is the annualized rate of return that makes NPV = 0
+ * Formula: Σ(Cash Flow / (1 + IRR)^(days/365)) = 0
+ * 
+ * Cash flows:
+ * - Initial investment (cost basis) as negative outflow on contract date
+ * - Down payment as positive inflow on contract date
+ * - Each payment (principal + late fees) as positive inflow on payment date
+ * - Remaining receivable balance as positive inflow on last payment date (or today if no payments)
+ * 
+ * Returns annualized percentage (e.g., 15.5 for 15.5% IRR)
+ * Returns null if calculation fails or insufficient data
+ */
+export async function calculateIRR(contract: Contract, allPayments: Payment[]): Promise<number | null> {
+  const { parseDecimal } = await import('../shared/utils');
+  
+  try {
+    // Build cash flow array with dates
+    const cashFlows: { date: Date; amount: number }[] = [];
+    
+    // Initial investment (negative outflow on contract date)
+    const costBasis = parseDecimal(contract.costBasis);
+    const contractDate = new Date(contract.contractDate);
+    cashFlows.push({ date: contractDate, amount: -costBasis });
+    
+    // Down payment (positive inflow on contract date or transfer date for ASSUMED)
+    const downPayment = parseDecimal(contract.downPayment || 0);
+    if (downPayment > 0) {
+      const dpDate = contract.originType === 'ASSUMED' && contract.transferDate 
+        ? new Date(contract.transferDate) 
+        : contractDate;
+      cashFlows.push({ date: dpDate, amount: downPayment });
+    }
+    
+    // Filter payments for this contract
+    let contractPayments = allPayments.filter(p => p.contractId === contract.id);
+    
+    // ASSUMED: only count payments after transferDate
+    if (contract.originType === 'ASSUMED' && contract.transferDate) {
+      contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+    }
+    
+    // Add each payment as positive inflow
+    contractPayments.forEach(payment => {
+      const amount = parseDecimal(payment.principalAmount) + parseDecimal(payment.lateFeeAmount || 0);
+      cashFlows.push({ 
+        date: new Date(payment.paymentDate), 
+        amount 
+      });
+    });
+    
+    // Calculate remaining receivable balance
+    const receivableBalance = await calculateReceivableBalance(contract, allPayments);
+    
+    // Add receivable balance as future inflow (on last payment date or today)
+    if (receivableBalance > 0) {
+      const lastPaymentDate = contractPayments.length > 0
+        ? new Date(Math.max(...contractPayments.map(p => new Date(p.paymentDate).getTime())))
+        : new Date(); // If no payments yet, use today
+      
+      cashFlows.push({ date: lastPaymentDate, amount: receivableBalance });
+    }
+    
+    // Need at least 2 cash flows (investment + return)
+    if (cashFlows.length < 2) {
+      return null;
+    }
+    
+    // Sort by date
+    cashFlows.sort((a, b) => a.date.getTime() - b.date.getTime());
+    
+    // XIRR calculation using Newton's method
+    const firstDate = cashFlows[0].date;
+    
+    // Helper: Calculate NPV for a given rate
+    const calculateNPV = (rate: number): number => {
+      return cashFlows.reduce((npv, cf) => {
+        const days = (cf.date.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24);
+        const years = days / 365;
+        return npv + cf.amount / Math.pow(1 + rate, years);
+      }, 0);
+    };
+    
+    // Helper: Calculate derivative of NPV
+    const calculateDerivative = (rate: number): number => {
+      return cashFlows.reduce((deriv, cf) => {
+        const days = (cf.date.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24);
+        const years = days / 365;
+        return deriv - (years * cf.amount) / Math.pow(1 + rate, years + 1);
+      }, 0);
+    };
+    
+    // Newton's method to find IRR
+    let rate = 0.1; // Initial guess: 10%
+    const maxIterations = 100;
+    const tolerance = 0.0001;
+    
+    for (let i = 0; i < maxIterations; i++) {
+      const npv = calculateNPV(rate);
+      const derivative = calculateDerivative(rate);
+      
+      if (Math.abs(derivative) < 1e-10) {
+        // Derivative too small, can't continue
+        return null;
+      }
+      
+      const newRate = rate - npv / derivative;
+      
+      if (Math.abs(newRate - rate) < tolerance) {
+        // Converged
+        return newRate * 100; // Convert to percentage
+      }
+      
+      rate = newRate;
+      
+      // Sanity check: rate should be reasonable (-100% to 1000%)
+      if (rate < -1 || rate > 10) {
+        return null;
+      }
+    }
+    
+    // Did not converge
+    return null;
+    
+  } catch (error) {
+    console.error('[calculateIRR] Error:', error);
+    return null;
+  }
+}

@@ -297,6 +297,24 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
+            {/* Portfolio ROI */}
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow border-2 border-green-500/20">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  ROI do Portfolio
+                </CardTitle>
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">
+                  {kpis.portfolioROI !== undefined ? `${kpis.portfolioROI.toFixed(2)}%` : 'N/A'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Retorno sobre investimento total
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Total Receivable Balance */}
             <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/contracts')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">

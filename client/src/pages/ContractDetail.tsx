@@ -364,6 +364,47 @@ export default function ContractDetail() {
           </Card>
         </div>
 
+        {/* ROI & IRR Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow border-2 border-green-500/20">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                ROI (Return on Investment)
+              </CardTitle>
+              <TrendingUp className="h-5 w-5 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">
+                {data.contract.financialSummary?.roi !== undefined 
+                  ? `${data.contract.financialSummary.roi.toFixed(2)}%` 
+                  : 'N/A'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Lucro Bruto / Cost Basis
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow border-2 border-blue-500/20">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                IRR (Internal Rate of Return)
+              </CardTitle>
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600">
+                {data.contract.financialSummary?.irr !== null && data.contract.financialSummary?.irr !== undefined
+                  ? `${data.contract.financialSummary.irr.toFixed(2)}%`
+                  : 'N/A'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Taxa de retorno anualizada
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Financial Summary */}
         <Card className="shadow-elegant border-primary/20">
           <CardHeader>

@@ -522,3 +522,29 @@
 - [x] Verificar que Financial Summary mostra 10 parcelas pagas (9 regulares + 1 balloon) - CORRETO!
 - [x] Verificar que Total Recebido mostra $11,541 ($4,000 down + $4,041 regular + $3,500 balloon) - CORRETO!
 - [x] Sistema validado: todos os cálculos batem com a metodologia GT Lands 2025
+
+
+## ROI/IRR Implementation (Investment Performance Analysis)
+- [ ] Backend: Create calculateROI helper in db.ts (Gross Profit / Cost Basis × 100)
+- [ ] Backend: Create calculateIRR helper in db.ts (using XIRR formula with payment dates)
+- [ ] Backend: Add ROI and IRR to contracts.getById response
+- [ ] Backend: Create dashboard.getPortfolioROI procedure (weighted average)
+- [ ] Backend: Create performance.getRanking procedure (all contracts sorted by IRR)
+- [ ] Frontend: Add ROI card to Contract Detail Key Metrics
+- [ ] Frontend: Add IRR card to Contract Detail Key Metrics
+- [ ] Frontend: Add "ROI Médio" card to Dashboard
+- [ ] Frontend: Create Performance Ranking page with sortable table
+- [ ] Frontend: Add Performance Ranking to navigation menu
+- [ ] Test ROI calculation with contract #25 (expected: ~108%)
+- [ ] Test IRR calculation with contract #25 (expected: ~15-20% annualized)
+
+
+## ROI/IRR Implementation (Investment Performance Analysis)
+- [x] Backend: Add calculateROI function to db.ts (Gross Profit / Cost Basis × 100)
+- [x] Backend: Add calculateIRR function to db.ts (XIRR using Newton's method)
+- [x] Backend: Add portfolioROI to dashboard.getKPIs (weighted average)
+- [x] Backend: Add roi and irr to contracts.getById financialSummary
+- [x] Frontend: Add "ROI do Portfolio" card to Dashboard
+- [x] Frontend: Add ROI and IRR cards to Contract Detail page
+- [x] Test: Verify Dashboard shows correct portfolio ROI (126.31%) - CORRETO!
+- [x] Test: Verify Contract Detail shows correct individual ROI (108.13%) and IRR (51.52%) - CORRETO!
