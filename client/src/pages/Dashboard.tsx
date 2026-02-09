@@ -22,6 +22,9 @@ export default function Dashboard() {
   // Fetch contracts to get unique counties
   const { data: contracts } = trpc.contracts.list.useQuery();
   
+  // Backup query (enabled:false, trigger manually)
+  const { refetch: refetchBackup } = trpc.backup.downloadAll.useQuery(undefined, { enabled: false });
+  
   // Build filter object
   const filters = useMemo(() => {
     const f: any = { year: selectedYear, reportingMode };
@@ -44,7 +47,8 @@ export default function Dashboard() {
 
   const uniquePropertyIds = useMemo(() => {
     if (!contracts) return [];
-    return contracts.map(c => c.propertyId).sort();
+    const ids = new Set(contracts.map(c => c.propertyId).filter(Boolean));
+    return Array.from(ids).sort();
   }, [contracts]);
 
   const formatCurrency = (value: number) => {
@@ -80,9 +84,8 @@ export default function Dashboard() {
                 setIsDownloadingBackup(true);
                 toast.info('Gerando backup...');
                 
-                const response = await fetch('/api/trpc/backup.downloadAll');
-                const result = await response.json();
-                const data = result.result.data;
+                const { data: backupData } = await refetchBackup();
+                const data = backupData!;
                 
                 // Create a combined JSON file
                 const fullBackup = JSON.stringify(data, null, 2);
@@ -232,7 +235,7 @@ export default function Dashboard() {
         ) : kpis ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Active Contracts */}
-            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/contracts?status=active')}>
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer" onClick={() => setLocation('/contracts?status=Active')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Contratos Ativos
@@ -292,7 +295,7 @@ export default function Dashboard() {
                   {formatCurrency(kpis.totalGrossProfit)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {formatPercent((kpis.totalGrossProfit / kpis.totalContractPrice) * 100)} margem
+                  {kpis.totalContractPrice > 0 ? formatPercent((kpis.totalGrossProfit / kpis.totalContractPrice) * 100) : '0.00%'} margem
                 </p>
               </CardContent>
             </Card>

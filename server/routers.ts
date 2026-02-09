@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { parseDecimal, computeEffectiveDownPayment } from "../shared/utils";
 import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
@@ -923,10 +924,14 @@ export const appRouter = router({
 
         const schedule = [];
 
+        // Add 1 day to endDate to make it exclusive (avoid missing payments on endDate)
+        const endExclusive = new Date(endDate);
+        endExclusive.setDate(endExclusive.getDate() + 1);
+
         for (const contract of contracts) {
           let periodPayments = allPayments.filter(p => {
             const paymentDate = new Date(p.paymentDate);
-            return paymentDate >= startDate && paymentDate <= endDate && p.contractId === contract.id;
+            return paymentDate >= startDate && paymentDate < endExclusive && p.contractId === contract.id;
           });
           
           // ASSUMED: only count payments after transferDate
@@ -934,18 +939,51 @@ export const appRouter = router({
             periodPayments = periodPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
           }
 
-          const principalReceived = periodPayments.reduce((sum, p) => {
-            const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
-            return sum + amount;
-          }, 0);
+          // Check if downPayment should be added (DIRECT+CFD, no DP payment, contractDate in period)
+          const dpPayment = periodPayments.find(p => 
+            p.memo?.toLowerCase().includes('down payment') || 
+            p.memo?.toLowerCase().includes('entrada')
+          );
+          const contractDateInPeriod = contract.contractDate && 
+            new Date(contract.contractDate) >= startDate && 
+            new Date(contract.contractDate) <= endDate;
 
-          const lateFees = periodPayments.reduce((sum, p) => {
-            const amount = typeof p.lateFeeAmount === 'string' ? parseFloat(p.lateFeeAmount) : p.lateFeeAmount;
-            return sum + amount;
+          const dpAdd = (!dpPayment && 
+            contract.originType === 'DIRECT' && 
+            contract.saleType === 'CFD' && 
+            contractDateInPeriod
+          ) ? parseDecimal(contract.downPayment || '0') : 0;
+
+          let principalReceived = periodPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.principalAmount);
+          }, 0) + dpAdd;
+
+          let lateFees = periodPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.lateFeeAmount);
           }, 0);
 
           const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
-          const gainRecognized = principalReceived * (grossProfitPercent / 100);
+          let gainRecognized = 0;
+
+          // CASH logic
+          if (contract.saleType === 'CASH' && contract.closeDate) {
+            const closeDateInPeriod = new Date(contract.closeDate) >= startDate && 
+              new Date(contract.closeDate) <= endDate;
+            
+            if (closeDateInPeriod) {
+              principalReceived = parseDecimal(contract.contractPrice);
+              gainRecognized = parseDecimal(contract.contractPrice) - parseDecimal(contract.costBasis);
+              lateFees = 0;
+            } else {
+              // CASH outside period = all 0
+              principalReceived = 0;
+              gainRecognized = 0;
+              lateFees = 0;
+            }
+          } else {
+            // CFD: installment method
+            gainRecognized = principalReceived * (grossProfitPercent / 100);
+          }
 
           schedule.push({
             propertyId: contract.propertyId,
@@ -989,30 +1027,48 @@ export const appRouter = router({
             yearPayments = yearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
           }
 
-          const principalReceived = yearPayments.reduce((sum, p) => {
-            const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
-            return sum + amount;
-          }, 0);
+          // Check if downPayment should be added (DIRECT+CFD, no DP payment, contractDate in year)
+          const dpPayment = yearPayments.find(p => 
+            p.memo?.toLowerCase().includes('down payment') || 
+            p.memo?.toLowerCase().includes('entrada')
+          );
+          const contractDateInYear = contract.contractDate && 
+            new Date(contract.contractDate).getFullYear() === input.year;
 
-          const lateFees = yearPayments.reduce((sum, p) => {
-            const amount = typeof p.lateFeeAmount === 'string' ? parseFloat(p.lateFeeAmount) : p.lateFeeAmount;
-            return sum + amount;
+          const dpAdd = (!dpPayment && 
+            contract.originType === 'DIRECT' && 
+            contract.saleType === 'CFD' && 
+            contractDateInYear
+          ) ? parseDecimal(contract.downPayment || '0') : 0;
+
+          let principalReceived = yearPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.principalAmount);
+          }, 0) + dpAdd;
+
+          let lateFees = yearPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.lateFeeAmount);
           }, 0);
 
           const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
-          
-          // CASH sales: 100% gain recognized in closeDate year
           let gainRecognized = 0;
+
+          // CASH logic
           if (contract.saleType === 'CASH' && contract.closeDate) {
             const closeYear = new Date(contract.closeDate).getFullYear();
+            
             if (closeYear === input.year) {
-              const contractPrice = typeof contract.contractPrice === 'string' ? parseFloat(contract.contractPrice) : contract.contractPrice;
-              const costBasis = typeof contract.costBasis === 'string' ? parseFloat(contract.costBasis) : contract.costBasis;
-              gainRecognized = contractPrice - costBasis;
+              principalReceived = parseDecimal(contract.contractPrice);
+              gainRecognized = parseDecimal(contract.contractPrice) - parseDecimal(contract.costBasis);
+              lateFees = 0;
+            } else {
+              // CASH outside year = all 0
+              principalReceived = 0;
+              gainRecognized = 0;
+              lateFees = 0;
             }
           } else {
             // CFD: installment method
-            gainRecognized = db.calculateGainRecognized(principalReceived, grossProfitPercent);
+            gainRecognized = principalReceived * (grossProfitPercent / 100);
           }
           
           const totalProfitRecognized = gainRecognized + lateFees;

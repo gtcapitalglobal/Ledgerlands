@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Papa from "papaparse";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,9 +17,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function Contracts() {
+  const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  
+  // Read query params and set filters
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const status = params.get('status');
+    const type = params.get('type');
+    if (status) setStatusFilter(status);
+    if (type) setTypeFilter(type);
+  }, [location]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [csvPreviewData, setCsvPreviewData] = useState<any[]>([]);
@@ -42,7 +52,7 @@ export default function Contracts() {
     installmentCount: "",
     balloonAmount: "",
     balloonDate: "",
-    status: "active" as "active" | "paid_off" | "defaulted",
+    status: "Active" as "Active" | "PaidOff" | "Default" | "Repossessed",
     notes: "",
     costBasisSource: "" as "HUD" | "PSA" | "ASSIGNMENT" | "LEGACY" | "OTHER" | "",
     costBasisNotes: "",
@@ -74,7 +84,7 @@ export default function Contracts() {
         installmentCount: "",
         balloonAmount: "",
         balloonDate: "",
-        status: "active",
+        status: "Active",
         notes: "",
         costBasisSource: "",
         costBasisNotes: "",
@@ -649,9 +659,10 @@ export default function Contracts() {
                 <Select value={formData.status} onValueChange={(v: any) => setFormData({...formData, status: v})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paid_off">Paid Off</SelectItem>
-                    <SelectItem value="defaulted">Defaulted</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="PaidOff">Paid Off</SelectItem>
+                    <SelectItem value="Default">Default</SelectItem>
+                    <SelectItem value="Repossessed">Repossessed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

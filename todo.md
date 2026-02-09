@@ -548,3 +548,35 @@
 - [x] Frontend: Add ROI and IRR cards to Contract Detail page
 - [x] Test: Verify Dashboard shows correct portfolio ROI (126.31%) - CORRETO!
 - [x] Test: Verify Contract Detail shows correct individual ROI (108.13%) and IRR (51.52%) - CORRETO!
+
+
+## 5 Fixes Críticos (Baseado em Planilhasemtítulo(3).xlsx)
+
+### Fix 1: Alinhar Status Enum no Formulário de Criação
+- [x] client/src/pages/Contracts.tsx: Atualizar formulário de criação para usar exatamente "Active" | "PaidOff" | "Default" | "Repossessed"
+- [x] Remover/evitar "active/paid_off/defaulted" (snake_case)
+- [x] Atualizar default do state para esses enums
+
+### Fix 2: Trocar Fetch por tRPC no Dashboard Backup
+- [x] client/src/pages/Dashboard.tsx: Remover fetch('/api/trpc/backup.downloadAll')
+- [x] Usar trpc.backup.downloadAll (query enabled:false + refetch ou mutation)
+- [x] Manter geração de arquivo JSON e download com Blob
+
+### Fix 3: Corrigir Filtros do Dashboard
+- [x] Deduplicar Property IDs no select (usar Set + filter(Boolean))
+- [x] Corrigir link de "Contratos Ativos" para usar status "Active"
+- [x] Proteger cálculo de margem contra divisão por zero (NaN/Infinity)
+
+### Fix 4: Aplicar Filtros via Querystring em Contracts
+- [x] client/src/pages/Contracts.tsx: Ler query params (?status=..., ?type=...)
+- [x] Setar os filtros ao carregar/alterar rota
+
+### Fix 5: Aplicar Patch do Tax Schedule
+- [x] server/routers.ts: Ajustar taxSchedule.getByPeriod para incluir down payment corretamente
+- [x] server/routers.ts: Ajustar taxSchedule.getByYear para incluir down payment corretamente
+- [x] Tratar CASH com closeDate conforme patch TAX_SCHEDULE_PATCH.md
+
+### Testing
+- [x] Rodar `pnpm build` e verificar erros TypeScript
+- [x] Rodar `pnpm typecheck` e verificar erros
+- [x] Criar checkpoint final
