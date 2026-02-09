@@ -817,12 +817,12 @@ export default function ContractDetail() {
                 <Select value={editFormData.status} onValueChange={(v: any) => setEditFormData({...editFormData, status: v})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paid_off">Paid Off</SelectItem>
-                    <SelectItem value="defaulted">Defaulted</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="PaidOff">Paid Off</SelectItem>
+                    <SelectItem value="Default">Default</SelectItem>
+                    <SelectItem value="Repossessed">Repossessed</SelectItem>
                   </SelectContent>
-                </Select>
-              </div>
+                </Select>              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Notes</Label>

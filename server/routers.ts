@@ -1124,35 +1124,72 @@ export const appRouter = router({
         
         const rows = [];
 
+        // Add 1 day to endDate to make it exclusive (same as getByPeriod)
+        const endExclusive = new Date(endDate);
+        endExclusive.setDate(endExclusive.getDate() + 1);
+
         for (const contract of contracts) {
           let periodPayments = allPayments.filter(p => {
             const paymentDate = new Date(p.paymentDate);
-            return paymentDate >= startDate && paymentDate <= endDate && p.contractId === contract.id;
+            return paymentDate >= startDate && paymentDate < endExclusive && p.contractId === contract.id;
           });
           
+          // ASSUMED: only count payments after transferDate
           if (contract.originType === 'ASSUMED' && contract.transferDate) {
             periodPayments = periodPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
           }
 
-          const principalReceived = periodPayments.reduce((sum, p) => sum + parseFloat(p.principalAmount as string), 0);
-          const lateFees = periodPayments.reduce((sum, p) => sum + parseFloat(p.lateFeeAmount as string), 0);
+          // Check if downPayment should be added (DIRECT+CFD, no DP payment, contractDate in period)
+          const dpPayment = periodPayments.find(p => 
+            p.memo?.toLowerCase().includes('down payment') || 
+            p.memo?.toLowerCase().includes('entrada')
+          );
+          const contractDateInPeriod = contract.contractDate && 
+            new Date(contract.contractDate) >= startDate && 
+            new Date(contract.contractDate) <= endDate;
+
+          const dpAdd = (!dpPayment && 
+            contract.originType === 'DIRECT' && 
+            contract.saleType === 'CFD' && 
+            contractDateInPeriod
+          ) ? parseDecimal(contract.downPayment || '0') : 0;
+
+          let principalReceived = periodPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.principalAmount);
+          }, 0) + dpAdd;
+
+          let lateFees = periodPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.lateFeeAmount);
+          }, 0);
+
           const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
           let gainRecognized = 0;
 
+          // CASH logic (same as getByPeriod)
           if (contract.saleType === 'CASH' && contract.closeDate) {
-            const closeDate = new Date(contract.closeDate);
-            if (closeDate >= startDate && closeDate <= endDate) {
-              gainRecognized = parseFloat(contract.contractPrice as string) - parseFloat(contract.costBasis as string);
+            const closeDateInPeriod = new Date(contract.closeDate) >= startDate && 
+              new Date(contract.closeDate) <= endDate;
+            
+            if (closeDateInPeriod) {
+              principalReceived = parseDecimal(contract.contractPrice);
+              gainRecognized = parseDecimal(contract.contractPrice) - parseDecimal(contract.costBasis);
+              lateFees = 0;
+            } else {
+              // CASH outside period = all 0
+              principalReceived = 0;
+              gainRecognized = 0;
+              lateFees = 0;
             }
           } else {
-            gainRecognized = db.calculateGainRecognized(principalReceived, grossProfitPercent);
+            // CFD: installment method
+            gainRecognized = principalReceived * (grossProfitPercent / 100);
           }
 
           rows.push({
             propertyId: contract.propertyId,
             buyerName: contract.buyerName,
-            contractPrice: parseFloat(contract.contractPrice as string).toFixed(2),
-            costBasis: parseFloat(contract.costBasis as string).toFixed(2),
+            contractPrice: parseDecimal(contract.contractPrice).toFixed(2),
+            costBasis: parseDecimal(contract.costBasis).toFixed(2),
             grossProfitPercent: grossProfitPercent.toFixed(2),
             principalReceived: principalReceived.toFixed(2),
             gainRecognized: gainRecognized.toFixed(2),

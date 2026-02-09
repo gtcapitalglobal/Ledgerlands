@@ -580,3 +580,24 @@
 - [x] Rodar `pnpm build` e verificar erros TypeScript
 - [x] Rodar `pnpm typecheck` e verificar erros
 - [x] Criar checkpoint final
+
+## 2 Ajustes Finais (Fix 6 e Fix 7)
+
+### Fix 6: Corrigir Status Enum no Contract Detail
+- [x] client/src/pages/ContractDetail.tsx: Trocar status values de "active/paid_off/defaulted" para "Active" | "PaidOff" | "Default" | "Repossessed"
+- [x] Atualizar SelectItem values para usar os mesmos enums do backend
+- [x] Garantir que o update mutation envia os valores corretos
+
+### Fix 7: Aplicar Lógica do Tax Schedule ao exportCSV
+- [x] server/routers.ts: taxSchedule.exportCSV deve usar mesma lógica do getByPeriod
+- [x] Implementar endExclusive = endDate + 1 dia
+- [x] ASSUMED: filtrar payments por transferDate
+- [x] Down Payment: incluir automaticamente quando não há payment de DP (DIRECT+CFD, contractDate no período)
+- [x] CASH: reconhecer 100% no closeDate (ou zerar se fora do período)
+- [x] CFD: gainRecognized = principalReceived × grossProfitPercent
+- [x] Garantir que CSV exportado bate 1:1 com getByPeriod
+
+### Testing
+- [x] Rodar typecheck
+- [x] Rodar build
+- [x] Criar checkpoint final
