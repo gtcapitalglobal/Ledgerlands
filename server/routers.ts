@@ -2385,6 +2385,25 @@ export const appRouter = router({
       await db.updateOverdueInstallments();
       return await db.getOverdueInstallmentsCount();
     }),
+
+    exportStatementPDF: protectedProcedure
+      .input(z.object({
+        propertyId: z.string(),
+        contractId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const { generateInstallmentStatementPDF } = await import('./pdfGenerator');
+        const pdfBuffer = await generateInstallmentStatementPDF({
+          propertyId: input.propertyId,
+          contractId: input.contractId,
+          generatedDate: new Date().toISOString(),
+        });
+        
+        return {
+          pdf: pdfBuffer.toString('base64'),
+          filename: `Payment_Statement_${input.propertyId}_${new Date().toISOString().split('T')[0]}.pdf`,
+        };
+      }),
   }),
 });
 

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, AlertCircle, DollarSign } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, DollarSign, FileDown } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 
 
@@ -17,6 +17,7 @@ export default function Installments() {
   const [statusFilter, setStatusFilter] = useState<"PENDING" | "PAID" | "OVERDUE" | "PARTIAL" | "">("");
   const [selectedInstallment, setSelectedInstallment] = useState<any>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
   
   // Payment form state
   const [paidAmount, setPaidAmount] = useState("");
@@ -66,6 +67,53 @@ export default function Installments() {
       console.error('Erro ao marcar parcela:', error.message);
     },
   });
+
+  const exportPDFMutation = trpc.installments.exportStatementPDF.useMutation({
+    onSuccess: (data) => {
+      // Convert base64 to blob and download
+      const byteCharacters = atob(data.pdf);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setExportingPDF(false);
+    },
+    onError: (error) => {
+      console.error('Erro ao exportar PDF:', error.message);
+      alert('Erro ao gerar PDF. Por favor, tente novamente.');
+      setExportingPDF(false);
+    },
+  });
+
+  const handleExportPDF = () => {
+    if (!propertyFilter || propertyFilter === 'all') {
+      alert('Por favor, selecione uma propriedade específica para exportar o relatório.');
+      return;
+    }
+    
+    // Find contract ID for the selected property
+    const firstInstallment = installments.find(i => i.propertyId === propertyFilter);
+    if (!firstInstallment) {
+      alert('Nenhuma parcela encontrada para esta propriedade.');
+      return;
+    }
+    
+    setExportingPDF(true);
+    exportPDFMutation.mutate({
+      propertyId: propertyFilter,
+      contractId: firstInstallment.contractId,
+    });
+  };
 
   const handleMarkAsPaid = (installment: any) => {
     setSelectedInstallment(installment);
@@ -182,10 +230,19 @@ export default function Installments() {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Filtros</CardTitle>
+          <Button
+            onClick={handleExportPDF}
+            disabled={!propertyFilter || propertyFilter === 'all' || exportingPDF}
+            variant="outline"
+            size="sm"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            {exportingPDF ? 'Gerando PDF...' : 'Exportar PDF (EN)'}
+          </Button>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Property ID</Label>
             <Select value={propertyFilter} onValueChange={setPropertyFilter}>
