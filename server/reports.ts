@@ -23,37 +23,35 @@ export const reportsRouter = router({
       });
       
       if (input.format === "csv") {
-        // Generate CSV
+        // Generate CSV using utility
+        const { toCSV } = await import('./utils/csv');
         const headers = [
-          "Buyer / Contract ID",
-          "Property / County",
-          "Contract Date",
-          "Deed Status",
-          "Deed Recorded Date",
-          "Down Payment",
-          "Installments",
-          "Total Received",
-          "Status",
-          "Pre-Deed",
+          "buyer_contract_id",
+          "property_county",
+          "contract_date",
+          "deed_status",
+          "deed_recorded_date",
+          "down_payment",
+          "installments",
+          "total_received",
+          "status",
+          "pre_deed",
         ];
         
-        const rows = reportData.rows.map((r: any) => [
-          r.buyerContractId,
-          r.propertyCounty,
-          r.contractDate,
-          r.deedStatus,
-          r.deedRecordedDate,
-          r.downPaymentReceived.toFixed(2),
-          r.installmentsReceived.toFixed(2),
-          r.totalReceived.toFixed(2),
-          r.status,
-          r.preDeedStatus,
-        ]);
+        const rows = reportData.rows.map((r: any) => ({
+          buyer_contract_id: r.buyerContractId,
+          property_county: r.propertyCounty,
+          contract_date: r.contractDate,
+          deed_status: r.deedStatus,
+          deed_recorded_date: r.deedRecordedDate,
+          down_payment: r.downPaymentReceived.toFixed(2),
+          installments: r.installmentsReceived.toFixed(2),
+          total_received: r.totalReceived.toFixed(2),
+          status: r.status,
+          pre_deed: r.preDeedStatus,
+        }));
         
-        const csvContent = [
-          headers.join(","),
-          ...rows.map((row: any) => row.map((cell: any) => `"${cell}"`).join(",")),
-        ].join("\n");
+        const csvContent = toCSV(headers, rows);
         
         return {
           format: "csv",

@@ -360,45 +360,44 @@ export const appRouter = router({
       }),
 
     exportCSV: protectedProcedure.query(async () => {
+      const { toCSV } = await import('./utils/csv');
       const contracts = await db.getAllContracts();
       
-      // CSV header
-      const header = [
+      const headers = [
         'property_id', 'buyer_name', 'origin_type', 'sale_type', 'county', 'state',
         'contract_date', 'transfer_date', 'close_date', 'contract_price', 'cost_basis',
         'down_payment', 'opening_receivable', 'installment_amount', 'installment_count',
         'installments_paid_by_transfer', 'balloon_amount', 'balloon_date', 'status', 'notes',
         'deed_status', 'deed_recorded_date'
-      ].join(',');
+      ];
 
-      // CSV rows
-      const rows = contracts.map(c => [
-        c.propertyId,
-        c.buyerName,
-        c.originType,
-        c.saleType,
-        c.county,
-        c.state,
-        c.contractDate,
-        c.transferDate || '',
-        c.closeDate || '',
-        c.contractPrice,
-        c.costBasis,
-        c.downPayment,
-        c.openingReceivable || '',
-        c.installmentAmount || '',
-        c.installmentCount || '',
-        c.installmentsPaidByTransfer || '',
-        c.balloonAmount || '',
-        c.balloonDate || '',
-        c.status,
-        c.notes || '',
-        c.deedStatus || 'UNKNOWN',
-        c.deedRecordedDate || ''
-      ].join(','));
+      const rows = contracts.map(c => ({
+        property_id: c.propertyId,
+        buyer_name: c.buyerName,
+        origin_type: c.originType,
+        sale_type: c.saleType,
+        county: c.county,
+        state: c.state,
+        contract_date: c.contractDate,
+        transfer_date: c.transferDate,
+        close_date: c.closeDate,
+        contract_price: c.contractPrice,
+        cost_basis: c.costBasis,
+        down_payment: c.downPayment,
+        opening_receivable: c.openingReceivable,
+        installment_amount: c.installmentAmount,
+        installment_count: c.installmentCount,
+        installments_paid_by_transfer: c.installmentsPaidByTransfer,
+        balloon_amount: c.balloonAmount,
+        balloon_date: c.balloonDate,
+        status: c.status,
+        notes: c.notes,
+        deed_status: c.deedStatus || 'UNKNOWN',
+        deed_recorded_date: c.deedRecordedDate,
+      }));
 
       return {
-        csv: [header, ...rows].join('\n'),
+        csv: toCSV(headers, rows),
         filename: `contracts_${new Date().toISOString().split('T')[0]}.csv`
       };
     }),
@@ -789,20 +788,31 @@ export const appRouter = router({
       }),
 
     exportCSV: protectedProcedure.query(async () => {
+      const { toCSV } = await import('./utils/csv');
       const payments = await db.getAllPayments();
       const contracts = await db.getAllContracts();
       const contractMap = new Map(contracts.map(c => [c.id, c.propertyId]));
       
-      return payments.map(p => ({
-        paymentDate: new Date(p.paymentDate).toISOString().split('T')[0],
-        propertyId: contractMap.get(p.contractId) || '',
-        principalAmount: p.principalAmount,
-        lateFeeAmount: p.lateFeeAmount,
-        totalAmount: p.amountTotal,
-        receivedBy: p.receivedBy || '',
-        paymentChannel: p.channel || '',
-        memo: p.memo || '',
+      const headers = [
+        'payment_date', 'property_id', 'principal_amount', 'late_fee_amount',
+        'total_amount', 'received_by', 'payment_channel', 'memo'
+      ];
+
+      const rows = payments.map(p => ({
+        payment_date: new Date(p.paymentDate).toISOString().split('T')[0],
+        property_id: contractMap.get(p.contractId) || '',
+        principal_amount: p.principalAmount,
+        late_fee_amount: p.lateFeeAmount,
+        total_amount: p.amountTotal,
+        received_by: p.receivedBy,
+        payment_channel: p.channel,
+        memo: p.memo,
       }));
+
+      return {
+        csv: toCSV(headers, rows),
+        filename: `payments_${new Date().toISOString().split('T')[0]}.csv`
+      };
     }),
 
     createSquarePayment: publicProcedure
@@ -1649,6 +1659,26 @@ export const appRouter = router({
           });
         }
 
+        // Generate CSV using utility
+        const { toCSV } = await import('./utils/csv');
+        const headers = [
+          'property_id', 'buyer_name', 'contract_price', 'cost_basis',
+          'gross_profit_percent', 'principal_received', 'gain_recognized',
+          'late_fees', 'total_profit_recognized'
+        ];
+
+        const csvRows = rows.map(r => ({
+          property_id: r.propertyId,
+          buyer_name: r.buyerName,
+          contract_price: r.contractPrice,
+          cost_basis: r.costBasis,
+          gross_profit_percent: r.grossProfitPercent,
+          principal_received: r.principalReceived,
+          gain_recognized: r.gainRecognized,
+          late_fees: r.lateFees,
+          total_profit_recognized: r.totalProfitRecognized,
+        }));
+
         // Generate filename with GT_Lands naming convention
         let filename = 'GT_Lands_Installment_Sales_Tax_Schedule_';
         if (input.period === 'RANGE') {
@@ -1660,7 +1690,11 @@ export const appRouter = router({
         }
         filename += '.csv';
 
-        return { rows, filename };
+        return { 
+          csv: toCSV(headers, csvRows),
+          rows, 
+          filename 
+        };
       }),
   }),
 
@@ -1953,6 +1987,36 @@ export const appRouter = router({
           });
         }
 
+        // Generate CSV using utility
+        const { toCSV } = await import('./utils/csv');
+        const headers = [
+          'property_id', 'buyer_name', 'contract_type', 'current_entity',
+          'sale_date', 'transfer_date', 'contract_price', 'cost_basis',
+          'down_payment', 'installment_amount', 'installment_count',
+          'balloon_amount', 'interest_rate', 'total_cash_collected',
+          'principal_outstanding', 'opening_receivable', 'status'
+        ];
+
+        const csvRows = rows.map(r => ({
+          property_id: r.propertyId,
+          buyer_name: r.buyerName,
+          contract_type: r.contractType,
+          current_entity: r.currentEntity,
+          sale_date: r.saleDate,
+          transfer_date: r.transferDate,
+          contract_price: r.contractPrice,
+          cost_basis: r.costBasis,
+          down_payment: r.downPayment,
+          installment_amount: r.installmentAmount,
+          installment_count: r.installmentCount,
+          balloon_amount: r.balloonAmount,
+          interest_rate: r.interestRate,
+          total_cash_collected: r.totalCashCollected,
+          principal_outstanding: r.principalOutstanding,
+          opening_receivable: r.openingReceivable,
+          status: r.status,
+        }));
+
         let filename = 'GT_Lands_Seller_Financing_Contracts_Subledger_';
         if (input.period === 'RANGE') {
           filename += `RANGE_${input.startDate}_${input.endDate}_FINAL`;
@@ -1963,7 +2027,11 @@ export const appRouter = router({
         }
         filename += '.csv';
 
-        return { rows, filename };
+        return { 
+          csv: toCSV(headers, csvRows),
+          rows, 
+          filename 
+        };
       }),
 
     exportExcel: protectedProcedure

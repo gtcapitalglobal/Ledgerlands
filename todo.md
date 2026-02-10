@@ -849,3 +849,12 @@
 - [x] Add backend zod validation in contracts.create for deed fields
 - [x] Add backend zod validation in contracts.update for deed fields
 - [x] Replace alert() with toast in PreDeedTieOutButton component
+
+## CSV Export RFC4180 Compliance
+- [x] Create server/utils/csv.ts with csvEscape() and toCSV() functions
+- [x] Apply CSV utility to contracts.exportCSV
+- [x] Apply CSV utility to payments.exportCSV
+- [x] Apply CSV utility to taxSchedule.exportCSV
+- [x] Apply CSV utility to reports.preDeedTieOut CSV export
+- [x] Apply CSV utility to contractsSubledger.exportCSV
+- [ ] Test CSV exports with special characters (commas, quotes, newlines)
