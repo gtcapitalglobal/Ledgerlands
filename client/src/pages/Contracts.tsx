@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Plus, ExternalLink, Upload, Trash2, Download } from "lucide-react";
+import { formatDate, formatDateForInput } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -274,13 +275,7 @@ export default function Contracts() {
     }).format(num);
   };
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  // Date formatting is now handled by imported formatDate utility
 
   const getStatusColor = (status: string) => {
     switch (status) {

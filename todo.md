@@ -878,3 +878,5 @@
 - [x] Fix validation bug: Allow saving contracts with deedStatus="NOT_RECORDED" without requiring deedRecordedDate
 - [x] Fix frontend bug: balloonDate initialization using proper ISO date format
 - [x] Fix bug: documentFolderLink not being saved when editing contracts
+- [x] Correct contract date for property #25 from May 9, 2024 to May 12, 2025
+- [x] Standardize all date formats across entire system to mm/dd/yyyy format

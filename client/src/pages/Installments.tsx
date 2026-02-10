@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, AlertCircle, DollarSign } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
 
 
 export default function Installments() {
@@ -180,11 +181,11 @@ export default function Installments() {
                     <TableRow key={inst.id}>
                       <TableCell className="font-medium">{inst.installmentNumber}</TableCell>
                       <TableCell>{getTypeBadge(inst.type)}</TableCell>
-                      <TableCell>{new Date(inst.dueDate).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>{formatDate(inst.dueDate)}</TableCell>
                       <TableCell>${parseFloat(inst.amount).toFixed(2)}</TableCell>
                       <TableCell>{getStatusBadge(inst.status)}</TableCell>
                       <TableCell>
-                        {inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('pt-BR') : '-'}
+                        {inst.paidDate ? formatDate(inst.paidDate) : '-'}
                       </TableCell>
                       <TableCell>
                         {inst.status !== 'PAID' && (

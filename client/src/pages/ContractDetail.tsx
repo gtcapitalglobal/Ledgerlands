@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText, Clock, Link as LinkIcon } from "lucide-react";
+import { formatDate, formatDateTime, formatDateForInput } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -52,7 +53,7 @@ function AuditHistoryTable({ contractId }: { contractId: number }) {
             </div>
             <div className="text-right text-xs text-muted-foreground">
               <div>{entry.changedBy}</div>
-              <div>{new Date(entry.changedAt).toLocaleString('pt-BR')}</div>
+              <div>{formatDateTime(entry.changedAt)}</div>
             </div>
           </div>
         </div>
@@ -176,13 +177,7 @@ export default function ContractDetail() {
     }).format(num);
   };
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  // Date formatting is now handled by imported formatDate utility
 
   const formatPercent = (value: number) => {
     return `${value.toFixed(2)}%`;

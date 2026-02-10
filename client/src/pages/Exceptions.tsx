@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ExternalLink, FileWarning, Calendar, DollarSign } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Exceptions() {
@@ -405,8 +406,8 @@ export default function Exceptions() {
                     {exceptions.paymentsBeforeContract.items.map((item: any) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.propertyId}</TableCell>
-                        <TableCell>{new Date(item.paymentDate).toLocaleDateString()}</TableCell>
-                        <TableCell>{new Date(item.contractDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDate(item.paymentDate)}</TableCell>
+                        <TableCell>{formatDate(item.contractDate)}</TableCell>
                         <TableCell>${parseFloat(item.amountTotal).toFixed(2)}</TableCell>
                         <TableCell>
                           <Button 
@@ -453,8 +454,8 @@ export default function Exceptions() {
                     {exceptions.assumedPaymentsBeforeTransfer.items.map((item: any) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.propertyId}</TableCell>
-                        <TableCell>{new Date(item.paymentDate).toLocaleDateString()}</TableCell>
-                        <TableCell>{new Date(item.transferDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDate(item.paymentDate)}</TableCell>
+                        <TableCell>{formatDate(item.transferDate)}</TableCell>
                         <TableCell>${parseFloat(item.amountTotal).toFixed(2)}</TableCell>
                         <TableCell>
                           <Button 

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, AlertTriangle, CheckCircle } from "lucide-react";
+import { formatDateTime } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -144,7 +145,7 @@ export default function Settings() {
                 </div>
                 <div className="text-sm text-green-700">
                   <p>Arquivo: {backupFile?.name}</p>
-                  <p>Data do backup: {new Date(backupData.exportedAt).toLocaleString('pt-BR')}</p>
+                  <p>Data do backup: {formatDateTime(backupData.exportedAt)}</p>
                   <p>Contratos: {backupData.contracts.length}</p>
                   <p>Pagamentos: {backupData.payments.length}</p>
                   {backupData.attachments && <p>Attachments: {backupData.attachments.length}</p>}
