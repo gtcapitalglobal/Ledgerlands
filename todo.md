@@ -867,3 +867,13 @@
 ## Fix Deed Validation Error
 - [x] Fix backend validation: when deedStatus=NOT_RECORDED, allow null deedRecordedDate
 - [x] Test saving contract with deedStatus=NOT_RECORDED and empty date
+
+## Fix Frontend Deed Date Submission
+- [x] Fix ContractDetail to send empty string "" instead of null for deedRecordedDate
+- [x] Fix backend to handle empty string and convert to null
+- [x] Test saving contract with empty deedRecordedDate field
+
+
+## Bug Fixes - February 2026
+- [x] Fix validation bug: Allow saving contracts with deedStatus="NOT_RECORDED" without requiring deedRecordedDate
+- [x] Fix frontend bug: balloonDate initialization using proper ISO date format

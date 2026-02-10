@@ -278,7 +278,11 @@ export const appRouter = router({
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
         if (firstInstallmentDate) updates.firstInstallmentDate = new Date(firstInstallmentDate);
         if (deedStatus) updates.deedStatus = deedStatus;
-        if (deedRecordedDate) updates.deedRecordedDate = new Date(deedRecordedDate);
+        if (deedRecordedDate && deedRecordedDate.trim() !== '') {
+          updates.deedRecordedDate = new Date(deedRecordedDate);
+        } else if (deedRecordedDate === '') {
+          updates.deedRecordedDate = null;
+        }
         
         // Clear deedRecordedDate if deedStatus = NOT_RECORDED
         if (updates.deedStatus === 'NOT_RECORDED') {
