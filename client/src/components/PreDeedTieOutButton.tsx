@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FileText, Download } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 export function PreDeedTieOutButton() {
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
@@ -56,9 +57,11 @@ export function PreDeedTieOutButton() {
           }, 500);
         }
       }
+      
+      toast.success(`${format.toUpperCase()} report generated successfully`);
     } catch (error) {
       console.error("Failed to generate report:", error);
-      alert("Failed to generate report");
+      toast.error("Failed to generate report");
     } finally {
       setIsGenerating(false);
     }

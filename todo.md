@@ -841,3 +841,11 @@
 - [x] Create CSV export with all rows
 - [x] Add "Pre-Deed Tie-Out" dropdown to Dashboard with quick actions (12/31/2025, 12/31/2026, Custom)
 - [x] Test report generation for 2025 and 2026
+
+## CPA-Hardening Improvements
+- [x] Add deedStatus and deedRecordedDate columns to contracts.exportCSV
+- [x] Add deedStatus and deedRecordedDate parsing to contracts.importCSV
+- [x] Add validation in import: RECORDED requires date, NOT_RECORDED must have null date
+- [x] Add backend zod validation in contracts.create for deed fields
+- [x] Add backend zod validation in contracts.update for deed fields
+- [x] Replace alert() with toast in PreDeedTieOutButton component

@@ -152,6 +152,14 @@ export const appRouter = router({
           }
         }
         
+        // Deed validation
+        if (input.deedStatus === 'RECORDED' && !input.deedRecordedDate) {
+          throw new Error('RECORDED deed status requires deedRecordedDate');
+        }
+        if (input.deedStatus === 'NOT_RECORDED' && input.deedRecordedDate) {
+          throw new Error('NOT_RECORDED deed status must have blank deedRecordedDate');
+        }
+        
         const contractData = {
           ...input,
           contractDate: new Date(input.contractDate),
@@ -256,6 +264,14 @@ export const appRouter = router({
             throw new Error('Contracts with balloon amount > 0 require balloonDate');
           }
         }
+        
+        // Deed validation
+        if (mergedContract.deedStatus === 'RECORDED' && !mergedContract.deedRecordedDate) {
+          throw new Error('RECORDED deed status requires deedRecordedDate');
+        }
+        if (mergedContract.deedStatus === 'NOT_RECORDED' && mergedContract.deedRecordedDate) {
+          throw new Error('NOT_RECORDED deed status must have blank deedRecordedDate');
+        }
 
         const updates: any = { ...rest };
         if (contractDate) updates.contractDate = new Date(contractDate);
@@ -266,9 +282,9 @@ export const appRouter = router({
         if (deedStatus) updates.deedStatus = deedStatus;
         if (deedRecordedDate) updates.deedRecordedDate = new Date(deedRecordedDate);
         
-        // Validation: if deedStatus = RECORDED, require deedRecordedDate
-        if (updates.deedStatus === 'RECORDED' && !updates.deedRecordedDate && !oldContract.deedRecordedDate) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'deedRecordedDate is required when deedStatus = RECORDED' });
+        // Clear deedRecordedDate if deedStatus = NOT_RECORDED
+        if (updates.deedStatus === 'NOT_RECORDED') {
+          updates.deedRecordedDate = null;
         }
         
         await db.updateContract(id, updates);
@@ -334,6 +350,8 @@ export const appRouter = router({
           status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]),
           notes: z.string().optional(),
           openingReceivable: z.string().optional(),
+          deedStatus: z.enum(["UNKNOWN", "NOT_RECORDED", "RECORDED"]).optional(),
+          deedRecordedDate: z.string().optional(),
         }))
       }))
       .mutation(async ({ input }) => {
@@ -349,7 +367,8 @@ export const appRouter = router({
         'property_id', 'buyer_name', 'origin_type', 'sale_type', 'county', 'state',
         'contract_date', 'transfer_date', 'close_date', 'contract_price', 'cost_basis',
         'down_payment', 'opening_receivable', 'installment_amount', 'installment_count',
-        'installments_paid_by_transfer', 'balloon_amount', 'balloon_date', 'status', 'notes'
+        'installments_paid_by_transfer', 'balloon_amount', 'balloon_date', 'status', 'notes',
+        'deed_status', 'deed_recorded_date'
       ].join(',');
 
       // CSV rows
@@ -373,7 +392,9 @@ export const appRouter = router({
         c.balloonAmount || '',
         c.balloonDate || '',
         c.status,
-        c.notes || ''
+        c.notes || '',
+        c.deedStatus || 'UNKNOWN',
+        c.deedRecordedDate || ''
       ].join(','));
 
       return {

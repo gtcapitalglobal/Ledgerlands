@@ -22,6 +22,8 @@ export interface ContractImportRow {
   status: "Active" | "PaidOff" | "Default" | "Repossessed";
   notes?: string;
   openingReceivable?: string;
+  deedStatus?: "UNKNOWN" | "NOT_RECORDED" | "RECORDED";
+  deedRecordedDate?: string;
 }
 
 export interface ImportResult {
@@ -93,6 +95,16 @@ export async function importContracts(rows: ContractImportRow[]): Promise<Import
         }
       }
 
+      // Validate Deed fields
+      if (row.deedStatus === "RECORDED" && !row.deedRecordedDate) {
+        errors.push({ row: rowNum, message: "RECORDED deed status requires deedRecordedDate" });
+        continue;
+      }
+      if (row.deedStatus === "NOT_RECORDED" && row.deedRecordedDate) {
+        errors.push({ row: rowNum, message: "NOT_RECORDED deed status must have blank deedRecordedDate" });
+        continue;
+      }
+
       // Create contract
       await db.createContract({
         propertyId,
@@ -115,6 +127,8 @@ export async function importContracts(rows: ContractImportRow[]): Promise<Import
         status: row.status,
         notes: row.notes,
         openingReceivable: row.openingReceivable,
+        deedStatus: row.deedStatus || "UNKNOWN",
+        deedRecordedDate: row.deedRecordedDate ? new Date(row.deedRecordedDate) : undefined,
       });
 
       imported++;
