@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE contracts SET contractDate = '2025-09-08', transferDate = '2025-09-08' WHERE propertyId = '#25';\nUPDATE contracts SET contractDate = '2025-04-22', transferDate = '2025-09-02' WHERE propertyId = '#33';\nUPDATE contracts SET contractDate = '2025-04-22', transferDate = '2025-09-02' WHERE propertyId = '#35';\nUPDATE contracts SET contractDate = '2025-04-22', transferDate = '2025-09-02' WHERE propertyId = '#43';\nUPDATE contracts SET contractDate = '2025-04-30', transferDate = '2025-12-06' WHERE propertyId = '#45';\nUPDATE contracts SET contractDate = '2025-11-03' WHERE propertyId = '#17';\nUPDATE contracts SET contractDate = '2025-10-24' WHERE propertyId = '#22';\nUPDATE contracts SET contractDate = '2026-01-05' WHERE propertyId = '#31';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute \nUPDATE contracts SET contractDate = '2025-09-08', transferDate = '2025-09-08' WHERE propertyId = '#25';\nUPDATE contracts SET contractDate = '2025-04-22', transferDate = '2025-09-02' WHERE propertyId = '#33';\nUPDATE contracts SET contractDate = '2025-04-22', transferDate = '2025-09-02' WHERE propertyId = '#35';\nUPDATE contracts SET contractDate = '2025-04-22', transferDate = '2025-09-02' WHERE propertyId = '#43';\nUPDATE contracts SET contractDate = '2025-04-30', transferDate = '2025-12-06' WHERE propertyId = '#45';\nUPDATE contracts SET contractDate = '2025-11-03' WHERE propertyId = '#17';\nUPDATE contracts SET contractDate = '2025-10-24' WHERE propertyId = '#22';\nUPDATE contracts SET contractDate = '2026-01-05' WHERE propertyId = '#31';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 194
+}

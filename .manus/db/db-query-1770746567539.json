@@ -1,0 +1,58 @@
+{
+  "query": "SELECT propertyId, buyerName, contractDate, transferDate FROM contracts ORDER BY CAST(REPLACE(propertyId, '#', '') AS UNSIGNED);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT propertyId, buyerName, contractDate, transferDate FROM contracts ORDER BY CAST(REPLACE(propertyId, '#', '') AS UNSIGNED);",
+  "rows": [
+    {
+      "propertyId": "#17",
+      "buyerName": "Donald Thomas Way",
+      "contractDate": "2025-11-02",
+      "transferDate": "NULL"
+    },
+    {
+      "propertyId": "#22",
+      "buyerName": "Bryan Shawn Hamilton",
+      "contractDate": "2025-10-23",
+      "transferDate": "NULL"
+    },
+    {
+      "propertyId": "#25",
+      "buyerName": "Chase Quinton Menerey",
+      "contractDate": "2025-05-12",
+      "transferDate": "2025-09-05"
+    },
+    {
+      "propertyId": "#31",
+      "buyerName": "Tomy Rodriguez Gonzalez",
+      "contractDate": "2026-01-04",
+      "transferDate": "NULL"
+    },
+    {
+      "propertyId": "#33",
+      "buyerName": "Yandri Garcia Leiva",
+      "contractDate": "2025-04-21",
+      "transferDate": "2025-09-01"
+    },
+    {
+      "propertyId": "#35",
+      "buyerName": "Rafael Garcia Garcia",
+      "contractDate": "2025-04-21",
+      "transferDate": "2025-09-01"
+    },
+    {
+      "propertyId": "#43",
+      "buyerName": "Rafael Garcia Garcia",
+      "contractDate": "2025-04-21",
+      "transferDate": "2025-09-01"
+    },
+    {
+      "propertyId": "#45",
+      "buyerName": "Jennifer Lynn Soderlund",
+      "contractDate": "2025-04-29",
+      "transferDate": "2025-11-05"
+    }
+  ],
+  "messages": [],
+  "stdout": "propertyId\tbuyerName\tcontractDate\ttransferDate\n#17\tDonald Thomas Way\t2025-11-02\tNULL\n#22\tBryan Shawn Hamilton\t2025-10-23\tNULL\n#25\tChase Quinton Menerey\t2025-05-12\t2025-09-05\n#31\tTomy Rodriguez Gonzalez\t2026-01-04\tNULL\n#33\tYandri Garcia Leiva\t2025-04-21\t2025-09-01\n#35\tRafael Garcia Garcia\t2025-04-21\t2025-09-01\n#43\tRafael Garcia Garcia\t2025-04-21\t2025-09-01\n#45\tJennifer Lynn Soderlund\t2025-04-29\t2025-11-05\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}
