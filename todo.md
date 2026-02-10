@@ -695,3 +695,30 @@
 - [x] Rodar typecheck (0 erros)
 - [x] Rodar build
 - [x] Criar checkpoint final
+
+
+## CPA-Proof Improvements (Final Polish)
+
+### 1. Backend Validation ASSUMED
+- [x] server/routers.ts (contracts.create): quando originType="ASSUMED" exigir openingReceivable > 0
+- [x] server/routers.ts (contracts.update): quando originType="ASSUMED" exigir openingReceivable > 0
+- [x] Mensagens de erro claras
+
+### 2. UI Edit Contract Detail
+- [x] client/src/pages/ContractDetail.tsx: adicionar campos ASSUMED ao form de edição
+  - transferDate (date)
+  - openingReceivable (number)
+  - installmentsPaidByTransfer (W) (number)
+- [x] Exibir/ocultar conforme originType
+- [x] Persistir via update mutation
+
+### 3. dashboard.getProfitByYear CASH Consistency
+- [x] server/routers.ts (dashboard.getProfitByYear): para saleType="CASH"
+  - se YEAR(closeDate) == year => principalReceived = contractPrice; gainRecognized = contractPrice - costBasis; lateFees = 0
+  - senão => principalReceived = 0; gainRecognized = 0; lateFees = 0
+- [x] Garantir que filtros (status/originType/county/propertyId) continuam aplicados
+
+### Testing
+- [x] Rodar typecheck (0 erros)
+- [x] Rodar build
+- [x] Criar checkpoint final

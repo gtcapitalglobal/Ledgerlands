@@ -114,13 +114,16 @@ export const appRouter = router({
           throw new Error('CASH contracts require closeDate');
         }
         
-        // ASSUMED requires transferDate and installmentsPaidByTransfer (W)
+        // ASSUMED requires transferDate, installmentsPaidByTransfer (W), and openingReceivable > 0
         if (input.originType === 'ASSUMED') {
           if (!input.transferDate) {
             throw new Error('ASSUMED contracts require transferDate');
           }
           if (input.installmentsPaidByTransfer === undefined || input.installmentsPaidByTransfer === null) {
             throw new Error('ASSUMED contracts require installmentsPaidByTransfer (W)');
+          }
+          if (!input.openingReceivable || parseFloat(input.openingReceivable) <= 0) {
+            throw new Error('ASSUMED contracts require openingReceivable > 0');
           }
         }
         
@@ -196,13 +199,19 @@ export const appRouter = router({
           throw new Error('CASH contracts require closeDate');
         }
         
-        // ASSUMED requires transferDate and installmentsPaidByTransfer (W)
+        // ASSUMED requires transferDate, installmentsPaidByTransfer (W), and openingReceivable > 0
         if (mergedContract.originType === 'ASSUMED') {
           if (!mergedContract.transferDate) {
             throw new Error('ASSUMED contracts require transferDate');
           }
           if (mergedContract.installmentsPaidByTransfer === undefined || mergedContract.installmentsPaidByTransfer === null) {
             throw new Error('ASSUMED contracts require installmentsPaidByTransfer (W)');
+          }
+          const openingReceivableValue = typeof mergedContract.openingReceivable === 'string'
+            ? parseFloat(mergedContract.openingReceivable)
+            : mergedContract.openingReceivable;
+          if (!openingReceivableValue || openingReceivableValue <= 0) {
+            throw new Error('ASSUMED contracts require openingReceivable > 0');
           }
         }
         
@@ -1010,12 +1019,30 @@ export const appRouter = router({
             return true;
           });
 
-          let principalReceived = filteredYearPayments.reduce((sum, p) => {
+          let principalReceived = 0;
+          
+          // CASH: principalReceived = contractPrice if closeDate in year, else 0
+          const cashContracts = contracts.filter(c => c.saleType === 'CASH');
+          for (const contract of cashContracts) {
+            if (contract.closeDate) {
+              const closeYear = new Date(contract.closeDate).getFullYear();
+              if (closeYear === year) {
+                principalReceived += parseDecimal(contract.contractPrice);
+              }
+            }
+          }
+          
+          // CFD: sum payments + effective DP
+          const cfdContracts = contracts.filter(c => c.saleType === 'CFD');
+          const cfdContractIds = new Set(cfdContracts.map(c => c.id));
+          const cfdYearPayments = filteredYearPayments.filter(p => cfdContractIds.has(p.contractId));
+          
+          principalReceived += cfdYearPayments.reduce((sum, p) => {
             return sum + parseDecimal(p.principalAmount);
           }, 0);
 
-          // Add effective DP for contracts created in this year
-          for (const contract of contracts) {
+          // Add effective DP for CFD contracts created in this year
+          for (const contract of cfdContracts) {
             const contractYear = new Date(contract.contractDate).getFullYear();
             if (contractYear === year) {
               // ASSUMED: DP only counts if contractDate >= transferDate
@@ -1041,7 +1068,8 @@ export const appRouter = router({
             }
           }
 
-          const lateFees = filteredYearPayments.reduce((sum, p) => {
+          // CASH: lateFees = 0 always (no payments), CFD: sum late fees from payments
+          const lateFees = cfdYearPayments.reduce((sum, p) => {
             return sum + parseDecimal(p.lateFeeAmount);
           }, 0);
 

@@ -284,6 +284,9 @@ export default function ContractDetail() {
                 installmentCount: contract.installmentCount?.toString() || '',
                 balloonAmount: contract.balloonAmount || '',
                 balloonDate: contract.balloonDate || '',
+                transferDate: contract.transferDate ? new Date(contract.transferDate).toISOString().split('T')[0] : '',
+                openingReceivable: contract.openingReceivable || '',
+                installmentsPaidByTransfer: contract.installmentsPaidByTransfer?.toString() || '',
               });
               setIsEditModalOpen(true);
             }}>
@@ -761,6 +764,11 @@ export default function ContractDetail() {
               if (editFormData.balloonAmount) data.balloonAmount = editFormData.balloonAmount;
               if (editFormData.balloonDate) data.balloonDate = editFormData.balloonDate;
             }
+            if (contract?.originType === "ASSUMED") {
+              if (editFormData.transferDate) data.transferDate = editFormData.transferDate;
+              if (editFormData.openingReceivable) data.openingReceivable = editFormData.openingReceivable;
+              if (editFormData.installmentsPaidByTransfer) data.installmentsPaidByTransfer = parseInt(editFormData.installmentsPaidByTransfer);
+            }
             updateContract.mutate(data);
           }} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -792,6 +800,22 @@ export default function ContractDetail() {
                 <Label htmlFor="edit-downPayment">Down Payment</Label>
                 <Input id="edit-downPayment" type="number" step="0.01" value={editFormData.downPayment} onChange={(e) => setEditFormData({...editFormData, downPayment: e.target.value})} />
               </div>
+              {contract?.originType === "ASSUMED" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-transferDate">Transfer Date *</Label>
+                    <Input id="edit-transferDate" type="date" value={editFormData.transferDate} onChange={(e) => setEditFormData({...editFormData, transferDate: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-openingReceivable">Opening Receivable *</Label>
+                    <Input id="edit-openingReceivable" type="number" step="0.01" value={editFormData.openingReceivable} onChange={(e) => setEditFormData({...editFormData, openingReceivable: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-installmentsPaidByTransfer">Installments Paid Before Transfer (W) *</Label>
+                    <Input id="edit-installmentsPaidByTransfer" type="number" value={editFormData.installmentsPaidByTransfer} onChange={(e) => setEditFormData({...editFormData, installmentsPaidByTransfer: e.target.value})} required />
+                  </div>
+                </>
+              )}
               {contract?.saleType === "CFD" && (
                 <>
                   <div className="space-y-2">
