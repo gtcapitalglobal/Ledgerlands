@@ -211,7 +211,7 @@ export const appRouter = router({
         balloonDate: z.string().optional(),
         status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]).optional(),
         notes: z.string().optional(),
-        attachmentLinks: z.string().optional(),
+        documentFolderLink: z.string().optional(),
         openingReceivable: z.string().optional(),
         reason: z.string().min(1, "Reason required for audit"), // REQUIRED for tax audit
       }))

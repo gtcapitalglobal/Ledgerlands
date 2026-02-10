@@ -877,3 +877,4 @@
 ## Bug Fixes - February 2026
 - [x] Fix validation bug: Allow saving contracts with deedStatus="NOT_RECORDED" without requiring deedRecordedDate
 - [x] Fix frontend bug: balloonDate initialization using proper ISO date format
+- [x] Fix bug: documentFolderLink not being saved when editing contracts
