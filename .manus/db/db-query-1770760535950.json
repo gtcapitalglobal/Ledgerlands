@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Get next pending installment for Property #25\nSELECT * FROM installments \nWHERE contractId = 210001 AND status = 'PENDING'\nORDER BY dueDate ASC \nLIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute \n-- Get next pending installment for Property #25\nSELECT * FROM installments \nWHERE contractId = 210001 AND status = 'PENDING'\nORDER BY dueDate ASC \nLIMIT 1;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 62
+}

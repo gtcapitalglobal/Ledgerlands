@@ -135,7 +135,7 @@ export default function Installments() {
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="PENDING">Pendente</SelectItem>
                 <SelectItem value="OVERDUE">Atrasado</SelectItem>
                 <SelectItem value="PAID">Pago</SelectItem>
