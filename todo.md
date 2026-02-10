@@ -675,3 +675,23 @@
 - [x] Rodar build/typecheck (0 erros)
 - [x] Rodar testes (30/30 passando)
 - [x] Criar checkpoint final
+
+
+## Ajustes Finais (Final Polish)
+
+### 1. Campo W (installmentsPaidByTransfer) no Fluxo ASSUMED
+- [x] client/src/pages/Contracts.tsx: adicionar campo numérico "Installments Paid Before Transfer (W)" visível quando originType="ASSUMED"
+- [x] Enviar installmentsPaidByTransfer no payload do form
+- [x] server/routers.ts (contracts.importCSV): incluir installmentsPaidByTransfer no schema
+- [x] server/contractsImport.ts: aceitar installmentsPaidByTransfer e validar ASSUMED exige transferDate + openingReceivable + installmentsPaidByTransfer
+- [x] contracts.exportCSV: incluir coluna installmentsPaidByTransfer
+
+### 2. Correção dashboard.getProfitByYear
+- [x] Calcular years apenas de (contracts filtrados + payments desses contracts), não de allPayments global
+- [x] CASH logic: se closeYear==year => principalReceived=contractPrice, gainRecognized=contractPrice-costBasis, lateFees=0; senão => tudo 0
+- [x] Garantir que Profit by Year no Dashboard continua funcionando com os mesmos filtros
+
+### Testing
+- [x] Rodar typecheck (0 erros)
+- [x] Rodar build
+- [x] Criar checkpoint final

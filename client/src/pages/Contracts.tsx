@@ -48,6 +48,7 @@ export default function Contracts() {
     costBasis: "",
     downPayment: "",
     openingReceivable: "",
+    installmentsPaidByTransfer: "",
     installmentAmount: "",
     installmentCount: "",
     balloonAmount: "",
@@ -80,6 +81,7 @@ export default function Contracts() {
         costBasis: "",
         downPayment: "",
         openingReceivable: "",
+        installmentsPaidByTransfer: "",
         installmentAmount: "",
         installmentCount: "",
         balloonAmount: "",
@@ -523,6 +525,7 @@ export default function Contracts() {
             if (formData.originType === "ASSUMED") {
               data.transferDate = formData.transferDate;
               data.openingReceivable = formData.openingReceivable;
+              data.installmentsPaidByTransfer = parseInt(formData.installmentsPaidByTransfer) || 0;
             }
             if (formData.saleType === "CFD") {
               data.installmentAmount = formData.installmentAmount;
@@ -596,6 +599,19 @@ export default function Contracts() {
                         <SelectItem value="OTHER">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="installmentsPaidByTransfer">Installments Paid Before Transfer (W) *</Label>
+                    <Input 
+                      id="installmentsPaidByTransfer" 
+                      type="number" 
+                      min="0" 
+                      step="1" 
+                      value={formData.installmentsPaidByTransfer} 
+                      onChange={(e) => setFormData({...formData, installmentsPaidByTransfer: e.target.value})} 
+                      placeholder="Number of installments paid before transfer" 
+                      required 
+                    />
                   </div>
                 </>
               )}

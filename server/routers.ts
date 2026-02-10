@@ -266,6 +266,7 @@ export const appRouter = router({
           downPayment: z.string(),
           installmentAmount: z.string().optional(),
           installmentCount: z.number().optional(),
+          installmentsPaidByTransfer: z.number().optional(),
           balloonAmount: z.string().optional(),
           balloonDate: z.string().optional(),
           status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]),
@@ -286,7 +287,7 @@ export const appRouter = router({
         'property_id', 'buyer_name', 'origin_type', 'sale_type', 'county', 'state',
         'contract_date', 'transfer_date', 'close_date', 'contract_price', 'cost_basis',
         'down_payment', 'opening_receivable', 'installment_amount', 'installment_count',
-        'balloon_amount', 'balloon_date', 'status', 'notes'
+        'installments_paid_by_transfer', 'balloon_amount', 'balloon_date', 'status', 'notes'
       ].join(',');
 
       // CSV rows
@@ -306,6 +307,7 @@ export const appRouter = router({
         c.openingReceivable || '',
         c.installmentAmount || '',
         c.installmentCount || '',
+        c.installmentsPaidByTransfer || '',
         c.balloonAmount || '',
         c.balloonDate || '',
         c.status,
@@ -972,13 +974,16 @@ export const appRouter = router({
           contracts = contracts.filter(c => c.propertyId === input.propertyId);
         }
 
-        // Get all unique years from contracts and payments
+        // Get all unique years from filtered contracts and their payments only
+        const contractIds = new Set(contracts.map(c => c.id));
+        const filteredPayments = allPayments.filter(p => contractIds.has(p.contractId));
+        
         const years = new Set<number>();
         contracts.forEach(c => {
           if (c.contractDate) years.add(new Date(c.contractDate).getFullYear());
           if (c.closeDate) years.add(new Date(c.closeDate).getFullYear());
         });
-        allPayments.forEach(p => {
+        filteredPayments.forEach(p => {
           years.add(new Date(p.paymentDate).getFullYear());
         });
 

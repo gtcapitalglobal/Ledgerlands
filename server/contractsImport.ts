@@ -16,6 +16,7 @@ export interface ContractImportRow {
   downPayment: string;
   installmentAmount?: string;
   installmentCount?: number;
+  installmentsPaidByTransfer?: number;
   balloonAmount?: string;
   balloonDate?: string;
   status: "Active" | "PaidOff" | "Default" | "Repossessed";
@@ -56,6 +57,10 @@ export async function importContracts(rows: ContractImportRow[]): Promise<Import
         }
         if (!row.openingReceivable) {
           errors.push({ row: rowNum, message: "ASSUMED requires openingReceivable" });
+          continue;
+        }
+        if (row.installmentsPaidByTransfer === undefined || row.installmentsPaidByTransfer === null) {
+          errors.push({ row: rowNum, message: "ASSUMED requires installmentsPaidByTransfer (W)" });
           continue;
         }
       }
@@ -104,6 +109,7 @@ export async function importContracts(rows: ContractImportRow[]): Promise<Import
         downPayment: row.downPayment,
         installmentAmount: row.installmentAmount,
         installmentCount: row.installmentCount,
+        installmentsPaidByTransfer: row.installmentsPaidByTransfer,
         balloonAmount: row.balloonAmount,
         balloonDate: row.balloonDate ? new Date(row.balloonDate) : undefined,
         status: row.status,
