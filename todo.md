@@ -601,3 +601,15 @@
 - [x] Rodar typecheck
 - [x] Rodar build
 - [x] Criar checkpoint final
+
+## Fix 8: Dashboard Backup e County Filter
+
+### Backup Data Validation
+- [x] client/src/pages/Dashboard.tsx: Validar result.data após refetch() no backup
+- [x] Abortar download se data for undefined/null
+- [x] Mostrar toast.error("No backup data") ao usuário
+
+### County Filter Fix
+- [x] client/src/pages/Dashboard.tsx: Deduplicar counties usando Set
+- [x] Remover valores vazios/undefined com filter(Boolean)
+- [x] Ordenar counties alfabeticamente

@@ -41,7 +41,7 @@ export default function Dashboard() {
   // Get unique counties and property IDs
   const uniqueCounties = useMemo(() => {
     if (!contracts) return [];
-    const counties = new Set(contracts.map(c => c.county));
+    const counties = new Set(contracts.map(c => c.county).filter(Boolean));
     return Array.from(counties).sort();
   }, [contracts]);
 
@@ -85,10 +85,15 @@ export default function Dashboard() {
                 toast.info('Gerando backup...');
                 
                 const { data: backupData } = await refetchBackup();
-                const data = backupData!;
+                
+                // Validate backup data exists
+                if (!backupData) {
+                  toast.error('No backup data');
+                  return;
+                }
                 
                 // Create a combined JSON file
-                const fullBackup = JSON.stringify(data, null, 2);
+                const fullBackup = JSON.stringify(backupData, null, 2);
                 const blob = new Blob([fullBackup], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -97,7 +102,7 @@ export default function Dashboard() {
                 a.click();
                 URL.revokeObjectURL(url);
                 
-                toast.success(`Backup completo gerado! ${data.contracts.length} contratos, ${data.payments.length} pagamentos`);
+                toast.success(`Backup completo gerado! ${backupData.contracts.length} contratos, ${backupData.payments.length} pagamentos`);
               } catch (error) {
                 toast.error('Erro ao gerar backup');
                 console.error(error);
