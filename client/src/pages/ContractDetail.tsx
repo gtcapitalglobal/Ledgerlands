@@ -290,6 +290,7 @@ export default function ContractDetail() {
                 status: contract.status,
                 notes: contract.notes || '',
                 documentFolderLink: contract.documentFolderLink || '',
+                deedRecordedDate: contract.deedRecordedDate ? new Date(contract.deedRecordedDate).toISOString().split('T')[0] : '',
                 contractPrice: contract.contractPrice,
                 costBasis: contract.costBasis,
                 downPayment: contract.downPayment || '0',
@@ -766,6 +767,7 @@ export default function ContractDetail() {
               status: editFormData.status,
               notes: editFormData.notes,
               documentFolderLink: editFormData.documentFolderLink || "",
+              deedRecordedDate: editFormData.deedRecordedDate || null,
               contractPrice: editFormData.contractPrice,
               costBasis: editFormData.costBasis,
               downPayment: editFormData.downPayment || "0",
@@ -860,6 +862,11 @@ export default function ContractDetail() {
                     <SelectItem value="Repossessed">Repossessed</SelectItem>
                   </SelectContent>
                 </Select>              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-deedRecordedDate">Deed Recorded Date</Label>
+              <Input id="edit-deedRecordedDate" type="date" value={editFormData.deedRecordedDate || ''} onChange={(e) => setEditFormData({...editFormData, deedRecordedDate: e.target.value})} />
+              <p className="text-xs text-muted-foreground">Data em que a escritura (deed) foi registrada. Deixe vazio se ainda não foi registrada (Pre-Deed).</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Notes</Label>

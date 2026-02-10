@@ -436,6 +436,7 @@ export default function Contracts() {
                       <TableHead>Type</TableHead>
                       <TableHead>County</TableHead>
                       <TableHead>Contract Date</TableHead>
+                      <TableHead>Deed Recorded</TableHead>
                       <TableHead className="text-right">Contract Price</TableHead>
                       <TableHead className="text-right">Cost Basis</TableHead>
                       <TableHead>Status</TableHead>
@@ -458,6 +459,9 @@ export default function Contracts() {
                         </TableCell>
                         <TableCell>{contract.county}</TableCell>
                         <TableCell>{formatDate(contract.contractDate)}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {contract.deedRecordedDate ? formatDate(contract.deedRecordedDate) : '—'}
+                        </TableCell>
                         <TableCell className="text-right font-medium">
                           {formatCurrency(contract.contractPrice)}
                         </TableCell>

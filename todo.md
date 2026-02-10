@@ -817,3 +817,16 @@
 - [x] Fix ContractDetail: invalidate getById cache on quickPay and updateContract
 - [x] Fix Dashboard: prevent division by zero in margin calculation
 - [x] Add Dashboard KPI: Total Profit Recognized YTD (gain + late fees)
+
+## Pre-Deed Tie-Out Report (12-31-2025)
+- [x] Parse backup JSON file (contracts + payments)
+- [x] Filter payments with paymentDate <= 12/31/2025
+- [x] Apply ASSUMED filter (paymentDate >= transferDate)
+- [x] Detect Down Payment (memo or contract.downPayment field)
+- [x] Calculate Down Payment vs Installments received
+- [x] Add deedRecordedDate field to contracts schema + migration
+- [x] Expose deedRecordedDate in Contracts list UI
+- [x] Expose deedRecordedDate in Contract Detail (editable)
+- [x] Classify Pre-Deed status (Confirmed/Missing based on deedRecordedDate)
+- [x] Generate Excel report with Summary + Missing section
+- [x] Generate PDF for CPA (Pre-Deed only + totals)

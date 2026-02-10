@@ -60,6 +60,9 @@ export const contracts = mysqlTable("contracts", {
   // V4.0: First installment date - determines monthly due dates
   firstInstallmentDate: date("firstInstallmentDate"),
   
+  // V5.0: Deed recorded date - for Pre-Deed tie-out and liability tracking
+  deedRecordedDate: date("deedRecordedDate"),
+  
   status: mysqlEnum("status", ["Active", "PaidOff", "Default", "Repossessed"]).default("Active").notNull(),
   notes: text("notes"),
   

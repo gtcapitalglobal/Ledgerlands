@@ -105,6 +105,7 @@ export const appRouter = router({
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
         firstInstallmentDate: z.string().optional(),
+        deedRecordedDate: z.string().optional(),
         installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
@@ -155,6 +156,7 @@ export const appRouter = router({
           transferDate: input.transferDate ? new Date(input.transferDate) : undefined,
           balloonDate: input.balloonDate ? new Date(input.balloonDate) : undefined,
           firstInstallmentDate: input.firstInstallmentDate ? new Date(input.firstInstallmentDate) : undefined,
+          deedRecordedDate: input.deedRecordedDate ? new Date(input.deedRecordedDate) : undefined,
           // CASH: explicitly set installment fields to null
           installmentAmount: input.saleType === 'CASH' ? null : input.installmentAmount,
           installmentCount: input.saleType === 'CASH' ? null : input.installmentCount,
@@ -191,6 +193,7 @@ export const appRouter = router({
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
         firstInstallmentDate: z.string().optional(),
+        deedRecordedDate: z.string().optional(),
         installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
@@ -201,7 +204,7 @@ export const appRouter = router({
         reason: z.string().min(1, "Reason required for audit"), // REQUIRED for tax audit
       }))
       .mutation(async ({ input, ctx }) => {
-        const { id, contractDate, transferDate, closeDate, balloonDate, firstInstallmentDate, reason, ...rest } = input;
+        const { id, contractDate, transferDate, closeDate, balloonDate, firstInstallmentDate, deedRecordedDate, reason, ...rest } = input;
         
         // Get old values for audit
         const oldContract = await db.getContractById(id);
@@ -256,6 +259,7 @@ export const appRouter = router({
         if (closeDate) updates.closeDate = new Date(closeDate);
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
         if (firstInstallmentDate) updates.firstInstallmentDate = new Date(firstInstallmentDate);
+        if (deedRecordedDate) updates.deedRecordedDate = new Date(deedRecordedDate);
         
         await db.updateContract(id, updates);
         
