@@ -92,6 +92,7 @@ export const appRouter = router({
         downPayment: z.string(),
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
+        firstInstallmentDate: z.string().optional(),
         installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
@@ -141,12 +142,23 @@ export const appRouter = router({
           closeDate: input.closeDate ? new Date(input.closeDate) : undefined,
           transferDate: input.transferDate ? new Date(input.transferDate) : undefined,
           balloonDate: input.balloonDate ? new Date(input.balloonDate) : undefined,
+          firstInstallmentDate: input.firstInstallmentDate ? new Date(input.firstInstallmentDate) : undefined,
           // CASH: explicitly set installment fields to null
           installmentAmount: input.saleType === 'CASH' ? null : input.installmentAmount,
           installmentCount: input.saleType === 'CASH' ? null : input.installmentCount,
           downPayment: input.downPayment,
         };
         const id = await db.createContract(contractData);
+        
+        // Auto-generate installments for CFD contracts
+        if (input.saleType === 'CFD' && input.firstInstallmentDate && input.installmentAmount && input.installmentCount) {
+          try {
+            await db.generateInstallments(id);
+          } catch (error) {
+            console.error(`Failed to generate installments for contract ${id}:`, error);
+          }
+        }
+        
         return { id, success: true };
       }),
 
@@ -166,6 +178,7 @@ export const appRouter = router({
         downPayment: z.string().optional(),
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
+        firstInstallmentDate: z.string().optional(),
         installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
@@ -176,7 +189,7 @@ export const appRouter = router({
         reason: z.string().min(1, "Reason required for audit"), // REQUIRED for tax audit
       }))
       .mutation(async ({ input, ctx }) => {
-        const { id, contractDate, transferDate, closeDate, balloonDate, reason, ...rest } = input;
+        const { id, contractDate, transferDate, closeDate, balloonDate, firstInstallmentDate, reason, ...rest } = input;
         
         // Get old values for audit
         const oldContract = await db.getContractById(id);
@@ -230,8 +243,22 @@ export const appRouter = router({
         if (transferDate) updates.transferDate = new Date(transferDate);
         if (closeDate) updates.closeDate = new Date(closeDate);
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
+        if (firstInstallmentDate) updates.firstInstallmentDate = new Date(firstInstallmentDate);
         
         await db.updateContract(id, updates);
+        
+        // Auto-regenerate installments if CFD contract and installment-related fields changed
+        const installmentFieldsChanged = firstInstallmentDate || input.installmentAmount || input.installmentCount || balloonDate || input.balloonAmount;
+        if (mergedContract.saleType === 'CFD' && installmentFieldsChanged) {
+          const updatedContract = await db.getContractById(id);
+          if (updatedContract?.firstInstallmentDate && updatedContract.installmentAmount && updatedContract.installmentCount) {
+            try {
+              await db.generateInstallments(id);
+            } catch (error) {
+              console.error(`Failed to regenerate installments for contract ${id}:`, error);
+            }
+          }
+        }
 
         // Audit log for tracked fields
         const { logContractChange } = await import("./auditLog");
@@ -2143,6 +2170,60 @@ export const appRouter = router({
         csv: [header, ...rows].join('\n'),
         filename: `cash_flow_projection_${new Date().toISOString().split('T')[0]}.csv`
       };
+    }),
+  }),
+
+  // ==================== INSTALLMENTS ====================
+  installments: router({
+    list: protectedProcedure
+      .input(z.object({
+        propertyId: z.string().optional(),
+        status: z.enum(['PENDING', 'PAID', 'OVERDUE', 'PARTIAL']).optional(),
+        month: z.string().optional(), // YYYY-MM format
+      }).optional())
+      .query(async ({ input }) => {
+        await db.updateOverdueInstallments(); // Update overdue status before querying
+        return await db.getAllInstallments(input || {});
+      }),
+
+    getByContractId: protectedProcedure
+      .input(z.object({ contractId: z.number() }))
+      .query(async ({ input }) => {
+        await db.updateOverdueInstallments();
+        return await db.getInstallmentsByContractId(input.contractId);
+      }),
+
+    generate: protectedProcedure
+      .input(z.object({ contractId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.generateInstallments(input.contractId);
+        return { success: true };
+      }),
+
+    markAsPaid: protectedProcedure
+      .input(z.object({
+        installmentId: z.number(),
+        paidAmount: z.number(),
+        paidDate: z.string(),
+        receivedBy: z.enum(['GT_REAL_BANK', 'LEGACY_G&T', 'PERSONAL', 'UNKNOWN']),
+        channel: z.enum(['ZELLE', 'ACH', 'CASH', 'CHECK', 'WIRE', 'OTHER']),
+        memo: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await db.markInstallmentAsPaid(
+          input.installmentId,
+          input.paidAmount,
+          input.paidDate,
+          input.receivedBy,
+          input.channel,
+          input.memo
+        );
+        return result;
+      }),
+
+    getOverdueCount: protectedProcedure.query(async () => {
+      await db.updateOverdueInstallments();
+      return await db.getOverdueInstallmentsCount();
     }),
   }),
 });

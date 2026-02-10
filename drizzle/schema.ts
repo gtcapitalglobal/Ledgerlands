@@ -57,6 +57,9 @@ export const contracts = mysqlTable("contracts", {
   balloonAmount: varchar("balloonAmount", { length: 20 }),
   balloonDate: date("balloonDate"),
   
+  // V4.0: First installment date - determines monthly due dates
+  firstInstallmentDate: date("firstInstallmentDate"),
+  
   status: mysqlEnum("status", ["Active", "PaidOff", "Default", "Repossessed"]).default("Active").notNull(),
   notes: text("notes"),
   
@@ -142,3 +145,28 @@ export const contractAttachments = mysqlTable("contractAttachments", {
 
 export type ContractAttachment = typeof contractAttachments.$inferSelect;
 export type InsertContractAttachment = typeof contractAttachments.$inferInsert;
+
+/**
+ * V4.0: Installments table
+ * Auto-generated installment schedule for each CFD contract
+ * Tracks due dates, payment status, and links to actual payments
+ */
+export const installments = mysqlTable("installments", {
+  id: int("id").autoincrement().primaryKey(),
+  contractId: int("contractId").notNull(), // Foreign key to contracts.id
+  propertyId: varchar("propertyId", { length: 50 }).notNull(), // Denormalized for quick lookup
+  installmentNumber: int("installmentNumber").notNull(), // 1, 2, 3... up to installmentCount
+  dueDate: date("dueDate").notNull(), // Calculated from firstInstallmentDate
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(), // installmentAmount or balloonAmount
+  type: mysqlEnum("type", ["REGULAR", "BALLOON", "DOWN_PAYMENT"]).notNull().default("REGULAR"),
+  status: mysqlEnum("status", ["PENDING", "PAID", "OVERDUE", "PARTIAL"]).notNull().default("PENDING"),
+  paidDate: date("paidDate"), // When marked as paid
+  paidAmount: decimal("paidAmount", { precision: 15, scale: 2 }), // Actual amount paid (for partial payments)
+  paymentId: int("paymentId"), // Link to payments table when paid
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Installment = typeof installments.$inferSelect;
+export type InsertInstallment = typeof installments.$inferInsert;

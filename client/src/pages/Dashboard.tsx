@@ -38,6 +38,7 @@ export default function Dashboard() {
 
   const { data: kpis, isLoading } = trpc.dashboard.getKPIs.useQuery(filters);
   const { data: cashFlowData } = trpc.cashFlowProjection.get12Months.useQuery();
+  const { data: overdueCount = 0 } = trpc.installments.getOverdueCount.useQuery();
   
   // Fetch profit by year data
   const profitFilters = useMemo(() => {
@@ -392,6 +393,22 @@ export default function Dashboard() {
                 <div className="text-3xl font-bold">{formatCurrency(kpis.lateFeesYTD)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   100% income no ano {kpis.currentYear}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Overdue Installments */}
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer border-2 border-red-500/20" onClick={() => setLocation('/installments?status=OVERDUE')}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Parcelas Atrasadas
+                </CardTitle>
+                <AlertCircle className="h-5 w-5 text-red-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-600">{overdueCount}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Vencimentos não pagos
                 </p>
               </CardContent>
             </Card>

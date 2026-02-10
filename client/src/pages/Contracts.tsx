@@ -51,6 +51,7 @@ export default function Contracts() {
     installmentsPaidByTransfer: "",
     installmentAmount: "",
     installmentCount: "",
+    firstInstallmentDate: "",
     balloonAmount: "",
     balloonDate: "",
     status: "Active" as "Active" | "PaidOff" | "Default" | "Repossessed",
@@ -84,6 +85,7 @@ export default function Contracts() {
         installmentsPaidByTransfer: "",
         installmentAmount: "",
         installmentCount: "",
+        firstInstallmentDate: "",
         balloonAmount: "",
         balloonDate: "",
         status: "Active",
@@ -530,6 +532,7 @@ export default function Contracts() {
             if (formData.saleType === "CFD") {
               data.installmentAmount = formData.installmentAmount;
               data.installmentCount = parseInt(formData.installmentCount);
+              if (formData.firstInstallmentDate) data.firstInstallmentDate = formData.firstInstallmentDate;
               if (formData.balloonAmount) data.balloonAmount = formData.balloonAmount;
               if (formData.balloonDate) data.balloonDate = formData.balloonDate;
             }
@@ -659,6 +662,10 @@ export default function Contracts() {
                   <div className="space-y-2">
                     <Label htmlFor="installmentCount">Installment Count *</Label>
                     <Input id="installmentCount" type="number" value={formData.installmentCount} onChange={(e) => setFormData({...formData, installmentCount: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="firstInstallmentDate">Data Primeira Parcela *</Label>
+                    <Input id="firstInstallmentDate" type="date" value={formData.firstInstallmentDate} onChange={(e) => setFormData({...formData, firstInstallmentDate: e.target.value})} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="balloonAmount">Balloon Amount</Label>

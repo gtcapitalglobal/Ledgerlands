@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, contracts, payments, Contract, Payment, InsertContract, InsertPayment } from "../drizzle/schema";
+import { InsertUser, users, contracts, payments, installments, Contract, Payment, InsertContract, InsertPayment, Installment, InsertInstallment } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -444,4 +444,225 @@ export async function calculateIRR(contract: Contract, allPayments: Payment[]): 
     console.error('[calculateIRR] Error:', error);
     return null;
   }
+}
+
+// ==================== INSTALLMENT QUERIES ====================
+
+/**
+ * Generate installments for a contract based on firstInstallmentDate
+ * Creates monthly installments + balloon payment if applicable
+ */
+export async function generateInstallments(contractId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const contract = await getContractById(contractId);
+  if (!contract) {
+    throw new Error(`Contract ${contractId} not found`);
+  }
+
+  // Only generate for CFD contracts
+  if (contract.saleType === 'CASH') {
+    return;
+  }
+
+  if (!contract.firstInstallmentDate || !contract.installmentCount || !contract.installmentAmount) {
+    throw new Error(`Contract ${contractId} missing required fields for installment generation`);
+  }
+
+  // Delete existing installments for this contract (regenerate)
+  await db.delete(installments).where(eq(installments.contractId, contractId));
+
+  const installmentsToInsert: InsertInstallment[] = [];
+  const firstDate = new Date(contract.firstInstallmentDate);
+  const installmentAmount = parseFloat(contract.installmentAmount);
+
+  // Generate regular monthly installments
+  for (let i = 1; i <= contract.installmentCount; i++) {
+    const dueDate = new Date(firstDate);
+    dueDate.setMonth(firstDate.getMonth() + (i - 1));
+
+    installmentsToInsert.push({
+      contractId: contract.id,
+      propertyId: contract.propertyId,
+      installmentNumber: i,
+      dueDate: dueDate.toISOString().split('T')[0] as any, // Convert to YYYY-MM-DD
+      amount: installmentAmount.toString(),
+      type: 'REGULAR',
+      status: 'PENDING',
+    });
+  }
+
+  // Add balloon payment if exists
+  if (contract.balloonAmount && contract.balloonDate) {
+    const balloonAmount = parseFloat(contract.balloonAmount);
+    installmentsToInsert.push({
+      contractId: contract.id,
+      propertyId: contract.propertyId,
+      installmentNumber: 0, // Special number for balloon
+      dueDate: contract.balloonDate,
+      amount: balloonAmount.toString(),
+      type: 'BALLOON',
+      status: 'PENDING',
+    });
+  }
+
+  // Insert all installments
+  if (installmentsToInsert.length > 0) {
+    await db.insert(installments).values(installmentsToInsert);
+  }
+}
+
+/**
+ * Get all installments for a contract
+ */
+export async function getInstallmentsByContractId(contractId: number): Promise<Installment[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(installments)
+    .where(eq(installments.contractId, contractId))
+    .orderBy(installments.dueDate);
+}
+
+/**
+ * Get all installments (with optional filters)
+ */
+export async function getAllInstallments(filters?: {
+  propertyId?: string;
+  status?: 'PENDING' | 'PAID' | 'OVERDUE' | 'PARTIAL';
+  month?: string; // YYYY-MM format
+}): Promise<Installment[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  let query = db.select().from(installments);
+
+  const conditions = [];
+
+  if (filters?.propertyId) {
+    conditions.push(eq(installments.propertyId, filters.propertyId));
+  }
+
+  if (filters?.status) {
+    conditions.push(eq(installments.status, filters.status));
+  }
+
+  if (filters?.month) {
+    // Filter by month (YYYY-MM)
+    const [year, month] = filters.month.split('-');
+    const startDate = `${year}-${month}-01`;
+    const endDate = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0]; // Last day of month
+    conditions.push(gte(installments.dueDate, startDate as any));
+    conditions.push(lte(installments.dueDate, endDate as any));
+  }
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as any;
+  }
+
+  return await query.orderBy(installments.dueDate);
+}
+
+/**
+ * Mark installment as paid and create payment record
+ */
+export async function markInstallmentAsPaid(
+  installmentId: number,
+  paidAmount: number,
+  paidDate: string,
+  receivedBy: 'GT_REAL_BANK' | 'LEGACY_G&T' | 'PERSONAL' | 'UNKNOWN',
+  channel: 'ZELLE' | 'ACH' | 'CASH' | 'CHECK' | 'WIRE' | 'OTHER',
+  memo?: string
+): Promise<{ installment: Installment; payment: Payment }> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+
+  // Get installment
+  const installmentResult = await db.select().from(installments)
+    .where(eq(installments.id, installmentId))
+    .limit(1);
+
+  if (installmentResult.length === 0) {
+    throw new Error(`Installment ${installmentId} not found`);
+  }
+
+  const installment = installmentResult[0];
+
+  // Create payment record
+  const paymentId = await createPayment({
+    contractId: installment.contractId,
+    propertyId: installment.propertyId,
+    paymentDate: paidDate as any,
+    amountTotal: paidAmount.toString(),
+    principalAmount: paidAmount.toString(),
+    lateFeeAmount: '0',
+    receivedBy,
+    channel,
+    memo: memo || `Installment #${installment.installmentNumber}`,
+  });
+
+  // Get the created payment
+  const paymentResult = await db.select().from(payments)
+    .where(eq(payments.id, paymentId))
+    .limit(1);
+  const payment = paymentResult[0];
+
+  // Update installment status
+  const expectedAmount = parseFloat(installment.amount);
+  const status = paidAmount >= expectedAmount ? 'PAID' : 'PARTIAL';
+
+  await db.update(installments)
+    .set({
+      status,
+      paidDate: paidDate as any,
+      paidAmount: paidAmount.toString(),
+      paymentId,
+    })
+    .where(eq(installments.id, installmentId));
+
+  const updatedInstallment = await db.select().from(installments)
+    .where(eq(installments.id, installmentId))
+    .limit(1);
+
+  return {
+    installment: updatedInstallment[0],
+    payment,
+  };
+}
+
+/**
+ * Update overdue status for all pending installments
+ * Should be called periodically or on-demand
+ */
+export async function updateOverdueInstallments(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const result = await db.update(installments)
+    .set({ status: 'OVERDUE' })
+    .where(
+      and(
+        eq(installments.status, 'PENDING'),
+        lte(installments.dueDate, today as any)
+      )
+    );
+
+  return result[0]?.affectedRows || 0;
+}
+
+/**
+ * Get overdue installments count
+ */
+export async function getOverdueInstallmentsCount(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(installments)
+    .where(eq(installments.status, 'OVERDUE'));
+
+  return result[0]?.count || 0;
 }

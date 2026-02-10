@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import Exceptions from "./pages/Exceptions";
 import PerformanceRanking from "./pages/PerformanceRanking";
 import PaymentPortal from "./pages/PaymentPortal";
+import Installments from "./pages/Installments";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path={"/contracts"} component={Contracts} />
       <Route path={"/contracts/:id"} component={ContractDetail} />
       <Route path={"/payments"} component={Payments} />
+      <Route path={"/installments"} component={Installments} />
       <Route path={"/tax-schedule"} component={TaxSchedule} />
       <Route path={"/contracts-subledger"} component={ContractsSubledger} />
       <Route path={"/cash-flow"} component={CashFlowProjection} />

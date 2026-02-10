@@ -64,6 +64,13 @@
       "when": 1770686850846,
       "tag": "0008_green_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1770699852130,
+      "tag": "0009_amusing_timeslip",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE contracts SET firstInstallmentDate = '2025-06-15' WHERE propertyId = '25';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute UPDATE contracts SET firstInstallmentDate = '2025-06-15' WHERE propertyId = '25';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 81
+}

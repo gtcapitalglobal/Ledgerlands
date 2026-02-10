@@ -799,3 +799,12 @@
 - [x] Melhorar alinhamento e espaçamento
 - [x] Aplicar cores GT Lands (verde/dourado)
 - [x] Testar e criar checkpoint
+
+## Installment Schedule System (Auto-generation)
+- [ ] Add firstInstallmentDate field to contracts schema
+- [ ] Create installments table (contractId, installmentNumber, dueDate, amount, status, paidDate, paymentId)
+- [ ] Implement auto-generation of installments on contract create/update
+- [ ] Create Installments page showing all installments with status (Pending/Overdue/Paid)
+- [ ] Add "Mark as Paid" button to record payment and link to payment record
+- [ ] Update Dashboard to show overdue installments count
+- [ ] Migrate existing contracts data to use firstInstallmentDate from spreadsheet
