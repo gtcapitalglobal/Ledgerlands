@@ -2404,6 +2404,25 @@ export const appRouter = router({
           filename: `Payment_Statement_${input.propertyId}_${new Date().toISOString().split('T')[0]}.pdf`,
         };
       }),
+
+    exportStatementPDF_ES: protectedProcedure
+      .input(z.object({
+        propertyId: z.string(),
+        contractId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const { generateInstallmentStatementPDF_ES } = await import('./pdfGeneratorES');
+        const pdfBuffer = await generateInstallmentStatementPDF_ES({
+          propertyId: input.propertyId,
+          contractId: input.contractId,
+          generatedDate: new Date().toISOString(),
+        });
+        
+        return {
+          pdf: pdfBuffer.toString('base64'),
+          filename: `Estado_de_Cuenta_${input.propertyId}_${new Date().toISOString().split('T')[0]}.pdf`,
+        };
+      }),
   }),
 });
 

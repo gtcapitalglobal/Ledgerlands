@@ -895,3 +895,6 @@
 - [x] Fix PDF layout issues: overlapping text in Payment Summary box and improve spacing
 - [ ] Reduce PDF page count by displaying multiple installments per page in continuous table format
 - [x] Reduce PDF page count by displaying multiple installments per page in table format
+- [ ] Add Spanish PDF export button and generator for client statements
+- [x] Add Spanish PDF export button and generator for client statements
+- [x] Update email to gustavo@gtlands.com in both PDF versions

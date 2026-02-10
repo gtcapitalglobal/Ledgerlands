@@ -68,26 +68,28 @@ export default function Installments() {
     },
   });
 
+  const downloadPDF = (data: { pdf: string; filename: string }) => {
+    // Convert base64 to blob and download
+    const byteCharacters = atob(data.pdf);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = data.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setExportingPDF(false);
+  };
+
   const exportPDFMutation = trpc.installments.exportStatementPDF.useMutation({
-    onSuccess: (data) => {
-      // Convert base64 to blob and download
-      const byteCharacters = atob(data.pdf);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = data.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      setExportingPDF(false);
-    },
+    onSuccess: downloadPDF,
     onError: (error) => {
       console.error('Erro ao exportar PDF:', error.message);
       alert('Erro ao gerar PDF. Por favor, tente novamente.');
@@ -95,7 +97,16 @@ export default function Installments() {
     },
   });
 
-  const handleExportPDF = () => {
+  const exportPDFMutation_ES = trpc.installments.exportStatementPDF_ES.useMutation({
+    onSuccess: downloadPDF,
+    onError: (error) => {
+      console.error('Error exporting Spanish PDF:', error);
+      alert('Erro ao gerar PDF em espanhol. Por favor, tente novamente.');
+      setExportingPDF(false);
+    },
+  });
+
+  const handleExportPDF = (language: 'EN' | 'ES' = 'EN') => {
     if (!propertyFilter || propertyFilter === 'all') {
       alert('Por favor, selecione uma propriedade específica para exportar o relatório.');
       return;
@@ -109,7 +120,8 @@ export default function Installments() {
     }
     
     setExportingPDF(true);
-    exportPDFMutation.mutate({
+    const mutation = language === 'ES' ? exportPDFMutation_ES : exportPDFMutation;
+    mutation.mutate({
       propertyId: propertyFilter,
       contractId: firstInstallment.contractId,
     });
@@ -232,15 +244,26 @@ export default function Installments() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Filtros</CardTitle>
-          <Button
-            onClick={handleExportPDF}
-            disabled={!propertyFilter || propertyFilter === 'all' || exportingPDF}
-            variant="outline"
-            size="sm"
-          >
-            <FileDown className="w-4 h-4 mr-2" />
-            {exportingPDF ? 'Gerando PDF...' : 'Exportar PDF (EN)'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleExportPDF('EN')}
+              disabled={!propertyFilter || propertyFilter === 'all' || exportingPDF}
+              variant="outline"
+              size="sm"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              {exportingPDF ? 'Gerando PDF...' : 'Exportar PDF (EN)'}
+            </Button>
+            <Button
+              onClick={() => handleExportPDF('ES')}
+              disabled={!propertyFilter || propertyFilter === 'all' || exportingPDF}
+              variant="outline"
+              size="sm"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              {exportingPDF ? 'Gerando PDF...' : 'Exportar PDF (ES)'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

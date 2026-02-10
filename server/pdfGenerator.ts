@@ -77,11 +77,9 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
     doc.fontSize(9)
        .fillColor(grayColor)
        .font('Helvetica')
-       .text('Real Estate Investment & Land Development', 150, 72)
-       .text('Florida, United States', 150, 84)
-       .text('contact@gtrealassets.com', 150, 96);
-
-    // Document title
+       .text('Real Estate Investment & Land Development', 150, 75)
+       .text('Florida, United States', 150, 90)
+       .text('gustavo@gtlands.com', 150, 105);    // Document title
     doc.fontSize(16)
        .fillColor(primaryColor)
        .font('Helvetica-Bold')
