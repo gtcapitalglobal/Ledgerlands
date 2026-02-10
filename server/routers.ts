@@ -393,6 +393,66 @@ export const appRouter = router({
           }
         };
       }),
+
+    getPerformanceRanking: protectedProcedure
+      .input(z.object({
+        status: z.enum(["all", "Active", "PaidOff", "Default", "Repossessed"]).optional(),
+        county: z.string().optional(),
+        originType: z.enum(["all", "DIRECT", "ASSUMED"]).optional(),
+      }))
+      .query(async ({ input }) => {
+        let contracts = await db.getAllContracts();
+        
+        // Apply filters
+        if (input.status && input.status !== 'all') {
+          contracts = contracts.filter(c => c.status === input.status);
+        }
+        if (input.county && input.county !== 'all') {
+          contracts = contracts.filter(c => c.county === input.county);
+        }
+        if (input.originType && input.originType !== 'all') {
+          contracts = contracts.filter(c => c.originType === input.originType);
+        }
+        
+        // Calculate performance metrics for each contract
+        const performanceData = await Promise.all(contracts.map(async (contract) => {
+          const payments = await db.getPaymentsByContractId(contract.id);
+          const receivableBalance = await db.calculateReceivableBalance(contract, payments);
+          const roi = db.calculateROI(contract.contractPrice, contract.costBasis);
+          const irr = await db.calculateIRR(contract, payments);
+          const grossProfit = db.calculateGrossProfit(contract.contractPrice, contract.costBasis);
+          
+          const principalReceived = payments.reduce((sum, p) => {
+            const amount = typeof p.principalAmount === 'string' ? parseFloat(p.principalAmount) : p.principalAmount;
+            return sum + amount;
+          }, parseFloat(contract.downPayment.toString()));
+          
+          const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
+          const gainRecognized = db.calculateGainRecognized(principalReceived, grossProfitPercent);
+          
+          return {
+            id: contract.id,
+            propertyId: contract.propertyId,
+            buyerName: contract.buyerName,
+            county: contract.county,
+            status: contract.status,
+            originType: contract.originType,
+            saleType: contract.saleType,
+            contractPrice: parseFloat(contract.contractPrice.toString()),
+            costBasis: parseFloat(contract.costBasis.toString()),
+            grossProfit,
+            gainRecognized,
+            receivableBalance,
+            roi,
+            irr,
+          };
+        }));
+        
+        // Sort by ROI descending (best performers first)
+        performanceData.sort((a, b) => b.roi - a.roi);
+        
+        return performanceData;
+      }),
   }),
 
   payments: router({
@@ -1896,6 +1956,136 @@ export const appRouter = router({
           next12Months,
           activeContracts: contracts.filter(c => c.status === 'Active').length,
         },
+      };
+    }),
+
+    get24Months: protectedProcedure.query(async () => {
+      const contracts = await db.getAllContracts();
+      const allPayments = await db.getAllPayments();
+      
+      const today = new Date();
+      const projections = [];
+
+      // Generate 24 months starting from current month
+      for (let i = 0; i < 24; i++) {
+        const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        let expectedInstallments = 0;
+        let expectedBalloons = 0;
+        const contractsWithPayments: string[] = [];
+
+        for (const contract of contracts) {
+          if (contract.status !== 'Active') continue;
+
+          // Calculate expected installment payments
+          if (contract.installmentAmount && contract.saleType === 'CFD') {
+            const installmentAmount = parseFloat(contract.installmentAmount as string);
+            expectedInstallments += installmentAmount;
+            contractsWithPayments.push(contract.propertyId);
+          }
+
+          // Check for balloon payment in this month
+          if (contract.balloonAmount && contract.balloonDate) {
+            const balloonDate = new Date(contract.balloonDate);
+            const balloonMonth = `${balloonDate.getFullYear()}-${String(balloonDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (balloonMonth === monthKey) {
+              const balloonAmount = parseFloat(contract.balloonAmount as string);
+              expectedBalloons += balloonAmount;
+            }
+          }
+        }
+
+        projections.push({
+          month: monthName,
+          monthKey,
+          expectedInstallments,
+          expectedBalloons,
+          totalExpected: expectedInstallments + expectedBalloons,
+          contractCount: contractsWithPayments.length,
+        });
+      }
+
+      // Calculate summary stats
+      const next3Months = projections.slice(0, 3).reduce((sum, p) => sum + p.totalExpected, 0);
+      const next6Months = projections.slice(0, 6).reduce((sum, p) => sum + p.totalExpected, 0);
+      const next12Months = projections.slice(0, 12).reduce((sum, p) => sum + p.totalExpected, 0);
+      const next24Months = projections.reduce((sum, p) => sum + p.totalExpected, 0);
+
+      return {
+        projections,
+        summary: {
+          next3Months,
+          next6Months,
+          next12Months,
+          next24Months,
+          activeContracts: contracts.filter(c => c.status === 'Active').length,
+        },
+      };
+    }),
+
+    exportExcel: protectedProcedure.query(async () => {
+      const contracts = await db.getAllContracts();
+      
+      const today = new Date();
+      const projections = [];
+
+      // Generate 24 months for Excel export
+      for (let i = 0; i < 24; i++) {
+        const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        let expectedInstallments = 0;
+        let expectedBalloons = 0;
+        let contractCount = 0;
+
+        for (const contract of contracts) {
+          if (contract.status !== 'Active') continue;
+
+          if (contract.installmentAmount && contract.saleType === 'CFD') {
+            const installmentAmount = parseFloat(contract.installmentAmount as string);
+            expectedInstallments += installmentAmount;
+            contractCount++;
+          }
+
+          if (contract.balloonAmount && contract.balloonDate) {
+            const balloonDate = new Date(contract.balloonDate);
+            const balloonMonth = `${balloonDate.getFullYear()}-${String(balloonDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (balloonMonth === monthKey) {
+              const balloonAmount = parseFloat(contract.balloonAmount as string);
+              expectedBalloons += balloonAmount;
+            }
+          }
+        }
+
+        projections.push({
+          month: monthName,
+          expectedInstallments: expectedInstallments.toFixed(2),
+          expectedBalloons: expectedBalloons.toFixed(2),
+          totalExpected: (expectedInstallments + expectedBalloons).toFixed(2),
+          contractCount,
+        });
+      }
+
+      // CSV header
+      const header = ['Month', 'Expected Installments', 'Expected Balloons', 'Total Expected', 'Active Contracts'].join(',');
+      
+      // CSV rows
+      const rows = projections.map(p => [
+        p.month,
+        p.expectedInstallments,
+        p.expectedBalloons,
+        p.totalExpected,
+        p.contractCount
+      ].join(','));
+
+      return {
+        csv: [header, ...rows].join('\n'),
+        filename: `cash_flow_projection_${new Date().toISOString().split('T')[0]}.csv`
       };
     }),
   }),

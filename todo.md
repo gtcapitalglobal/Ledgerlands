@@ -736,3 +736,57 @@
 - [x] Reorganizar filtros em grid horizontal compacto
 - [x] Reduzir espaçamento e melhorar alinhamento
 - [x] Testar responsividade e criar checkpoint
+
+
+## Adicionar Balloon Date na UI
+
+- [ ] Contract Detail: Exibir Balloon Date na seção de informações do contrato
+- [ ] Contract Detail: Adicionar Balloon Date ao form de edição
+- [ ] Testar e criar checkpoint
+
+
+## Feature #2: Performance Ranking Dashboard
+
+- [ ] Backend: Criar endpoint contracts.getPerformanceRanking
+- [ ] Frontend: Criar página PerformanceRanking.tsx
+- [ ] Adicionar rota no App.tsx e menu no DashboardLayout
+- [ ] Tabela ordenada por ROI com filtros
+- [ ] Gráfico de barras comparativo de ROI
+
+## Feature #4: Square Payment Portal
+
+- [ ] Backend: Adicionar Square SDK e credenciais via webdev_request_secrets
+- [ ] Backend: Criar endpoint payments.createSquarePayment
+- [ ] Frontend: Criar página PublicPayment.tsx (rota pública /pay/:contractId)
+- [ ] Integrar Square Web Payments SDK
+- [ ] Auto-registro de payment após pagamento bem-sucedido
+
+## Feature #5: Cash Flow Projection Avançado
+
+- [ ] Backend: Estender cashFlow.getProjection para 12-24 meses
+- [ ] Frontend: Adicionar gráfico de linha no CashFlowProjection.tsx
+- [ ] Backend: Criar endpoint cashFlow.exportExcel
+- [ ] Frontend: Botão "Export to Excel" na página Cash Flow Projection
+
+
+## New Features (Feb 2026)
+
+### Feature #2: Performance Ranking Dashboard
+- [x] Backend: contracts.getPerformanceRanking endpoint
+- [x] Frontend: PerformanceRanking.tsx page com tabela e gráfico
+- [x] Filtros por Status, County, Origin Type
+- [x] Adicionar rota no App.tsx e menu no DashboardLayout
+
+### Feature #5: Cash Flow Projection Avançado
+- [x] Backend: cashFlowProjection.get24Months endpoint
+- [x] Backend: cashFlowProjection.exportExcel endpoint
+- [x] Frontend: Gráfico de linha 12-24 meses
+- [x] Frontend: Botão "Export to Excel"
+
+### Feature #4: Square Payment Portal (PENDENTE)
+- [x] Adicionar Square credentials como secrets
+- [x] Validar credenciais Square via teste
+- [ ] Backend: payments.createSquarePayment endpoint
+- [ ] Frontend: PaymentPortal.tsx page
+- [ ] Integração Square Web Payments SDK
+- [ ] Webhook handler para payment confirmations

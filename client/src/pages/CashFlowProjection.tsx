@@ -4,10 +4,36 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, Calendar, DollarSign } from "lucide-react";
+import { TrendingUp, Calendar, DollarSign, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { toast } from "sonner";
 
 export default function CashFlowProjection() {
-  const { data, isLoading } = trpc.cashFlowProjection.get12Months.useQuery();
+  const { data, isLoading } = trpc.cashFlowProjection.get24Months.useQuery();
+  const exportQuery = trpc.cashFlowProjection.exportExcel.useQuery(undefined, { enabled: false });
+
+  const handleExport = async () => {
+    try {
+      const result = await exportQuery.refetch();
+      if (!result.data) {
+        toast.error('No data to export');
+        return;
+      }
+      const blob = new Blob([result.data.csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.data.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Cash Flow Projection exported successfully');
+    } catch (error) {
+      toast.error('Failed to export Cash Flow Projection');
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -44,10 +70,18 @@ export default function CashFlowProjection() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Cash Flow Projection</h1>
-          <p className="text-muted-foreground mt-2">
-            Projeção de recebimentos esperados nos próximos 12 meses
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight">Cash Flow Projection</h1>
+              <p className="text-muted-foreground mt-2">
+                Projeção de recebimentos esperados nos próximos 12-24 meses
+              </p>
+            </div>
+            <Button onClick={handleExport} disabled={exportQuery.isFetching}>
+              <Download className="h-4 w-4 mr-2" />
+              Export to Excel
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -92,38 +126,46 @@ export default function CashFlowProjection() {
           </Card>
         </div>
 
-        {/* Bar Chart */}
+        {/* Line Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Projeção Mensal</CardTitle>
+            <CardTitle>Projeção de 12-24 Meses</CardTitle>
             <CardDescription>
               Recebimentos esperados por mês (installments + balloons)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {data?.projections.map((projection) => (
-                <div key={projection.monthKey} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{projection.month}</span>
-                    <span className="text-muted-foreground">
-                      {formatCurrency(projection.totalExpected)}
-                    </span>
-                  </div>
-                  <div className="relative h-8 bg-muted rounded-md overflow-hidden">
-                    <div
-                      className="absolute inset-y-0 left-0 bg-primary transition-all"
-                      style={{
-                        width: `${maxValue > 0 ? (projection.totalExpected / maxValue) * 100 : 0}%`,
-                      }}
-                    />
-                    <div className="absolute inset-0 flex items-center px-3 text-xs text-primary-foreground font-medium">
-                      {projection.contractCount > 0 && `${projection.contractCount} contratos`}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {data && data.projections.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={data.projections}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="month" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={100}
+                    interval={1}
+                  />
+                  <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value: number) => formatCurrency(value)}
+                    labelStyle={{ color: '#000' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="totalExpected" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                Nenhum dado disponível
+              </div>
+            )}
           </CardContent>
         </Card>
 
