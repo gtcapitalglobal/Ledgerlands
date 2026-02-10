@@ -890,3 +890,4 @@
 - [x] Fix Property ID filter in Installments page not showing results
 - [x] Add 6 KPI summary cards to Installments page: total count, balloon count, paid count, pending count, total paid amount, total receivable amount
 - [x] Replace Property ID text input with dropdown select in Installments page
+- [x] Add down payment (entrada) entries to Installments page showing value, date, and payment status

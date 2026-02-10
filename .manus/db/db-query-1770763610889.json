@@ -1,0 +1,74 @@
+{
+  "query": "SELECT propertyId, installmentNumber, dueDate, amount, type, status FROM installments WHERE type = 'DOWN_PAYMENT' ORDER BY propertyId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT propertyId, installmentNumber, dueDate, amount, type, status FROM installments WHERE type = 'DOWN_PAYMENT' ORDER BY propertyId;",
+  "rows": [
+    {
+      "propertyId": "#17",
+      "installmentNumber": "0",
+      "dueDate": "2025-11-03",
+      "amount": "500.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#22",
+      "installmentNumber": "0",
+      "dueDate": "2025-10-24",
+      "amount": "250.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#25",
+      "installmentNumber": "0",
+      "dueDate": "2025-05-12",
+      "amount": "4000.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#31",
+      "installmentNumber": "0",
+      "dueDate": "2026-01-05",
+      "amount": "499.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#33",
+      "installmentNumber": "0",
+      "dueDate": "2025-04-22",
+      "amount": "1000.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#35",
+      "installmentNumber": "0",
+      "dueDate": "2025-04-22",
+      "amount": "1000.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#43",
+      "installmentNumber": "0",
+      "dueDate": "2025-04-22",
+      "amount": "1000.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    },
+    {
+      "propertyId": "#45",
+      "installmentNumber": "0",
+      "dueDate": "2025-04-30",
+      "amount": "2000.00",
+      "type": "DOWN_PAYMENT",
+      "status": "PAID"
+    }
+  ],
+  "messages": [],
+  "stdout": "propertyId\tinstallmentNumber\tdueDate\tamount\ttype\tstatus\n#17\t0\t2025-11-03\t500.00\tDOWN_PAYMENT\tPAID\n#22\t0\t2025-10-24\t250.00\tDOWN_PAYMENT\tPAID\n#25\t0\t2025-05-12\t4000.00\tDOWN_PAYMENT\tPAID\n#31\t0\t2026-01-05\t499.00\tDOWN_PAYMENT\tPAID\n#33\t0\t2025-04-22\t1000.00\tDOWN_PAYMENT\tPAID\n#35\t0\t2025-04-22\t1000.00\tDOWN_PAYMENT\tPAID\n#43\t0\t2025-04-22\t1000.00\tDOWN_PAYMENT\tPAID\n#45\t0\t2025-04-30\t2000.00\tDOWN_PAYMENT\tPAID\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}
