@@ -882,3 +882,4 @@
 - [x] Standardize all date formats across entire system to mm/dd/yyyy format
 - [x] Correct all contract dates to match spreadsheet (8 contracts with date discrepancies)
 - [x] Enhance contracts CSV export: ISO dates (MM-DD-YYYY), operational columns, calculated fields, proper null handling
+- [x] Redesign Pre-Deed Tie-Out report to match professional CPA format with entity header, purpose statement, receipt dates column, and CPA note

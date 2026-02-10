@@ -61,7 +61,10 @@ export const reportsRouter = router({
       } else {
         // Generate PDF (return HTML for client-side rendering)
         const preDeedRows = reportData.rows.filter((r: any) => r.preDeedStatus === 'Y');
-        const missingRows = reportData.rows.filter((r: any) => r.preDeedStatus === 'Missing');
+        
+        // Format cutoff date for display
+        const cutoffDateObj = new Date(input.cutoffDate);
+        const cutoffYear = cutoffDateObj.getFullYear();
         
         const htmlContent = `
 <!DOCTYPE html>
@@ -69,84 +72,63 @@ export const reportsRouter = router({
 <head>
   <meta charset="UTF-8">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { font-size: 18px; margin-bottom: 10px; }
-    h2 { font-size: 14px; margin-top: 20px; margin-bottom: 10px; }
-    table { border-collapse: collapse; width: 100%; font-size: 10px; }
-    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    .total { font-weight: bold; background-color: #e8f5e9; }
-    .missing { background-color: #fff3e0; }
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { font-size: 24px; font-weight: bold; margin-bottom: 30px; }
+    .header-info { margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    .header-info p { margin: 5px 0; }
+    .purpose { margin: 20px 0; font-size: 13px; line-height: 1.6; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 12px; }
+    th { background-color: #2c3e50; color: white; padding: 12px; text-align: left; font-weight: bold; }
+    td { border: 1px solid #ddd; padding: 10px; }
+    tbody tr:hover { background-color: #f5f5f5; }
+    .total-row { font-weight: bold; background-color: #ecf0f1; }
+    .total-row td { border-top: 2px solid #2c3e50; }
+    .amount { text-align: right; }
+    .cpa-note { margin-top: 30px; font-size: 12px; line-height: 1.6; }
+    .cpa-note strong { font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Customer Deposits – Pre-Deed Tie-Out (${input.cutoffDate})</h1>
-  <p><strong>Total PRE-DEED Confirmed:</strong> $${reportData.totals.confirmedPreDeed.toFixed(2)}</p>
-  <p><strong>Total Missing Deed Info:</strong> $${reportData.totals.missingDeedInfo.toFixed(2)}</p>
+  <h1>Customer Deposits - Pre-Deed Tie-Out (${input.cutoffDate})</h1>
   
-  <h2>PRE-DEED Contracts (as of ${input.cutoffDate})</h2>
+  <div class="header-info">
+    <p><strong>Entity:</strong> GT Real Assets LLC</p>
+    <p><strong>Account:</strong> Customer Deposits - Land Sales (Pre-Deed)</p>
+  </div>
+  
+  <div class="purpose">
+    <p><strong>Purpose:</strong> Support the ${input.cutoffDate} balance by listing deposits received where deed/title transfer had not occurred as of year-end. Amounts below are derived from the Wave account register for Customer Deposits - Land Sales (Pre-Deed).</p>
+  </div>
+  
   <table>
     <thead>
       <tr>
-        <th>Buyer / Contract ID</th>
-        <th>Property / County</th>
-        <th>Contract Date</th>
-        <th>Down Payment</th>
-        <th>Installments</th>
-        <th>Total Received</th>
-        <th>Status</th>
+        <th>Item / Contract</th>
+        <th>Receipt dates (${cutoffYear})</th>
+        <th class="amount">Total received through ${input.cutoffDate}</th>
       </tr>
     </thead>
     <tbody>
-      ${preDeedRows.map((r: any) => `
+      ${preDeedRows.map((r: any) => {
+        const receiptDates = r.paymentDates || 'N/A';
+        const contractDescription = r.contractDescription || `Property ${r.propertyId} – Contract for Deed`;
+        return `
         <tr>
-          <td>${r.buyerContractId}</td>
-          <td>${r.propertyCounty}</td>
-          <td>${r.contractDate}</td>
-          <td>$${r.downPaymentReceived.toFixed(2)}</td>
-          <td>$${r.installmentsReceived.toFixed(2)}</td>
-          <td>$${r.totalReceived.toFixed(2)}</td>
-          <td>${r.status}</td>
+          <td>${contractDescription}</td>
+          <td>${receiptDates}</td>
+          <td class="amount">$${r.totalReceived.toFixed(2)}</td>
         </tr>
-      `).join('')}
-      <tr class="total">
-        <td colspan="5">Total PRE-DEED Confirmed</td>
-        <td>$${reportData.totals.confirmedPreDeed.toFixed(2)}</td>
-        <td></td>
+      `}).join('')}
+      <tr class="total-row">
+        <td colspan="2"><strong>Total</strong></td>
+        <td class="amount"><strong>$${reportData.totals.confirmedPreDeed.toFixed(2)}</strong></td>
       </tr>
     </tbody>
   </table>
   
-  ${missingRows.length > 0 ? `
-  <h2>Missing Deed Information (Pending Confirmation)</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Buyer / Contract ID</th>
-        <th>Property / County</th>
-        <th>Contract Date</th>
-        <th>Total Received</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${missingRows.map((r: any) => `
-        <tr class="missing">
-          <td>${r.buyerContractId}</td>
-          <td>${r.propertyCounty}</td>
-          <td>${r.contractDate}</td>
-          <td>$${r.totalReceived.toFixed(2)}</td>
-          <td>${r.status}</td>
-        </tr>
-      `).join('')}
-      <tr class="total missing">
-        <td colspan="3">Total Missing Deed Info</td>
-        <td>$${reportData.totals.missingDeedInfo.toFixed(2)}</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  ` : ''}
+  <div class="cpa-note">
+    <p><strong>CPA note:</strong> If any contract had deed recorded on or before ${input.cutoffDate}, it must be removed from this list and reclassified out of Customer Deposits (Pre-Deed).</p>
+  </div>
 </body>
 </html>
         `;
@@ -268,8 +250,51 @@ export const reportsRouter = router({
           missingDeedInfoTotal += totalReceived;
         }
         
+        // Generate contract description for CPA report
+        const saleTypeLabel = contract.saleType === 'CFD' ? 'Contract for Deed' : contract.saleType;
+        let contractDescription = `Property ${contract.propertyId} – ${saleTypeLabel}`;
+        
+        // Add payment context (e.g., "Down + 12/2025 installment")
+        if (payments.length > 0) {
+          const paymentCount = payments.length;
+          const lastPaymentDate = payments[payments.length - 1].paymentDate;
+          const lastPaymentMonth = new Date(lastPaymentDate).toLocaleDateString('en-US', { month: '2-digit', year: 'numeric' });
+          
+          if (paymentCount === 1 && dpPayment) {
+            contractDescription += ` (Down payment only)`;
+          } else if (paymentCount > 1) {
+            const installmentCount = dpPayment ? paymentCount - 1 : paymentCount;
+            contractDescription += ` (Down + ${lastPaymentMonth} installment)`;
+          }
+        }
+        
+        // Generate payment dates string (e.g., "Nov 03 & Dec 04, 2025")
+        let paymentDates = 'N/A';
+        if (payments.length > 0) {
+          const sortedPayments = [...payments].sort((a, b) => 
+            new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
+          );
+          
+          const firstPayment = sortedPayments[0];
+          const lastPayment = sortedPayments[sortedPayments.length - 1];
+          
+          const firstDate = new Date(firstPayment.paymentDate);
+          const lastDate = new Date(lastPayment.paymentDate);
+          
+          const firstDateStr = firstDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+          const lastDateStr = lastDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+          const year = firstDate.getFullYear();
+          
+          if (sortedPayments.length === 1) {
+            paymentDates = `${firstDateStr}, ${year}`;
+          } else {
+            paymentDates = `${firstDateStr}–${lastDateStr}, ${year}`;
+          }
+        }
+        
         rows.push({
           contractId: contract.id,
+          propertyId: contract.propertyId,
           buyerContractId: `${contract.buyerName} / ${contract.propertyId}`,
           propertyCounty: `${contract.propertyId} / ${contract.county}, ${contract.state}`,
           contractDate: contract.contractDate.toISOString().split('T')[0],
@@ -280,6 +305,8 @@ export const reportsRouter = router({
           totalReceived: totalReceived,
           status: contract.status,
           preDeedStatus: preDeedStatus,
+          contractDescription: contractDescription,
+          paymentDates: paymentDates,
         });
       }
       
