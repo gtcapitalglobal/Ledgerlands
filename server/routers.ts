@@ -730,6 +730,62 @@ export const appRouter = router({
         memo: p.memo || '',
       }));
     }),
+
+    createSquarePayment: publicProcedure
+      .input(z.object({
+        contractId: z.number(),
+        sourceId: z.string(), // Payment token from Square Web SDK
+        amountCents: z.number(), // Amount in cents
+        buyerEmail: z.string().email().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createSquarePayment } = await import('./_core/square');
+        const { randomUUID } = await import('crypto');
+        
+        // Get contract to get property ID
+        const contract = await db.getContractById(input.contractId);
+        if (!contract) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
+        }
+
+        // Create payment via Square
+        const idempotencyKey = randomUUID();
+        const result = await createSquarePayment({
+          sourceId: input.sourceId,
+          amountCents: input.amountCents,
+          idempotencyKey,
+          note: `Payment for Property ${contract.propertyId}`,
+          buyerEmailAddress: input.buyerEmail,
+        });
+
+        if (!result.success) {
+          throw new TRPCError({ 
+            code: 'INTERNAL_SERVER_ERROR', 
+            message: result.error || 'Payment failed' 
+          });
+        }
+
+        // Register payment in database
+        const amountDollars = (input.amountCents / 100).toFixed(2);
+        const paymentData = {
+          contractId: input.contractId,
+          propertyId: contract.propertyId,
+          paymentDate: new Date(),
+          amountTotal: amountDollars,
+          principalAmount: amountDollars,
+          lateFeeAmount: '0.00',
+          receivedBy: 'GT_REAL_BANK' as const,
+          channel: 'OTHER' as const,
+          memo: `Square payment ${result.payment?.id || ''}`,
+        };
+        
+        const id = await db.createPayment(paymentData);
+        return { 
+          success: true, 
+          paymentId: id,
+          squarePaymentId: result.payment?.id,
+        };
+      }),
   }),
 
   attachments: router({

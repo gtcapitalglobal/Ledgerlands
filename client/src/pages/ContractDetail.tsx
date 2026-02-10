@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText, Clock } from "lucide-react";
+import { ArrowLeft, Edit, DollarSign, TrendingUp, Calendar, FileText, Clock, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -268,6 +268,17 @@ export default function ContractDetail() {
             <Badge className={getStatusColor(contract.status)}>
               {contract.status}
             </Badge>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const paymentLink = `${window.location.origin}/pay/${contract.id}`;
+                navigator.clipboard.writeText(paymentLink);
+                toast.success('Link de pagamento copiado!');
+              }}
+            >
+              <LinkIcon className="h-4 w-4 mr-2" />
+              Copiar Link de Pagamento
+            </Button>
             <Button className="shadow-elegant" onClick={() => {
               setEditFormData({
                 propertyId: contract.propertyId,

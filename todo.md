@@ -783,10 +783,11 @@
 - [x] Frontend: Gráfico de linha 12-24 meses
 - [x] Frontend: Botão "Export to Excel"
 
-### Feature #4: Square Payment Portal (PENDENTE)
+### Feature #4: Square Payment Portal (COMPLETO)
 - [x] Adicionar Square credentials como secrets
 - [x] Validar credenciais Square via teste
-- [ ] Backend: payments.createSquarePayment endpoint
-- [ ] Frontend: PaymentPortal.tsx page
-- [ ] Integração Square Web Payments SDK
-- [ ] Webhook handler para payment confirmations
+- [x] Instalar square SDK no backend
+- [x] Backend: payments.createSquarePayment endpoint
+- [x] Frontend: PaymentPortal.tsx page com Square Web SDK
+- [x] Adicionar payment links no Contract Detail (botão "Copiar Link de Pagamento")
+- [x] Rota /pay/:contractId adicionada

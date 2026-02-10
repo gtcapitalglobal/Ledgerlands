@@ -15,6 +15,7 @@ import Documentation from "./pages/Documentation";
 import Settings from "./pages/Settings";
 import Exceptions from "./pages/Exceptions";
 import PerformanceRanking from "./pages/PerformanceRanking";
+import PaymentPortal from "./pages/PaymentPortal";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
       <Route path={"/settings"} component={Settings} />
         <Route path="/exceptions" component={Exceptions} />
         <Route path="/performance" component={PerformanceRanking} />
+        <Route path="/pay/:contractId" component={PaymentPortal} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
