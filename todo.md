@@ -830,3 +830,14 @@
 - [x] Classify Pre-Deed status (Confirmed/Missing based on deedRecordedDate)
 - [x] Generate Excel report with Summary + Missing section
 - [x] Generate PDF for CPA (Pre-Deed only + totals)
+
+## Pre-Deed Tie-Out Report Generator (In-App)
+- [x] Add deedStatus ENUM ("UNKNOWN" | "NOT_RECORDED" | "RECORDED") to contracts schema
+- [x] Update Contract UI with conditional deedRecordedDate field based on deedStatus
+- [x] Create reports.preDeedTieOut tRPC endpoint with cutoff date parameter
+- [x] Implement calculation logic (Down Payment + Installments through cutoff)
+- [x] Apply Pre-Deed classification rules (Y/N/Missing based on deedStatus)
+- [x] Create PDF export with formatted table and totals
+- [x] Create CSV export with all rows
+- [x] Add "Pre-Deed Tie-Out" dropdown to Dashboard with quick actions (12/31/2025, 12/31/2026, Custom)
+- [x] Test report generation for 2025 and 2026

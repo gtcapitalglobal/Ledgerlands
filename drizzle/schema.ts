@@ -61,6 +61,7 @@ export const contracts = mysqlTable("contracts", {
   firstInstallmentDate: date("firstInstallmentDate"),
   
   // V5.0: Deed recorded date - for Pre-Deed tie-out and liability tracking
+  deedStatus: mysqlEnum("deedStatus", ["UNKNOWN", "NOT_RECORDED", "RECORDED"]).default("UNKNOWN").notNull(),
   deedRecordedDate: date("deedRecordedDate"),
   
   status: mysqlEnum("status", ["Active", "PaidOff", "Default", "Repossessed"]).default("Active").notNull(),

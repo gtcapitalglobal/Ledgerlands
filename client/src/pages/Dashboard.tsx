@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, FileText, TrendingUp, Wallet, Calendar, AlertCircle, Download, BarChart3 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
+import { PreDeedTieOutButton } from "@/components/PreDeedTieOutButton";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -92,8 +93,10 @@ export default function Dashboard() {
               Visão geral dos contratos de financiamento imobiliário e performance fiscal
             </p>
           </div>
-          <Button 
-            onClick={async () => {
+          <div className="flex gap-2">
+            <PreDeedTieOutButton />
+            <Button 
+              onClick={async () => {
               try {
                 setIsDownloadingBackup(true);
                 toast.info('Gerando backup...');
@@ -130,6 +133,7 @@ export default function Dashboard() {
             <Download className="h-4 w-4 mr-2" />
             Download Backup
           </Button>
+          </div>
         </div>
 
         {/* Filters */}

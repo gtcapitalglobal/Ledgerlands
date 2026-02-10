@@ -290,6 +290,7 @@ export default function ContractDetail() {
                 status: contract.status,
                 notes: contract.notes || '',
                 documentFolderLink: contract.documentFolderLink || '',
+                deedStatus: contract.deedStatus || 'UNKNOWN',
                 deedRecordedDate: contract.deedRecordedDate ? new Date(contract.deedRecordedDate).toISOString().split('T')[0] : '',
                 contractPrice: contract.contractPrice,
                 costBasis: contract.costBasis,
@@ -767,6 +768,7 @@ export default function ContractDetail() {
               status: editFormData.status,
               notes: editFormData.notes,
               documentFolderLink: editFormData.documentFolderLink || "",
+              deedStatus: editFormData.deedStatus || 'UNKNOWN',
               deedRecordedDate: editFormData.deedRecordedDate || null,
               contractPrice: editFormData.contractPrice,
               costBasis: editFormData.costBasis,
@@ -864,10 +866,26 @@ export default function ContractDetail() {
                 </Select>              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-deedRecordedDate">Deed Recorded Date</Label>
-              <Input id="edit-deedRecordedDate" type="date" value={editFormData.deedRecordedDate || ''} onChange={(e) => setEditFormData({...editFormData, deedRecordedDate: e.target.value})} />
-              <p className="text-xs text-muted-foreground">Data em que a escritura (deed) foi registrada. Deixe vazio se ainda não foi registrada (Pre-Deed).</p>
+              <Label htmlFor="edit-deedStatus">Deed Status *</Label>
+              <Select value={editFormData.deedStatus || 'UNKNOWN'} onValueChange={(v: any) => {
+                setEditFormData({...editFormData, deedStatus: v, deedRecordedDate: v === 'NOT_RECORDED' ? '' : editFormData.deedRecordedDate});
+              }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UNKNOWN">Unknown (Pending Confirmation)</SelectItem>
+                  <SelectItem value="NOT_RECORDED">Not Recorded (Pre-Deed)</SelectItem>
+                  <SelectItem value="RECORDED">Recorded (Deed Transferred)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Status da escritura (deed) para cálculo de passivo Pre-Deed</p>
             </div>
+            {editFormData.deedStatus === 'RECORDED' && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-deedRecordedDate">Deed Recorded Date *</Label>
+                <Input id="edit-deedRecordedDate" type="date" value={editFormData.deedRecordedDate || ''} onChange={(e) => setEditFormData({...editFormData, deedRecordedDate: e.target.value})} required />
+                <p className="text-xs text-muted-foreground">Data em que a escritura foi registrada (obrigatório quando status = Recorded)</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Notes</Label>
               <Textarea id="edit-notes" value={editFormData.notes} onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})} rows={3} />

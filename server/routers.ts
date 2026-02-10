@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { normalizePropertyId } from "@shared/utils";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import { reportsRouter } from "./reports";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
@@ -10,6 +11,7 @@ import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
   system: systemRouter,
+  reports: reportsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -105,6 +107,7 @@ export const appRouter = router({
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
         firstInstallmentDate: z.string().optional(),
+        deedStatus: z.enum(["UNKNOWN", "NOT_RECORDED", "RECORDED"]).optional(),
         deedRecordedDate: z.string().optional(),
         installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
@@ -193,6 +196,7 @@ export const appRouter = router({
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
         firstInstallmentDate: z.string().optional(),
+        deedStatus: z.enum(["UNKNOWN", "NOT_RECORDED", "RECORDED"]).optional(),
         deedRecordedDate: z.string().optional(),
         installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
@@ -204,7 +208,7 @@ export const appRouter = router({
         reason: z.string().min(1, "Reason required for audit"), // REQUIRED for tax audit
       }))
       .mutation(async ({ input, ctx }) => {
-        const { id, contractDate, transferDate, closeDate, balloonDate, firstInstallmentDate, deedRecordedDate, reason, ...rest } = input;
+        const { id, contractDate, transferDate, closeDate, balloonDate, firstInstallmentDate, deedStatus, deedRecordedDate, reason, ...rest } = input;
         
         // Get old values for audit
         const oldContract = await db.getContractById(id);
@@ -259,7 +263,13 @@ export const appRouter = router({
         if (closeDate) updates.closeDate = new Date(closeDate);
         if (balloonDate) updates.balloonDate = new Date(balloonDate);
         if (firstInstallmentDate) updates.firstInstallmentDate = new Date(firstInstallmentDate);
+        if (deedStatus) updates.deedStatus = deedStatus;
         if (deedRecordedDate) updates.deedRecordedDate = new Date(deedRecordedDate);
+        
+        // Validation: if deedStatus = RECORDED, require deedRecordedDate
+        if (updates.deedStatus === 'RECORDED' && !updates.deedRecordedDate && !oldContract.deedRecordedDate) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'deedRecordedDate is required when deedStatus = RECORDED' });
+        }
         
         await db.updateContract(id, updates);
         
