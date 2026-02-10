@@ -881,3 +881,4 @@
 - [x] Correct contract date for property #25 from May 9, 2024 to May 12, 2025
 - [x] Standardize all date formats across entire system to mm/dd/yyyy format
 - [x] Correct all contract dates to match spreadsheet (8 contracts with date discrepancies)
+- [x] Enhance contracts CSV export: ISO dates (MM-DD-YYYY), operational columns, calculated fields, proper null handling

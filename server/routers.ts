@@ -365,38 +365,81 @@ export const appRouter = router({
       const { toCSV } = await import('./utils/csv');
       const contracts = await db.getAllContracts();
       
+      // Helper: Format date to MM-DD-YYYY (CPA/Excel-friendly)
+      const formatDate = (date: Date | null | undefined): string => {
+        if (!date) return "";
+        const d = new Date(date);
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${month}-${day}-${year}`;
+      };
+      
+      // Helper: Format number to 2 decimals or empty string
+      const formatNumber = (value: string | number | null | undefined): string => {
+        if (value === null || value === undefined || value === "") return "";
+        const num = typeof value === 'string' ? parseFloat(value) : value;
+        return isNaN(num) ? "" : num.toFixed(2);
+      };
+      
       const headers = [
         'property_id', 'buyer_name', 'origin_type', 'sale_type', 'county', 'state',
-        'contract_date', 'transfer_date', 'close_date', 'contract_price', 'cost_basis',
-        'down_payment', 'opening_receivable', 'installment_amount', 'installment_count',
-        'installments_paid_by_transfer', 'balloon_amount', 'balloon_date', 'status', 'notes',
-        'deed_status', 'deed_recorded_date'
+        'contract_date', 'first_payment_due_date', 'transfer_date', 'close_date', 
+        'contract_price', 'cost_basis', 'down_payment', 'opening_receivable',
+        'installment_amount', 'installment_count', 'installments_paid_by_transfer',
+        'balloon_amount', 'balloon_date', 'deed_status', 'deed_recorded_date',
+        'status', 'notes', 'cost_basis_source', 'cost_basis_notes',
+        'opening_receivable_source', 'google_drive_folder_link',
+        'gross_profit_percent', 'expected_total_gross_profit'
       ];
 
-      const rows = contracts.map(c => ({
-        property_id: c.propertyId,
-        buyer_name: c.buyerName,
-        origin_type: c.originType,
-        sale_type: c.saleType,
-        county: c.county,
-        state: c.state,
-        contract_date: c.contractDate,
-        transfer_date: c.transferDate,
-        close_date: c.closeDate,
-        contract_price: c.contractPrice,
-        cost_basis: c.costBasis,
-        down_payment: c.downPayment,
-        opening_receivable: c.openingReceivable,
-        installment_amount: c.installmentAmount,
-        installment_count: c.installmentCount,
-        installments_paid_by_transfer: c.installmentsPaidByTransfer,
-        balloon_amount: c.balloonAmount,
-        balloon_date: c.balloonDate,
-        status: c.status,
-        notes: c.notes,
-        deed_status: c.deedStatus || 'UNKNOWN',
-        deed_recorded_date: c.deedRecordedDate,
-      }));
+      const rows = contracts.map(c => {
+        // Calculate gross profit metrics
+        const contractPrice = parseFloat(c.contractPrice as string);
+        const costBasis = parseFloat(c.costBasis as string);
+        
+        let grossProfitPercent = "";
+        let expectedTotalGrossProfit = "";
+        
+        if (!isNaN(contractPrice) && !isNaN(costBasis)) {
+          if (contractPrice > 0) {
+            grossProfitPercent = (((contractPrice - costBasis) / contractPrice) * 100).toFixed(2);
+          }
+          expectedTotalGrossProfit = (contractPrice - costBasis).toFixed(2);
+        }
+        
+        return {
+          property_id: c.propertyId || "",
+          buyer_name: c.buyerName || "",
+          origin_type: c.originType || "",
+          sale_type: c.saleType || "",
+          county: c.county || "",
+          state: c.state || "",
+          contract_date: formatDate(c.contractDate),
+          first_payment_due_date: formatDate(c.firstInstallmentDate),
+          transfer_date: formatDate(c.transferDate),
+          close_date: formatDate(c.closeDate),
+          contract_price: formatNumber(c.contractPrice),
+          cost_basis: formatNumber(c.costBasis),
+          down_payment: formatNumber(c.downPayment),
+          opening_receivable: formatNumber(c.openingReceivable),
+          installment_amount: formatNumber(c.installmentAmount),
+          installment_count: c.installmentCount !== null && c.installmentCount !== undefined ? String(c.installmentCount) : "",
+          installments_paid_by_transfer: c.installmentsPaidByTransfer !== null && c.installmentsPaidByTransfer !== undefined ? String(c.installmentsPaidByTransfer) : "",
+          balloon_amount: formatNumber(c.balloonAmount),
+          balloon_date: formatDate(c.balloonDate),
+          deed_status: c.deedStatus || "",
+          deed_recorded_date: formatDate(c.deedRecordedDate),
+          status: c.status || "",
+          notes: c.notes || "",
+          cost_basis_source: c.costBasisSource || "",
+          cost_basis_notes: c.costBasisNotes || "",
+          opening_receivable_source: c.openingReceivableSource || "",
+          google_drive_folder_link: c.documentFolderLink || "",
+          gross_profit_percent: grossProfitPercent,
+          expected_total_gross_profit: expectedTotalGrossProfit,
+        };
+      });
 
       return {
         csv: toCSV(headers, rows),
