@@ -269,9 +269,7 @@ export const appRouter = router({
         if (mergedContract.deedStatus === 'RECORDED' && !mergedContract.deedRecordedDate) {
           throw new Error('RECORDED deed status requires deedRecordedDate');
         }
-        if (mergedContract.deedStatus === 'NOT_RECORDED' && mergedContract.deedRecordedDate) {
-          throw new Error('NOT_RECORDED deed status must have blank deedRecordedDate');
-        }
+        // NOT_RECORDED and UNKNOWN allow null deedRecordedDate (no validation needed)
 
         const updates: any = { ...rest };
         if (contractDate) updates.contractDate = new Date(contractDate);

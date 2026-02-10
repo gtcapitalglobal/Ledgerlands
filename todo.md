@@ -863,3 +863,7 @@
 - [x] Add Contract Date field to ContractDetail edit form
 - [x] Add contractDate to backend update schema validation
 - [x] Test editing Contract Date for DIRECT and ASSUMED contracts
+
+## Fix Deed Validation Error
+- [x] Fix backend validation: when deedStatus=NOT_RECORDED, allow null deedRecordedDate
+- [x] Test saving contract with deedStatus=NOT_RECORDED and empty date
