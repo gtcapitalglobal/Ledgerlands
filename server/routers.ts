@@ -35,25 +35,37 @@ export const appRouter = router({
         }
         
         // Get payments for this contract
-        const payments = await db.getPaymentsByContractId(input.id);
+        let paymentsInScope = await db.getPaymentsByContractId(input.id);
+        
+        // ASSUMED: only count payments after transferDate
+        if (contract.originType === 'ASSUMED' && contract.transferDate) {
+          paymentsInScope = paymentsInScope.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+        }
+        
+        // Detect down payment to avoid double-counting
+        const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, paymentsInScope);
         
         // Calculate financial summary
-        const paidInstallments = payments.length;
+        // Exclude DP payment from installment count if it exists
+        const paidInstallments = dpPaymentId 
+          ? paymentsInScope.filter(p => p.id !== dpPaymentId).length
+          : paymentsInScope.length;
         const totalInstallments = contract.installmentCount || 0;
         
-        const cashReceivedTotal = payments.reduce((sum, p) => {
+        // Cash received = sum of payments + DP (if not already in payments)
+        const paymentsTotal = paymentsInScope.reduce((sum, p) => {
           return sum + parseFloat(p.principalAmount.toString()) + 
                        parseFloat(p.lateFeeAmount?.toString() || '0');
-        }, parseFloat(contract.downPayment.toString()));
+        }, 0);
+        const cashReceivedTotal = paymentsTotal + (dpPaymentId ? 0 : effectiveDP);
         
-        const financedAmount = parseFloat(contract.contractPrice.toString()) - 
-                               parseFloat(contract.downPayment.toString());
+        const financedAmount = parseFloat(contract.contractPrice.toString()) - effectiveDP;
         
-        const receivableBalance = await db.calculateReceivableBalance(contract, payments);
+        const receivableBalance = await db.calculateReceivableBalance(contract, paymentsInScope);
         
         // Calculate ROI and IRR
         const roi = db.calculateROI(contract.contractPrice, contract.costBasis);
-        const irr = await db.calculateIRR(contract, payments);
+        const irr = await db.calculateIRR(contract, paymentsInScope);
         
         return {
           ...contract,

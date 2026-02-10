@@ -95,6 +95,7 @@ export default function ContractDetail() {
       toast.success('Contrato atualizado com sucesso!');
       setIsEditModalOpen(false);
       utils.contracts.getWithCalculations.invalidate({ id: contractId, year: selectedYear });
+      utils.contracts.getById.invalidate({ id: contractId });
     },
     onError: (error) => {
       toast.error(`Erro ao atualizar: ${error.message}`);
@@ -109,7 +110,8 @@ export default function ContractDetail() {
     onSuccess: () => {
       toast.success('Pagamento registrado com sucesso!');
       utils.payments.getByContractId.invalidate({ contractId });
-      utils.contracts.getWithCalculations.invalidate({ id: contractId });
+      utils.contracts.getWithCalculations.invalidate({ id: contractId, year: selectedYear });
+      utils.contracts.getById.invalidate({ id: contractId });
     },
     onError: (error) => {
       toast.error(error.message || 'Erro ao registrar pagamento');

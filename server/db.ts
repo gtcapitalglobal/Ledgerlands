@@ -330,7 +330,7 @@ export function calculateROI(contractPrice: string | number, costBasis: string |
  * Returns null if calculation fails or insufficient data
  */
 export async function calculateIRR(contract: Contract, allPayments: Payment[]): Promise<number | null> {
-  const { parseDecimal } = await import('../shared/utils');
+  const { parseDecimal, computeEffectiveDownPayment } = await import('../shared/utils');
   
   try {
     // Build cash flow array with dates
@@ -341,21 +341,23 @@ export async function calculateIRR(contract: Contract, allPayments: Payment[]): 
     const contractDate = new Date(contract.contractDate);
     cashFlows.push({ date: contractDate, amount: -costBasis });
     
-    // Down payment (positive inflow on contract date or transfer date for ASSUMED)
-    const downPayment = parseDecimal(contract.downPayment || 0);
-    if (downPayment > 0) {
-      const dpDate = contract.originType === 'ASSUMED' && contract.transferDate 
-        ? new Date(contract.transferDate) 
-        : contractDate;
-      cashFlows.push({ date: dpDate, amount: downPayment });
-    }
-    
     // Filter payments for this contract
     let contractPayments = allPayments.filter(p => p.contractId === contract.id);
     
     // ASSUMED: only count payments after transferDate
     if (contract.originType === 'ASSUMED' && contract.transferDate) {
       contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+    }
+    
+    // Detect down payment to avoid double-counting
+    const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, contractPayments);
+    
+    // Add down payment as inflow ONLY if not already in payments
+    if (!dpPaymentId && effectiveDP > 0) {
+      const dpDate = contract.originType === 'ASSUMED' && contract.transferDate 
+        ? new Date(contract.transferDate) 
+        : contractDate;
+      cashFlows.push({ date: dpDate, amount: effectiveDP });
     }
     
     // Add each payment as positive inflow

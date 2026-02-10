@@ -808,3 +808,12 @@
 - [ ] Add "Mark as Paid" button to record payment and link to payment record
 - [ ] Update Dashboard to show overdue installments count
 - [ ] Migrate existing contracts data to use firstInstallmentDate from spreadsheet
+
+## Critical Bug Fixes (Priority 1)
+- [x] Fix contracts.getById: apply ASSUMED payment scope filter + use computeEffectiveDownPayment
+- [x] Fix contracts.getById: exclude DP payment from paidInstallments count
+- [x] Fix contracts.getById: correct cashReceivedTotal calculation
+- [x] Fix calculateIRR: prevent down payment double-counting
+- [x] Fix ContractDetail: invalidate getById cache on quickPay and updateContract
+- [x] Fix Dashboard: prevent division by zero in margin calculation
+- [x] Add Dashboard KPI: Total Profit Recognized YTD (gain + late fees)

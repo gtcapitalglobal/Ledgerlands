@@ -397,6 +397,24 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
+            {/* Total Profit Recognized YTD */}
+            <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer border-2 border-green-500/20" onClick={() => setLocation('/tax-schedule')}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Profit Recognized YTD
+                </CardTitle>
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">
+                  {formatCurrency(kpis.gainRecognizedYTD + kpis.lateFeesYTD)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Gain + Late Fees {kpis.currentYear}
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Overdue Installments */}
             <Card className="shadow-elegant hover:shadow-elegant-lg transition-shadow cursor-pointer border-2 border-red-500/20" onClick={() => setLocation('/installments?status=OVERDUE')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
