@@ -858,3 +858,8 @@
 - [x] Apply CSV utility to reports.preDeedTieOut CSV export
 - [x] Apply CSV utility to contractsSubledger.exportCSV
 - [ ] Test CSV exports with special characters (commas, quotes, newlines)
+
+## Add Contract Date to Edit Form
+- [x] Add Contract Date field to ContractDetail edit form
+- [x] Add contractDate to backend update schema validation
+- [x] Test editing Contract Date for DIRECT and ASSUMED contracts

@@ -292,6 +292,7 @@ export default function ContractDetail() {
                 documentFolderLink: contract.documentFolderLink || '',
                 deedStatus: contract.deedStatus || 'UNKNOWN',
                 deedRecordedDate: contract.deedRecordedDate ? new Date(contract.deedRecordedDate).toISOString().split('T')[0] : '',
+                contractDate: contract.contractDate ? new Date(contract.contractDate).toISOString().split('T')[0] : '',
                 contractPrice: contract.contractPrice,
                 costBasis: contract.costBasis,
                 downPayment: contract.downPayment || '0',
@@ -770,6 +771,7 @@ export default function ContractDetail() {
               documentFolderLink: editFormData.documentFolderLink || "",
               deedStatus: editFormData.deedStatus || 'UNKNOWN',
               deedRecordedDate: editFormData.deedRecordedDate || null,
+              contractDate: editFormData.contractDate,
               contractPrice: editFormData.contractPrice,
               costBasis: editFormData.costBasis,
               downPayment: editFormData.downPayment || "0",
@@ -816,6 +818,10 @@ export default function ContractDetail() {
               <div className="space-y-2">
                 <Label htmlFor="edit-downPayment">Down Payment</Label>
                 <Input id="edit-downPayment" type="number" step="0.01" value={editFormData.downPayment} onChange={(e) => setEditFormData({...editFormData, downPayment: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-contractDate">Contract Date *</Label>
+                <Input id="edit-contractDate" type="date" value={editFormData.contractDate} onChange={(e) => setEditFormData({...editFormData, contractDate: e.target.value})} required />
               </div>
               {contract?.originType === "ASSUMED" && (
                 <>
