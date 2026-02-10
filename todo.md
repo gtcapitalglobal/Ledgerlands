@@ -729,3 +729,10 @@
 - [x] Fazer upload da logo LogoGTLandsPrincipal.png para o projeto
 - [x] Configurar logo no DashboardLayout com link para https://www.gtlands.app/dashboard
 - [x] Testar e criar checkpoint
+
+
+## Melhorar Layout dos Filtros do Dashboard
+
+- [x] Reorganizar filtros em grid horizontal compacto
+- [x] Reduzir espaçamento e melhorar alinhamento
+- [x] Testar responsividade e criar checkpoint

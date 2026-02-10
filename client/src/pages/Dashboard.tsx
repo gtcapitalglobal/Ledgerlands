@@ -133,14 +133,17 @@ export default function Dashboard() {
 
         {/* Filters */}
         <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-            <CardDescription>Refine a visualização dos dados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Modo de Relatório</label>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Filtros</h3>
+                  <p className="text-xs text-muted-foreground">Refine a visualização dos dados</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Modo de Relatório</label>
                 <Select value={reportingMode} onValueChange={(v: "BOOK" | "TAX") => setReportingMode(v)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -151,8 +154,8 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ano</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Ano</label>
                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
                   <SelectTrigger>
                     <SelectValue />
@@ -167,8 +170,8 @@ export default function Dashboard() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Status</label>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                   <SelectTrigger>
                     <SelectValue />
@@ -183,8 +186,8 @@ export default function Dashboard() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Tipo</label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -197,8 +200,8 @@ export default function Dashboard() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">County</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">County</label>
                 <Select value={selectedCounty} onValueChange={setSelectedCounty}>
                   <SelectTrigger>
                     <SelectValue />
@@ -214,8 +217,8 @@ export default function Dashboard() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Property ID</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Property ID</label>
                 <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
                   <SelectTrigger>
                     <SelectValue />
@@ -230,6 +233,7 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
             </div>
           </CardContent>
         </Card>
