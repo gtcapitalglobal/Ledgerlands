@@ -176,9 +176,9 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <img src="/gt-lands-logo.png" alt="GT Lands" className="h-8 w-auto object-contain" />
-                </div>
+                <a href="https://www.gtlands.app/dashboard" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity">
+                  <img src="/logo.png" alt="GT Lands" className="h-10 w-auto object-contain" />
+                </a>
               ) : null}
             </div>
           </SidebarHeader>

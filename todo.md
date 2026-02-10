@@ -722,3 +722,10 @@
 - [x] Rodar typecheck (0 erros)
 - [x] Rodar build
 - [x] Criar checkpoint final
+
+
+## Logo GT Lands
+
+- [x] Fazer upload da logo LogoGTLandsPrincipal.png para o projeto
+- [x] Configurar logo no DashboardLayout com link para https://www.gtlands.app/dashboard
+- [x] Testar e criar checkpoint
