@@ -884,3 +884,6 @@
 - [x] Enhance contracts CSV export: ISO dates (MM-DD-YYYY), operational columns, calculated fields, proper null handling
 - [x] Redesign Pre-Deed Tie-Out report to match professional CPA format with entity header, purpose statement, receipt dates column, and CPA note
 - [x] Fix critical bug: Select.Item components with empty values breaking application
+- [x] Extract contract data from spreadsheet and update Pre-Deed status
+- [x] Generate all installments including balloon payments
+- [x] Mark past-due installments as paid based on current date
