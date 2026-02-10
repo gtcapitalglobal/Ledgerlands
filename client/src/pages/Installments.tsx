@@ -13,7 +13,7 @@ import { formatDate } from "@/lib/dateUtils";
 
 
 export default function Installments() {
-  const [propertyFilter, setPropertyFilter] = useState("");
+  const [propertyFilter, setPropertyFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"PENDING" | "PAID" | "OVERDUE" | "PARTIAL" | "">("");
   const [selectedInstallment, setSelectedInstallment] = useState<any>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -25,13 +25,18 @@ export default function Installments() {
   const [channel, setChannel] = useState<"ZELLE" | "ACH" | "CASH" | "CHECK" | "WIRE" | "OTHER">("CHECK");
   const [memo, setMemo] = useState("");
 
-  // Normalize property ID filter: add # if user types just numbers
-  const normalizedPropertyFilter = propertyFilter
-    ? propertyFilter.startsWith('#') ? propertyFilter : `#${propertyFilter}`
-    : undefined;
+  // Fetch all installments to get unique property IDs for dropdown
+  const { data: allInstallments = [] } = trpc.installments.list.useQuery({});
+  
+  // Get unique property IDs from all installments
+  const uniquePropertyIds = useMemo(() => {
+    const ids = new Set(allInstallments.map(i => i.propertyId));
+    return Array.from(ids).sort();
+  }, [allInstallments]);
 
+  // Fetch filtered installments based on user selection
   const { data: installments = [], isLoading, refetch } = trpc.installments.list.useQuery({
-    propertyId: normalizedPropertyFilter,
+    propertyId: propertyFilter && propertyFilter !== 'all' ? propertyFilter : undefined,
     status: statusFilter || undefined,
   });
 
@@ -183,11 +188,17 @@ export default function Installments() {
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label>Property ID</Label>
-            <Input
-              placeholder="Ex: 25"
-              value={propertyFilter}
-              onChange={(e) => setPropertyFilter(e.target.value)}
-            />
+            <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {uniquePropertyIds.map(id => (
+                  <SelectItem key={id} value={id}>{id}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Status</Label>
