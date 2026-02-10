@@ -893,3 +893,5 @@
 - [x] Add down payment (entrada) entries to Installments page showing value, date, and payment status
 - [x] Create PDF export for installments in English for client statements
 - [x] Fix PDF layout issues: overlapping text in Payment Summary box and improve spacing
+- [ ] Reduce PDF page count by displaying multiple installments per page in continuous table format
+- [x] Reduce PDF page count by displaying multiple installments per page in table format

@@ -251,14 +251,14 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
     yPos += 25;
 
     // Table rows
-    let rowCount = 0;
-    const maxRowsPerPage = 18;
+    const rowHeight = 16;
+    const pageBottomMargin = 100; // Space for footer
 
     for (const inst of installments) {
-      if (rowCount >= maxRowsPerPage) {
+      // Check if we need a new page (current yPos + row height would exceed page limit)
+      if (yPos + rowHeight > 792 - pageBottomMargin) {
         doc.addPage();
         yPos = 50;
-        rowCount = 0;
 
         // Repeat header on new page
         doc.rect(50, yPos, 512, 25)
@@ -278,8 +278,9 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
       }
 
       // Alternate row colors
-      if (rowCount % 2 === 0) {
-        doc.rect(50, yPos, 512, 20)
+      const rowIndex = installments.indexOf(inst);
+      if (rowIndex % 2 === 0) {
+        doc.rect(50, yPos, 512, rowHeight)
            .fillAndStroke(lightGray, lightGray);
       }
 
@@ -292,24 +293,22 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
       doc.fontSize(8)
          .fillColor(grayColor)
          .font('Helvetica')
-         .text(inst.installmentNumber.toString(), 60, yPos + 6, { width: 30 })
-         .text(typeLabel, 100, yPos + 6, { width: 70 })
-         .text(new Date(inst.dueDate).toLocaleDateString('en-US'), 180, yPos + 6, { width: 80 })
-         .text(`$${parseFloat(inst.amount).toFixed(2)}`, 270, yPos + 6, { width: 80 })
+         .text(inst.installmentNumber.toString(), 60, yPos + 4, { width: 30 })
+         .text(typeLabel, 100, yPos + 4, { width: 70 })
+         .text(new Date(inst.dueDate).toLocaleDateString('en-US'), 180, yPos + 4, { width: 80 })
+         .text(`$${parseFloat(inst.amount).toFixed(2)}`, 270, yPos + 4, { width: 80 })
          .fillColor(statusColor)
          .font('Helvetica-Bold')
-         .text(inst.status, 360, yPos + 6, { width: 70 })
+         .text(inst.status, 360, yPos + 4, { width: 70 })
          .fillColor(grayColor)
          .font('Helvetica')
-         .text(inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('en-US') : '-', 440, yPos + 6, { width: 100 });
+         .text(inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('en-US') : '-', 440, yPos + 4, { width: 100 });
 
-      yPos += 20;
-      rowCount++;
+      yPos += rowHeight;
     }
 
-    // Footer
-    doc.addPage();
-    yPos = 650;
+    // Footer (on last page, after table)
+    yPos += 30;
 
     doc.moveTo(50, yPos)
        .lineTo(562, yPos)
