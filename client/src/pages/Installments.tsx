@@ -25,8 +25,13 @@ export default function Installments() {
   const [channel, setChannel] = useState<"ZELLE" | "ACH" | "CASH" | "CHECK" | "WIRE" | "OTHER">("CHECK");
   const [memo, setMemo] = useState("");
 
+  // Normalize property ID filter: add # if user types just numbers
+  const normalizedPropertyFilter = propertyFilter
+    ? propertyFilter.startsWith('#') ? propertyFilter : `#${propertyFilter}`
+    : undefined;
+
   const { data: installments = [], isLoading, refetch } = trpc.installments.list.useQuery({
-    propertyId: propertyFilter || undefined,
+    propertyId: normalizedPropertyFilter,
     status: statusFilter || undefined,
   });
 

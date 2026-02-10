@@ -1,0 +1,42 @@
+{
+  "query": "SELECT propertyId, COUNT(*) as count FROM installments GROUP BY propertyId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT propertyId, COUNT(*) as count FROM installments GROUP BY propertyId;",
+  "rows": [
+    {
+      "propertyId": "#45",
+      "count": "36"
+    },
+    {
+      "propertyId": "#31",
+      "count": "48"
+    },
+    {
+      "propertyId": "#22",
+      "count": "48"
+    },
+    {
+      "propertyId": "#35",
+      "count": "35"
+    },
+    {
+      "propertyId": "#33",
+      "count": "35"
+    },
+    {
+      "propertyId": "#43",
+      "count": "35"
+    },
+    {
+      "propertyId": "#25",
+      "count": "37"
+    },
+    {
+      "propertyId": "#17",
+      "count": "48"
+    }
+  ],
+  "messages": [],
+  "stdout": "propertyId\tcount\n#45\t36\n#31\t48\n#22\t48\n#35\t35\n#33\t35\n#43\t35\n#25\t37\n#17\t48\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

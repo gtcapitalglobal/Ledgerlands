@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as count, MIN(dueDate) as first_due, MAX(dueDate) as last_due FROM installments WHERE propertyId = '#25';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT COUNT(*) as count, MIN(dueDate) as first_due, MAX(dueDate) as last_due FROM installments WHERE propertyId = '#25';",
+  "rows": [
+    {
+      "count": "37",
+      "first_due": "2025-06-15",
+      "last_due": "2028-05-15"
+    }
+  ],
+  "messages": [],
+  "stdout": "count\tfirst_due\tlast_due\n37\t2025-06-15\t2028-05-15\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

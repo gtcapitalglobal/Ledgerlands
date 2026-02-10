@@ -887,3 +887,4 @@
 - [x] Extract contract data from spreadsheet and update Pre-Deed status
 - [x] Generate all installments including balloon payments
 - [x] Mark past-due installments as paid based on current date
+- [x] Fix Property ID filter in Installments page not showing results
