@@ -898,3 +898,4 @@
 - [ ] Add Spanish PDF export button and generator for client statements
 - [x] Add Spanish PDF export button and generator for client statements
 - [x] Update email to gustavo@gtlands.com in both PDF versions
+- [x] Fix Spanish PDF export error - not generating correctly
