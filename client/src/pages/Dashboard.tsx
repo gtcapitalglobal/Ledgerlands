@@ -132,111 +132,102 @@ export default function Dashboard() {
         </div>
 
         {/* Filters */}
-        <Card className="shadow-elegant">
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Filtros</h3>
-                  <p className="text-xs text-muted-foreground">Refine a visualização dos dados</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Modo de Relatório</label>
-                <Select value={reportingMode} onValueChange={(v: "BOOK" | "TAX") => setReportingMode(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TAX">TAX (Installment Method)</SelectItem>
-                    <SelectItem value="BOOK">BOOK (Model 1)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Ano</label>
-                <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map(year => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Status</label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="PaidOff">Paid Off</SelectItem>
-                    <SelectItem value="Default">Default</SelectItem>
-                    <SelectItem value="Repossessed">Repossessed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="DIRECT">DIRECT</SelectItem>
-                    <SelectItem value="ASSUMED">ASSUMED</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">County</label>
-                <Select value={selectedCounty} onValueChange={setSelectedCounty}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {uniqueCounties.map(county => (
-                      <SelectItem key={county} value={county}>
-                        {county}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Property ID</label>
-                <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {uniquePropertyIds.map(propId => (
-                      <SelectItem key={propId} value={propId}>
-                        {propId}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="bg-gradient-to-r from-[#2C5F4F]/5 to-[#B8935E]/5 rounded-lg border border-[#2C5F4F]/20 p-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[#2C5F4F] uppercase tracking-wide">Modo</label>
+              <Select value={reportingMode} onValueChange={(v: "BOOK" | "TAX") => setReportingMode(v)}>
+                <SelectTrigger className="h-9 border-[#2C5F4F]/30 focus:border-[#B8935E] focus:ring-[#B8935E]/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TAX">TAX</SelectItem>
+                  <SelectItem value="BOOK">BOOK</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[#2C5F4F] uppercase tracking-wide">Ano</label>
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                <SelectTrigger className="h-9 border-[#2C5F4F]/30 focus:border-[#B8935E] focus:ring-[#B8935E]/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[#2C5F4F] uppercase tracking-wide">Status</label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="h-9 border-[#2C5F4F]/30 focus:border-[#B8935E] focus:ring-[#B8935E]/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="PaidOff">Paid Off</SelectItem>
+                  <SelectItem value="Default">Default</SelectItem>
+                  <SelectItem value="Repossessed">Repossessed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[#2C5F4F] uppercase tracking-wide">Tipo</label>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="h-9 border-[#2C5F4F]/30 focus:border-[#B8935E] focus:ring-[#B8935E]/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="DIRECT">DIRECT</SelectItem>
+                  <SelectItem value="ASSUMED">ASSUMED</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[#2C5F4F] uppercase tracking-wide">County</label>
+              <Select value={selectedCounty} onValueChange={setSelectedCounty}>
+                <SelectTrigger className="h-9 border-[#2C5F4F]/30 focus:border-[#B8935E] focus:ring-[#B8935E]/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {uniqueCounties.map(county => (
+                    <SelectItem key={county} value={county}>
+                      {county}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[#2C5F4F] uppercase tracking-wide">Property</label>
+              <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+                <SelectTrigger className="h-9 border-[#2C5F4F]/30 focus:border-[#B8935E] focus:ring-[#B8935E]/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {uniquePropertyIds.map(propId => (
+                    <SelectItem key={propId} value={propId}>
+                      {propId}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
 
         {/* KPI Cards */}
         {isLoading ? (

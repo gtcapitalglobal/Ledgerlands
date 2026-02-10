@@ -791,3 +791,11 @@
 - [x] Frontend: PaymentPortal.tsx page com Square Web SDK
 - [x] Adicionar payment links no Contract Detail (botão "Copiar Link de Pagamento")
 - [x] Rota /pay/:contractId adicionada
+
+
+## Dashboard Filters Visual Redesign
+
+- [x] Redesenhar filtros do Dashboard para layout mais compacto e moderno
+- [x] Melhorar alinhamento e espaçamento
+- [x] Aplicar cores GT Lands (verde/dourado)
+- [x] Testar e criar checkpoint
