@@ -63,6 +63,9 @@ export const contracts = mysqlTable("contracts", {
   // For ASSUMED contracts: opening receivable as of transfer date
   openingReceivable: varchar("openingReceivable", { length: 20 }),
   
+  // For ASSUMED contracts: W = number of installments paid by G&T before transfer
+  installmentsPaidByTransfer: int("installmentsPaidByTransfer"),
+  
   // V2.3: Tax/Audit evidence fields
   costBasisSource: mysqlEnum("costBasisSource", ["HUD", "PSA", "ASSIGNMENT", "LEGACY", "OTHER"]),
   costBasisNotes: text("costBasisNotes"),

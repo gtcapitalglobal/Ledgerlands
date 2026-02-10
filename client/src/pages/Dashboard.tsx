@@ -5,7 +5,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, FileText, TrendingUp, Wallet, Calendar, AlertCircle, Download } from "lucide-react";
+import { DollarSign, FileText, TrendingUp, Wallet, Calendar, AlertCircle, Download, BarChart3 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -37,6 +38,18 @@ export default function Dashboard() {
 
   const { data: kpis, isLoading } = trpc.dashboard.getKPIs.useQuery(filters);
   const { data: cashFlowData } = trpc.cashFlowProjection.get12Months.useQuery();
+  
+  // Fetch profit by year data
+  const profitFilters = useMemo(() => {
+    const f: any = { reportingMode };
+    if (selectedStatus !== "all") f.status = selectedStatus;
+    if (selectedType !== "all") f.originType = selectedType;
+    if (selectedCounty !== "all") f.county = selectedCounty;
+    if (selectedPropertyId !== "all") f.propertyId = selectedPropertyId;
+    return f;
+  }, [selectedStatus, selectedType, selectedCounty, selectedPropertyId, reportingMode]);
+  
+  const { data: profitByYear } = trpc.dashboard.getProfitByYear.useQuery(profitFilters);
 
   // Get unique counties and property IDs
   const uniqueCounties = useMemo(() => {
@@ -383,12 +396,91 @@ export default function Dashboard() {
               <CardContent>
                 <div className="text-3xl font-bold">{formatCurrency(kpis.lateFeesYTD)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  100% income reconhecido
+                  100% income no ano {kpis.currentYear}
                 </p>
               </CardContent>
             </Card>
           </div>
         ) : null}
+
+        {/* Profit by Year Chart */}
+        {profitByYear && profitByYear.length > 0 && (
+          <Card className="shadow-elegant col-span-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Profit by Year ({reportingMode} Mode)
+              </CardTitle>
+              <CardDescription>
+                {reportingMode === 'TAX' ? 'Installment method (gain recognized + late fees)' : 'Contract revenue opened in year'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={profitByYear}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Legend />
+                  <Bar dataKey="gainRecognized" fill="#10b981" name="Gain Recognized" />
+                  <Bar dataKey="lateFees" fill="#f59e0b" name="Late Fees" />
+                </BarChart>
+              </ResponsiveContainer>
+              
+              {/* Selected Year Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                {(() => {
+                  const selectedYearData = profitByYear.find(p => p.year === selectedYear);
+                  if (!selectedYearData) return null;
+                  
+                  return (
+                    <>
+                      <Card className="shadow-sm">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Total Profit ({selectedYear})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold text-green-600">
+                            {formatCurrency(selectedYearData.totalProfit)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="shadow-sm">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Gain Recognized ({selectedYear})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">
+                            {formatCurrency(selectedYearData.gainRecognized)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="shadow-sm">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Late Fees ({selectedYear})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold text-amber-600">
+                            {formatCurrency(selectedYearData.lateFees)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  );
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Cash Flow Projection Card */}
         {cashFlowData && (
@@ -396,7 +488,10 @@ export default function Dashboard() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Projeção de Cash Flow</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Projeção de Cash Flow
+                  </CardTitle>
                   <CardDescription className="mt-1">
                     Recebimentos esperados nos próximos 3 meses
                   </CardDescription>

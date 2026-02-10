@@ -109,6 +109,7 @@ describe("downPayment Regression Test", () => {
       downPayment: "4000", // User sets 4000 (preserved, not forced to 0)
       installmentAmount: "500",
       installmentCount: 32,
+      installmentsPaidByTransfer: 10, // W = 10 installments paid before transfer
       status: "Active",
       openingReceivable: "18000",
     });
@@ -176,6 +177,7 @@ describe("downPayment Regression Test", () => {
           downPayment: "7000", // Preserved as entered
           installmentAmount: "700",
           installmentCount: 40,
+          installmentsPaidByTransfer: 0, // W = 0 (no payments before transfer)
           status: "Active",
           openingReceivable: "28000",
         },

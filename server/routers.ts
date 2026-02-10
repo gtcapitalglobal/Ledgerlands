@@ -78,20 +78,21 @@ export const appRouter = router({
 
     create: protectedProcedure
       .input(z.object({
-        propertyId: z.string().transform(val => normalizePropertyId(val)),
-        buyerName: z.string(),
+        propertyId: z.string().min(1, "Property ID is required").transform(val => normalizePropertyId(val)),
+        buyerName: z.string().min(1, "Buyer name is required"),
         originType: z.enum(["DIRECT", "ASSUMED"]),
         saleType: z.enum(["CFD", "CASH"]).default("CFD"),
         county: z.string(),
         state: z.string().default("FL"),
-        contractDate: z.string(),
+        contractDate: z.string().min(1, "Contract date is required"),
         closeDate: z.string().optional(),
         transferDate: z.string().optional(),
-        contractPrice: z.string(),
-        costBasis: z.string(),
+        contractPrice: z.string().min(1, "Contract price is required"),
+        costBasis: z.string().min(1, "Cost basis is required"),
         downPayment: z.string(),
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
+        installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
         status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]).default("Active"),
@@ -100,14 +101,35 @@ export const appRouter = router({
         openingReceivable: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        // Validation: CFD requires installment fields, CASH requires closeDate
+        // P0.2 Validations
+        // CFD requires installmentAmount and installmentCount
         if (input.saleType === 'CFD') {
           if (!input.installmentAmount || !input.installmentCount) {
             throw new Error('CFD contracts require installmentAmount and installmentCount');
           }
         }
+        
+        // CASH requires closeDate
         if (input.saleType === 'CASH' && !input.closeDate) {
           throw new Error('CASH contracts require closeDate');
+        }
+        
+        // ASSUMED requires transferDate and installmentsPaidByTransfer (W)
+        if (input.originType === 'ASSUMED') {
+          if (!input.transferDate) {
+            throw new Error('ASSUMED contracts require transferDate');
+          }
+          if (input.installmentsPaidByTransfer === undefined || input.installmentsPaidByTransfer === null) {
+            throw new Error('ASSUMED contracts require installmentsPaidByTransfer (W)');
+          }
+        }
+        
+        // If balloonAmount > 0, require balloonDate
+        if (input.balloonAmount) {
+          const balloonAmt = parseFloat(input.balloonAmount);
+          if (balloonAmt > 0 && !input.balloonDate) {
+            throw new Error('Contracts with balloon amount > 0 require balloonDate');
+          }
         }
         
         const contractData = {
@@ -141,6 +163,7 @@ export const appRouter = router({
         downPayment: z.string().optional(),
         installmentAmount: z.string().optional(),
         installmentCount: z.number().optional(),
+        installmentsPaidByTransfer: z.number().optional(),
         balloonAmount: z.string().optional(),
         balloonDate: z.string().optional(),
         status: z.enum(["Active", "PaidOff", "Default", "Repossessed"]).optional(),
@@ -156,6 +179,41 @@ export const appRouter = router({
         const oldContract = await db.getContractById(id);
         if (!oldContract) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
+        }
+        
+        // P0.2 Validations (merge with existing contract data)
+        const mergedContract = { ...oldContract, ...input };
+        
+        // CFD requires installmentAmount and installmentCount
+        if (mergedContract.saleType === 'CFD') {
+          if (!mergedContract.installmentAmount || !mergedContract.installmentCount) {
+            throw new Error('CFD contracts require installmentAmount and installmentCount');
+          }
+        }
+        
+        // CASH requires closeDate
+        if (mergedContract.saleType === 'CASH' && !mergedContract.closeDate) {
+          throw new Error('CASH contracts require closeDate');
+        }
+        
+        // ASSUMED requires transferDate and installmentsPaidByTransfer (W)
+        if (mergedContract.originType === 'ASSUMED') {
+          if (!mergedContract.transferDate) {
+            throw new Error('ASSUMED contracts require transferDate');
+          }
+          if (mergedContract.installmentsPaidByTransfer === undefined || mergedContract.installmentsPaidByTransfer === null) {
+            throw new Error('ASSUMED contracts require installmentsPaidByTransfer (W)');
+          }
+        }
+        
+        // If balloonAmount > 0, require balloonDate
+        if (mergedContract.balloonAmount) {
+          const balloonAmt = typeof mergedContract.balloonAmount === 'string' 
+            ? parseFloat(mergedContract.balloonAmount) 
+            : mergedContract.balloonAmount;
+          if (balloonAmt > 0 && !mergedContract.balloonDate) {
+            throw new Error('Contracts with balloon amount > 0 require balloonDate');
+          }
         }
 
         const updates: any = { ...rest };
@@ -886,6 +944,176 @@ export const appRouter = router({
           currentYear,
         };
       }),
+
+    getProfitByYear: protectedProcedure
+      .input(z.object({
+        reportingMode: z.enum(["TAX", "BOOK"]).default("TAX"),
+        status: z.union([z.enum(["Active", "PaidOff", "Default", "Repossessed"]), z.literal("all")]).optional(),
+        originType: z.union([z.enum(["DIRECT", "ASSUMED"]), z.literal("all")]).optional(),
+        county: z.string().optional(),
+        propertyId: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        let contracts = await db.getAllContracts();
+        const allPayments = await db.getAllPayments();
+        const { parseDecimal, computeEffectiveDownPayment } = await import('../shared/utils');
+
+        // Apply filters
+        if (input.status && input.status !== "all") {
+          contracts = contracts.filter(c => c.status === input.status);
+        }
+        if (input.originType && input.originType !== "all") {
+          contracts = contracts.filter(c => c.originType === input.originType);
+        }
+        if (input.county) {
+          contracts = contracts.filter(c => c.county === input.county);
+        }
+        if (input.propertyId) {
+          contracts = contracts.filter(c => c.propertyId === input.propertyId);
+        }
+
+        // Get all unique years from contracts and payments
+        const years = new Set<number>();
+        contracts.forEach(c => {
+          if (c.contractDate) years.add(new Date(c.contractDate).getFullYear());
+          if (c.closeDate) years.add(new Date(c.closeDate).getFullYear());
+        });
+        allPayments.forEach(p => {
+          years.add(new Date(p.paymentDate).getFullYear());
+        });
+
+        const yearArray = Array.from(years).sort();
+        const results = [];
+
+        for (const year of yearArray) {
+          const yearPayments = allPayments.filter(p => {
+            const paymentYear = new Date(p.paymentDate).getFullYear();
+            return paymentYear === year;
+          });
+
+          // Filter year payments by contract IDs in filtered contracts
+          const contractIds = new Set(contracts.map(c => c.id));
+          let filteredYearPayments = yearPayments.filter(p => contractIds.has(p.contractId));
+
+          // ASSUMED: filter payments by transferDate
+          const assumedContracts = new Map(contracts.filter(c => c.originType === 'ASSUMED' && c.transferDate).map(c => [c.id, c.transferDate!]));
+          filteredYearPayments = filteredYearPayments.filter(p => {
+            const transferDate = assumedContracts.get(p.contractId);
+            if (transferDate) {
+              return new Date(p.paymentDate) >= new Date(transferDate);
+            }
+            return true;
+          });
+
+          let principalReceived = filteredYearPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.principalAmount);
+          }, 0);
+
+          // Add effective DP for contracts created in this year
+          for (const contract of contracts) {
+            const contractYear = new Date(contract.contractDate).getFullYear();
+            if (contractYear === year) {
+              // ASSUMED: DP only counts if contractDate >= transferDate
+              let skipDP = false;
+              if (contract.originType === 'ASSUMED' && contract.transferDate) {
+                const contractDate = new Date(contract.contractDate);
+                const transferDate = new Date(contract.transferDate);
+                if (contractDate < transferDate) {
+                  skipDP = true;
+                }
+              }
+
+              if (!skipDP) {
+                let contractPayments = allPayments.filter(p => p.contractId === contract.id);
+                if (contract.originType === 'ASSUMED' && contract.transferDate) {
+                  contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+                }
+                const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, contractPayments);
+                if (effectiveDP > 0 && !dpPaymentId) {
+                  principalReceived += effectiveDP;
+                }
+              }
+            }
+          }
+
+          const lateFees = filteredYearPayments.reduce((sum, p) => {
+            return sum + parseDecimal(p.lateFeeAmount);
+          }, 0);
+
+          let gainRecognized = 0;
+
+          if (input.reportingMode === "TAX") {
+            // TAX mode: installment method
+            for (const contract of contracts) {
+              let contractYearPayments = filteredYearPayments.filter(p => p.contractId === contract.id);
+
+              if (contract.originType === 'ASSUMED' && contract.transferDate) {
+                contractYearPayments = contractYearPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+              }
+
+              let contractPrincipalYTD = contractYearPayments.reduce((sum, p) => {
+                return sum + parseDecimal(p.principalAmount);
+              }, 0);
+
+              // Add effective DP if contract was created in this year
+              const contractYear = new Date(contract.contractDate).getFullYear();
+              if (contractYear === year) {
+                let skipDP = false;
+                if (contract.originType === 'ASSUMED' && contract.transferDate) {
+                  const contractDate = new Date(contract.contractDate);
+                  const transferDate = new Date(contract.transferDate);
+                  if (contractDate < transferDate) {
+                    skipDP = true;
+                  }
+                }
+
+                if (!skipDP) {
+                  let contractPayments = allPayments.filter(p => p.contractId === contract.id);
+                  if (contract.originType === 'ASSUMED' && contract.transferDate) {
+                    contractPayments = contractPayments.filter(p => new Date(p.paymentDate) >= new Date(contract.transferDate!));
+                  }
+                  const { effectiveDP, dpPaymentId } = computeEffectiveDownPayment(contract, contractPayments);
+                  if (effectiveDP > 0 && !dpPaymentId) {
+                    contractPrincipalYTD += effectiveDP;
+                  }
+                }
+              }
+
+              // CASH: 100% gain in closeDate year
+              if (contract.saleType === 'CASH' && contract.closeDate) {
+                const closeYear = new Date(contract.closeDate).getFullYear();
+                if (closeYear === year) {
+                  gainRecognized += parseDecimal(contract.contractPrice) - parseDecimal(contract.costBasis);
+                }
+              } else {
+                // CFD: installment method
+                const grossProfitPercent = db.calculateGrossProfitPercent(contract.contractPrice, contract.costBasis);
+                gainRecognized += contractPrincipalYTD * (grossProfitPercent / 100);
+              }
+            }
+          } else {
+            // BOOK mode: Contract revenue opened in year
+            for (const contract of contracts) {
+              const contractYear = new Date(contract.contractDate).getFullYear();
+              if (contractYear === year) {
+                gainRecognized += parseDecimal(contract.contractPrice) - parseDecimal(contract.costBasis);
+              }
+            }
+          }
+
+          const totalProfit = gainRecognized + lateFees;
+
+          results.push({
+            year,
+            gainRecognized,
+            lateFees,
+            totalProfit,
+            principalReceived,
+          });
+        }
+
+        return results;
+      }),
   }),
 
   taxSchedule: router({
@@ -1213,6 +1441,127 @@ export const appRouter = router({
       }),
   }),
 
+  exceptions: router({    list: protectedProcedure.query(async () => {
+      const contracts = await db.getAllContracts();
+      const payments = await db.getAllPayments();
+      
+      // Missing required fields
+      const missingRequiredFields = contracts.filter(c => 
+        !c.contractPrice || !c.costBasis || !c.contractDate || !c.originType || !c.saleType
+      );
+      
+      // CFD missing installment data
+      const cfdMissingInstallment = contracts.filter(c => 
+        c.saleType === 'CFD' && (!c.installmentAmount || !c.installmentCount)
+      );
+      
+      // ASSUMED missing transferDate or W
+      const assumedMissingData = contracts.filter(c => 
+        c.originType === 'ASSUMED' && (!c.transferDate || c.installmentsPaidByTransfer === undefined || c.installmentsPaidByTransfer === null)
+      );
+      
+      // Balloon amount > 0 but missing balloonDate
+      const balloonMissingDate = contracts.filter(c => {
+        if (!c.balloonAmount) return false;
+        const amt = typeof c.balloonAmount === 'string' ? parseFloat(c.balloonAmount) : c.balloonAmount;
+        return amt > 0 && !c.balloonDate;
+      });
+      
+      // Payments before contractDate
+      const paymentsBeforeContract = [];
+      for (const payment of payments) {
+        const contract = contracts.find(c => c.id === payment.contractId);
+        if (contract && contract.contractDate) {
+          const paymentDate = new Date(payment.paymentDate);
+          const contractDate = new Date(contract.contractDate);
+          if (paymentDate < contractDate) {
+            paymentsBeforeContract.push({
+              ...payment,
+              propertyId: contract.propertyId,
+              contractDate: contract.contractDate,
+            });
+          }
+        }
+      }
+      
+      // ASSUMED payments before transferDate
+      const assumedPaymentsBeforeTransfer = [];
+      for (const payment of payments) {
+        const contract = contracts.find(c => c.id === payment.contractId);
+        if (contract && contract.originType === 'ASSUMED' && contract.transferDate) {
+          const paymentDate = new Date(payment.paymentDate);
+          const transferDate = new Date(contract.transferDate);
+          if (paymentDate < transferDate) {
+            assumedPaymentsBeforeTransfer.push({
+              ...payment,
+              propertyId: contract.propertyId,
+              transferDate: contract.transferDate,
+            });
+          }
+        }
+      }
+      
+      return {
+        missingRequiredFields: {
+          count: missingRequiredFields.length,
+          items: missingRequiredFields.map(c => ({
+            id: c.id,
+            propertyId: c.propertyId,
+            buyerName: c.buyerName,
+            missingFields: [
+              !c.contractPrice && 'contractPrice',
+              !c.costBasis && 'costBasis',
+              !c.contractDate && 'contractDate',
+              !c.originType && 'originType',
+              !c.saleType && 'saleType',
+            ].filter(Boolean),
+          })),
+        },
+        cfdMissingInstallment: {
+          count: cfdMissingInstallment.length,
+          items: cfdMissingInstallment.map(c => ({
+            id: c.id,
+            propertyId: c.propertyId,
+            buyerName: c.buyerName,
+            missingFields: [
+              !c.installmentAmount && 'installmentAmount',
+              !c.installmentCount && 'installmentCount',
+            ].filter(Boolean),
+          })),
+        },
+        assumedMissingData: {
+          count: assumedMissingData.length,
+          items: assumedMissingData.map(c => ({
+            id: c.id,
+            propertyId: c.propertyId,
+            buyerName: c.buyerName,
+            missingFields: [
+              !c.transferDate && 'transferDate',
+              (c.installmentsPaidByTransfer === undefined || c.installmentsPaidByTransfer === null) && 'installmentsPaidByTransfer (W)',
+            ].filter(Boolean),
+          })),
+        },
+        balloonMissingDate: {
+          count: balloonMissingDate.length,
+          items: balloonMissingDate.map(c => ({
+            id: c.id,
+            propertyId: c.propertyId,
+            buyerName: c.buyerName,
+            balloonAmount: c.balloonAmount,
+          })),
+        },
+        paymentsBeforeContract: {
+          count: paymentsBeforeContract.length,
+          items: paymentsBeforeContract,
+        },
+        assumedPaymentsBeforeTransfer: {
+          count: assumedPaymentsBeforeTransfer.length,
+          items: assumedPaymentsBeforeTransfer,
+        },
+      };
+    }),
+  }),
+
   backup: router({
     downloadAll: protectedProcedure.query(async () => {
       const contracts = await db.getAllContracts();
@@ -1335,13 +1684,7 @@ export const appRouter = router({
       }),
   }),
 
-  // V2.3: Exceptions Validation
-  exceptions: router({
-    listAll: protectedProcedure.query(async () => {
-      const { validateAllContracts } = await import("./exceptions");
-      return await validateAllContracts();
-    }),
-  }),
+  // V2.3: Exceptions Validation (removed - replaced by new exceptions router above)
 
   // V3.10: Contracts Subledger (Operational/Audit Export)
   contractsSubledger: router({

@@ -613,3 +613,65 @@
 - [x] client/src/pages/Dashboard.tsx: Deduplicar counties usando Set
 - [x] Remover valores vazios/undefined com filter(Boolean)
 - [x] Ordenar counties alfabeticamente
+
+## P0 + P2 Improvements
+
+### P0.1: Dashboard Profit by Year
+- [ ] Backend: Criar endpoint dashboard.getProfitByYear (TAX + BOOK modes)
+- [ ] Backend: Calcular gainRecognized, lateFees, totalProfit por ano
+- [ ] Frontend: Adicionar gráfico "Profit by Year" (3-5 anos)
+- [ ] Frontend: Adicionar cards: Total Profit, Gain Recognized, Late Fees (Selected Year)
+
+### P0.2: Contract Validations
+- [ ] Backend: Zod schema - exigir campos mínimos (contractPrice, costBasis, contractDate, originType, saleType)
+- [ ] Backend: Zod schema - CFD requer installmentAmount + installmentCount
+- [ ] Backend: Zod schema - ASSUMED requer transferDate + installmentsPaidByTransfer
+- [ ] Backend: Zod schema - balloonAmount > 0 requer balloonDate
+- [ ] Frontend: Atualizar Contracts.tsx com mensagens de validação
+- [ ] Frontend: Atualizar ContractDetail.tsx com mensagens de validação
+
+### P0.3: Exceptions Page (QC Automático)
+- [ ] Backend: Criar endpoint exceptions.list
+- [ ] Backend: Detectar missing required fields
+- [ ] Backend: Detectar CFD missing installment data
+- [ ] Backend: Detectar ASSUMED missing transferDate/W
+- [ ] Backend: Detectar balloon missing date
+- [ ] Backend: Detectar payments antes de contractDate
+- [ ] Backend: Detectar ASSUMED payments antes de transferDate
+- [ ] Frontend: Criar página Exceptions.tsx
+- [ ] Frontend: Exibir cards com contagens de exceções
+- [ ] Frontend: Tabelas clicáveis com links para contracts/payments
+
+### P2.7: Centralizar Enums
+- [ ] Criar shared/enums.ts com status, originType, saleType
+- [ ] Atualizar backend para usar enums centralizados
+- [ ] Atualizar frontend para usar enums centralizados
+- [ ] Atualizar zod schemas para usar enums centralizados
+
+
+## P0 + P2 Improvements (COMPLETED)
+
+### P2.7: Centralizar Enums
+- [x] shared/enums.ts: Criar arquivo com enums centralizados (status, originType, saleType)
+- [x] Atualizar front e back para importar desses enums
+- [x] Usar zod.enum com essas listas
+
+### P0.1: Dashboard Profit por Ano
+- [x] Backend: dashboard.getProfitByYear endpoint (TAX + BOOK mode)
+- [x] Frontend: Gráfico de colunas + cards (Total Profit, Gain Recognized, Late Fees)
+- [x] Suportar filtros (status, originType, county, propertyId)
+
+### P0.2: Validações no Create/Edit Contract
+- [x] Backend: Zod schema validations (campos obrigatórios, CFD, ASSUMED, balloon)
+- [x] Backend: Adicionar campo installmentsPaidByTransfer (W) ao schema
+- [x] Frontend: Mensagens claras no form (via tRPC errors)
+
+### P0.3: Exceptions Page (QC Automático)
+- [x] Backend: exceptions.list endpoint
+- [x] Frontend: Exceptions.tsx com cards + tabelas clicáveis
+- [x] 6 categorias: Missing Required, CFD Missing, ASSUMED Missing, Balloon Missing, Payments Before Contract, ASSUMED Payments Before Transfer
+
+### Testing
+- [x] Rodar build/typecheck (0 erros)
+- [x] Rodar testes (30/30 passando)
+- [x] Criar checkpoint final

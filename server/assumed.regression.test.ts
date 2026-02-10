@@ -56,6 +56,7 @@ describe("ASSUMED Contract Regression Test", () => {
       transferDate: "2024-06-01", // Transfer date
       contractPrice: "15000", // Original contract price
       costBasis: "8000",
+      installmentsPaidByTransfer: 5, // W = 5 installments paid before transfer
       downPayment: "2000", // User provides $2,000 but should be FORCED to 0
       installmentAmount: "500",
       installmentCount: 20,
@@ -191,6 +192,7 @@ describe("ASSUMED Contract Regression Test", () => {
         transferDate: "2024-03-01",
         contractPrice: "20000",
         costBasis: "12000",
+        installmentsPaidByTransfer: 0, // W = 0 (no payments before transfer)
         downPayment: "3000", // Preserved as entered
         installmentAmount: "600",
         installmentCount: 30,
