@@ -892,3 +892,4 @@
 - [x] Replace Property ID text input with dropdown select in Installments page
 - [x] Add down payment (entrada) entries to Installments page showing value, date, and payment status
 - [x] Create PDF export for installments in English for client statements
+- [x] Fix PDF layout issues: overlapping text in Payment Summary box and improve spacing

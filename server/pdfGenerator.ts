@@ -166,7 +166,7 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
     yPos += 25;
 
     // Payment Summary Box with background
-    doc.rect(50, yPos, 512, 90)
+    doc.rect(50, yPos, 512, 120)
        .fillAndStroke(lightGray, primaryColor)
        .lineWidth(1);
 
@@ -179,7 +179,7 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
 
     yPos += 25;
 
-    // Summary grid
+    // Summary grid - first row
     const col1 = 60;
     const col2 = 200;
     const col3 = 340;
@@ -208,6 +208,7 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
 
     yPos += 30;
 
+    // Summary grid - second row (financial totals)
     doc.fontSize(9)
        .fillColor(grayColor)
        .font('Helvetica-Bold')
@@ -223,7 +224,7 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
        .fillColor('#EF4444')
        .text(`$${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col3, yPos);
 
-    yPos += 35;
+    yPos += 25;
 
     // Installment Details Table
     doc.fontSize(12)
