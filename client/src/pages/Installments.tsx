@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,22 @@ export default function Installments() {
     propertyId: normalizedPropertyFilter,
     status: statusFilter || undefined,
   });
+
+  // Calculate KPIs from filtered installments
+  const kpis = useMemo(() => {
+    const totalCount = installments.length;
+    const balloonCount = installments.filter(i => i.type === 'BALLOON').length;
+    const paidCount = installments.filter(i => i.status === 'PAID').length;
+    const pendingCount = installments.filter(i => i.status === 'PENDING' || i.status === 'OVERDUE').length;
+    const totalPaid = installments
+      .filter(i => i.status === 'PAID')
+      .reduce((sum, i) => sum + parseFloat(i.paidAmount || i.amount), 0);
+    const totalReceivable = installments
+      .filter(i => i.status === 'PENDING' || i.status === 'OVERDUE')
+      .reduce((sum, i) => sum + parseFloat(i.amount), 0);
+    
+    return { totalCount, balloonCount, paidCount, pendingCount, totalPaid, totalReceivable };
+  }, [installments]);
 
   const markAsPaidMutation = trpc.installments.markAsPaid.useMutation({
     onSuccess: () => {
@@ -117,6 +133,46 @@ export default function Installments() {
       <div>
         <h1 className="text-3xl font-bold">Parcelas</h1>
         <p className="text-muted-foreground">Gestão de vencimentos e pagamentos mensais</p>
+      </div>
+
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Quantas Parcelas?</CardDescription>
+            <CardTitle className="text-2xl">{kpis.totalCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Quantos Balão?</CardDescription>
+            <CardTitle className="text-2xl">{kpis.balloonCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Quantas Pagas?</CardDescription>
+            <CardTitle className="text-2xl text-green-600">{kpis.paidCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Quantas em Aberto?</CardDescription>
+            <CardTitle className="text-2xl text-orange-600">{kpis.pendingCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Valor Já Pago?</CardDescription>
+            <CardTitle className="text-2xl text-green-600">${kpis.totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Valor Ainda a Receber?</CardDescription>
+            <CardTitle className="text-2xl text-blue-600">${kpis.totalReceivable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</CardTitle>
+          </CardHeader>
+        </Card>
       </div>
 
       {/* Filters */}
