@@ -987,3 +987,16 @@
 - Progress bar: Green bar showing "8 of 36 paid (22%)"
 - Disclaimer: Bilingual (Portuguese + English) at bottom
 - All enhancements working in both EN and ES PDFs
+
+
+## PDF Layout Fixes
+- [x] Fix progress bar text color (change from white to dark) for visibility
+- [x] Move "Total Overdue Amount" inside Payment Summary box (not below it)
+- [x] Apply fixes to both English and Spanish PDF generators
+- [x] Test with Property #33 (has overdue) and verify layout
+
+**Verification Results (Property #33 - Feb 11, 2026):**
+- Progress bar text: Changed from white (#FFFFFF) to dark gray (#1F2937) - now clearly visible
+- Total Atrasado: Moved inside RESUMEN DE PAGOS box (was below, now third row inside)
+- Box height: Increased from 120px to 150px to accommodate all content
+- Both EN and ES PDFs working correctly

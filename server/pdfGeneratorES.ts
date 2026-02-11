@@ -187,7 +187,7 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
     yPos += 30;
 
     // Payment Summary Box
-    doc.rect(50, yPos, 512, 120)
+    doc.rect(50, yPos, 512, 150)
        .strokeColor(primaryColor)
        .lineWidth(2)
        .stroke();
@@ -240,9 +240,9 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
        .fillColor('#F59E0B')
        .text(`$${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 340, yPos);
 
-    yPos += 20;
+    yPos += 25;
 
-    // Third row - Total Overdue Amount (highlighted)
+    // Third row - Total Overdue Amount (inside box)
     doc.fontSize(9)
        .fillColor(grayColor)
        .font('Helvetica-Bold')
@@ -255,7 +255,7 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
        .font('Helvetica-Bold')
        .text(`$${totalOverdueAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 60, yPos);
 
-    yPos += 40;
+    yPos += 35;
 
     // Visual Progress Bar
     doc.fontSize(10)
@@ -282,7 +282,7 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
 
     // Progress text
     doc.fontSize(10)
-       .fillColor('#FFFFFF')
+       .fillColor('#1F2937')
        .font('Helvetica-Bold')
        .text(`${paidInstallments} de ${totalInstallments} pagadas (${progressPercent.toFixed(0)}%)`, 60, yPos + 5, {
          width: progressBarWidth,
