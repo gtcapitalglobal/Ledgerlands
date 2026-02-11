@@ -900,3 +900,4 @@
 - [x] Update email to gustavo@gtlands.com in both PDF versions
 - [x] Fix Spanish PDF export error - not generating correctly
 - [x] Fix Spanish PDF export error in production environment
+- [x] Debug Spanish PDF export still failing in production after publishing fd3e2cc7
