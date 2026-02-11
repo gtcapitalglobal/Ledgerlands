@@ -95,26 +95,29 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
        .font('Helvetica')
        .text('Real Estate Investment & Land Development', 150, 75)
        .text('Florida, United States', 150, 90)
-       .text('gustavo@gtlands.com', 150, 105);    // Document title
+       .text('gustavo@gtlands.com', 150, 105)
+       .text('WhatsApp: +1 (786) 303-9313', 150, 120);
+
+    // Document title
     doc.fontSize(16)
        .fillColor(primaryColor)
        .font('Helvetica-Bold')
-       .text('PAYMENT STATEMENT', 50, 140, { align: 'center' });
+       .text('PAYMENT STATEMENT', 50, 155, { align: 'center' });
 
     doc.fontSize(10)
        .fillColor(grayColor)
        .font('Helvetica')
-       .text(`Statement Date: ${new Date(generatedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, 50, 165, { align: 'center' });
+       .text(`Statement Date: ${new Date(generatedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, 50, 180, { align: 'center' });
 
     // Horizontal line
-    doc.moveTo(50, 190)
-       .lineTo(562, 190)
+    doc.moveTo(50, 205)
+       .lineTo(562, 205)
        .strokeColor(accentColor)
        .lineWidth(2)
        .stroke();
 
     // Contract Information Box
-    let yPos = 210;
+    let yPos = 225;
     
     doc.fontSize(12)
        .fillColor(primaryColor)
@@ -253,7 +256,41 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
        .font('Helvetica-Bold')
        .text(`$${totalOverdueAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col1, yPos);
 
-    yPos += 25;
+    yPos += 30;
+
+    // Visual Progress Bar
+    doc.fontSize(10)
+       .fillColor(grayColor)
+       .font('Helvetica-Bold')
+       .text('Payment Progress', col1, yPos);
+
+    yPos += 18;
+
+    const progressBarWidth = 500;
+    const progressBarHeight = 20;
+    const progressPercent = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
+    const filledWidth = (progressBarWidth * progressPercent) / 100;
+
+    // Background (gray)
+    doc.rect(col1, yPos, progressBarWidth, progressBarHeight)
+       .fillAndStroke(lightGray, '#D1D5DB');
+
+    // Filled portion (green)
+    if (filledWidth > 0) {
+      doc.rect(col1, yPos, filledWidth, progressBarHeight)
+         .fillAndStroke('#10B981', '#10B981');
+    }
+
+    // Progress text
+    doc.fontSize(10)
+       .fillColor('#FFFFFF')
+       .font('Helvetica-Bold')
+       .text(`${paidInstallments} of ${totalInstallments} paid (${progressPercent.toFixed(0)}%)`, col1, yPos + 5, {
+         width: progressBarWidth,
+         align: 'center'
+       });
+
+    yPos += 35;
 
     // Installment Details Table
     doc.fontSize(12)
@@ -359,8 +396,9 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
     doc.fontSize(8)
        .fillColor(grayColor)
        .font('Helvetica-Oblique')
-       .text('This statement is provided for informational purposes. Please retain for your records.', 50, yPos, { align: 'center' })
-       .text('For questions regarding this statement, please contact GT Real Assets LLC.', 50, yPos + 12, { align: 'center' });
+       .text('Este extrato é apenas informativo, não substitui o contrato original.', 50, yPos, { align: 'center' })
+       .text('This statement is provided for informational purposes only and does not replace the original contract.', 50, yPos + 12, { align: 'center' })
+       .text('For questions regarding this statement, please contact GT Real Assets LLC.', 50, yPos + 24, { align: 'center' });
 
     yPos += 35;
 

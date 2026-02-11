@@ -971,3 +971,19 @@
 - Total Overdue Amount: $277.00 displayed in red below Balance Due
 - Days Late column shows "17d" in red for overdue installment #9
 - Both English and Spanish PDFs working correctly
+
+
+## PDF Client Statement Enhancements
+- [x] Update English PDF generator (pdfGenerator.ts):
+  - [x] Add visual progress bar showing % paid vs pending
+  - [x] Add WhatsApp contact: +1 (786) 303-9313
+  - [x] Add disclaimer at bottom: "Este extrato é apenas informativo, não substitui o contrato original"
+- [x] Update Spanish PDF generator (pdfGeneratorES.ts) with same enhancements
+- [x] Test PDF generation with Property #45
+- [x] Verify all new elements display correctly in both languages
+
+**Verification Results (Property #45 - Feb 11, 2026):**
+- WhatsApp contact: +1 (786) 303-9313 displayed in header
+- Progress bar: Green bar showing "8 of 36 paid (22%)"
+- Disclaimer: Bilingual (Portuguese + English) at bottom
+- All enhancements working in both EN and ES PDFs

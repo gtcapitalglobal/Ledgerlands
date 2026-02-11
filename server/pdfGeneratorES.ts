@@ -100,9 +100,10 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
        .font('Helvetica')
        .text('Inversión Inmobiliaria y Desarrollo de Terrenos', 150, yPos)
        .text('Florida, Estados Unidos', 150, yPos + 15)
-       .text('gustavo@gtlands.com', 150, yPos + 30);
+       .text('gustavo@gtlands.com', 150, yPos + 30)
+       .text('WhatsApp: +1 (786) 303-9313', 150, yPos + 45);
 
-    yPos += 80;
+    yPos += 95;
 
     // Title
     doc.fontSize(18)
@@ -254,6 +255,40 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
        .font('Helvetica-Bold')
        .text(`$${totalOverdueAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 60, yPos);
 
+    yPos += 40;
+
+    // Visual Progress Bar
+    doc.fontSize(10)
+       .fillColor(grayColor)
+       .font('Helvetica-Bold')
+       .text('Progreso de Pagos', 60, yPos);
+
+    yPos += 18;
+
+    const progressBarWidth = 500;
+    const progressBarHeight = 20;
+    const progressPercent = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
+    const filledWidth = (progressBarWidth * progressPercent) / 100;
+
+    // Background (gray)
+    doc.rect(60, yPos, progressBarWidth, progressBarHeight)
+       .fillAndStroke(lightGray, '#D1D5DB');
+
+    // Filled portion (green)
+    if (filledWidth > 0) {
+      doc.rect(60, yPos, filledWidth, progressBarHeight)
+         .fillAndStroke('#10B981', '#10B981');
+    }
+
+    // Progress text
+    doc.fontSize(10)
+       .fillColor('#FFFFFF')
+       .font('Helvetica-Bold')
+       .text(`${paidInstallments} de ${totalInstallments} pagadas (${progressPercent.toFixed(0)}%)`, 60, yPos + 5, {
+         width: progressBarWidth,
+         align: 'center'
+       });
+
     yPos += 35;
 
     // Installment Details Table
@@ -363,8 +398,9 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
     doc.fontSize(8)
        .fillColor(grayColor)
        .font('Helvetica-Oblique')
-       .text('Este estado de cuenta se proporciona con fines informativos. Por favor, consérvelo para sus registros.', 50, yPos, { align: 'center' })
-       .text('Para preguntas sobre este estado de cuenta, comuníquese con GT Real Assets LLC.', 50, yPos + 12, { align: 'center' });
+       .text('Este extrato é apenas informativo, não substitui o contrato original.', 50, yPos, { align: 'center' })
+       .text('This statement is provided for informational purposes only and does not replace the original contract.', 50, yPos + 12, { align: 'center' })
+       .text('Para preguntas sobre este estado de cuenta, comuníquese con GT Real Assets LLC.', 50, yPos + 24, { align: 'center' });
 
     yPos += 35;
 
