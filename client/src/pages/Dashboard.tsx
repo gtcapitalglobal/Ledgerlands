@@ -92,6 +92,9 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-2">
               Visão geral dos contratos de financiamento imobiliário e performance fiscal
             </p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              v93996e7f
+            </p>
           </div>
           <div className="flex gap-2">
             <PreDeedTieOutButton />

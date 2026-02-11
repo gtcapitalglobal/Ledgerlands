@@ -901,3 +901,5 @@
 - [x] Fix Spanish PDF export error - not generating correctly
 - [x] Fix Spanish PDF export error in production environment
 - [x] Debug Spanish PDF export still failing in production after publishing fd3e2cc7
+- [x] Fix logo path in pdfGeneratorES.ts to work in production environment
+- [x] Add version number display to Dashboard home screen

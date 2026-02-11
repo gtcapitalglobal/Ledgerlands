@@ -66,8 +66,11 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
     let yPos = 50;
 
     // Logo and Header
-    const logoPath = '/home/ubuntu/land-contract-dashboard/client/public/gt-lands-logo.png';
-    doc.image(logoPath, 50, yPos, { width: 80 });
+    try {
+      doc.image('/home/ubuntu/land-contract-dashboard/client/public/gt-lands-logo.png', 50, yPos, { width: 80 });
+    } catch (e) {
+      // Logo not found, skip
+    }
 
     doc.fontSize(20)
        .fillColor(primaryColor)
