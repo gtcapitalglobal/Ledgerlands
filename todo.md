@@ -1027,3 +1027,18 @@
 - Only "Custom Amount" field visible with $288.00 pre-filled
 - Client has only ONE payment option: the custom amount specified in URL
 - No risk of client paying wrong amount
+
+
+## Processing Fee Transparency System
+- [x] Add `processingFeePercentage` field to system configuration (default: 4.0)
+- [x] Update payment link dialog in ContractDetail:
+  - [x] Add checkbox "Add late fee" with manual input field
+  - [x] Add checkbox "Add processing fee (4%)" with automatic calculation
+  - [x] Show breakdown: Subtotal → Processing Fee → Total
+  - [x] Include lateFee and processingFee in URL parameters
+- [x] Update PaymentPortal to show transparent breakdown:
+  - [x] Display "Monthly Payment: $X.XX"
+  - [x] Display "Late Fee: $Y.YY" (if applicable)
+  - [x] Display "Processing Fee (4%): $Z.ZZ" (if applicable)
+  - [x] Display "Total Amount: $W.WW" with divider line
+- [x] Test complete flow with both fees enabled

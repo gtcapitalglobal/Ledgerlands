@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS systemConfig (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  `key` VARCHAR(100) NOT NULL UNIQUE,\n  value TEXT NOT NULL,\n  description TEXT,\n  updatedBy VARCHAR(255),\n  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);\n\nINSERT INTO systemConfig (`key`, value, description) VALUES\n('processingFeePercentage', '4.0', 'Processing fee percentage for payment links (e.g., 4.0 for 4%)')\nON DUPLICATE KEY UPDATE value=value;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute CREATE TABLE IF NOT EXISTS systemConfig (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  `key` VARCHAR(100) NOT NULL UNIQUE,\n  value TEXT NOT NULL,\n  description TEXT,\n  updatedBy VARCHAR(255),\n  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);\n\nINSERT INTO systemConfig (`key`, value, description) VALUES\n('processingFeePercentage', '4.0', 'Processing fee percentage for payment links (e.g., 4.0 for 4%)')\nON DUPLICATE KEY UPDATE value=value;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 292
+}

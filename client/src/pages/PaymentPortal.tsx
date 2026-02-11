@@ -26,9 +26,11 @@ export default function PaymentPortal() {
   const [, params] = useRoute('/pay/:contractId');
   const contractId = params?.contractId ? parseInt(params.contractId) : null;
   
-  // Get amount from URL query parameter
+  // Get amount and fees from URL query parameters
   const urlParams = new URLSearchParams(window.location.search);
   const amountFromUrl = urlParams.get('amount');
+  const lateFeeFromUrl = urlParams.get('lateFee');
+  const processingFeeFromUrl = urlParams.get('processingFee') === 'true';
   
   const { data: contract, isLoading } = trpc.contracts.getById.useQuery(
     { id: contractId! },
@@ -185,6 +187,48 @@ export default function PaymentPortal() {
                 </div>
               )}
             </div>
+
+            {/* Fee Breakdown (when fees are present) */}
+            {(lateFeeFromUrl || processingFeeFromUrl) && (
+              <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm">Monthly Payment</span>
+                  <span className="font-medium">${installmentAmount.toFixed(2)}</span>
+                </div>
+                {lateFeeFromUrl && (
+                  <div className="flex justify-between text-orange-600">
+                    <span className="text-sm">Late Fee</span>
+                    <span className="font-medium">${(parseInt(lateFeeFromUrl) / 100).toFixed(2)}</span>
+                  </div>
+                )}
+                {processingFeeFromUrl && (() => {
+                  const base = installmentAmount;
+                  const late = lateFeeFromUrl ? parseInt(lateFeeFromUrl) / 100 : 0;
+                  const subtotal = base + late;
+                  const fee = subtotal * 0.04;
+                  return (
+                    <div className="flex justify-between text-primary">
+                      <span className="text-sm">Processing Fee (4%)</span>
+                      <span className="font-medium">${fee.toFixed(2)}</span>
+                    </div>
+                  );
+                })()}
+                <div className="border-t border-primary/20 pt-2 mt-2">
+                  <div className="flex justify-between text-lg font-semibold">
+                    <span>Total Amount</span>
+                    <span>
+                      ${(() => {
+                        const base = installmentAmount;
+                        const late = lateFeeFromUrl ? parseInt(lateFeeFromUrl) / 100 : 0;
+                        const subtotal = base + late;
+                        const fee = processingFeeFromUrl ? subtotal * 0.04 : 0;
+                        return (subtotal + fee).toFixed(2);
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Email Input */}
             <div className="space-y-2">

@@ -74,6 +74,9 @@ export default function ContractDetail() {
   const [uploadDocType, setUploadDocType] = useState<string>('Other');
   const [isPaymentLinkDialogOpen, setIsPaymentLinkDialogOpen] = useState(false);
   const [paymentLinkAmount, setPaymentLinkAmount] = useState<string>('');
+  const [addLateFee, setAddLateFee] = useState(false);
+  const [lateFeeAmount, setLateFeeAmount] = useState<string>('30.00');
+  const [addProcessingFee, setAddProcessingFee] = useState(false);
 
   const { data: contractData, isLoading: contractLoading } = trpc.contracts.getById.useQuery({ 
     id: contractId
@@ -948,37 +951,125 @@ export default function ContractDetail() {
 
       {/* Payment Link Dialog */}
       <Dialog open={isPaymentLinkDialogOpen} onOpenChange={setIsPaymentLinkDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Gerar Link de Pagamento</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="paymentAmount">Valor do Pagamento</Label>
-              <Input
-                id="paymentAmount"
-                type="number"
-                step="0.01"
-                value={paymentLinkAmount}
-                onChange={(e) => setPaymentLinkAmount(e.target.value)}
-                placeholder="0.00"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Valor padrão: ${data?.contract.installmentAmount || '0.00'} (parcela mensal)
-              </p>
+            {/* Monthly Payment */}
+            <div className="bg-muted/50 p-3 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Monthly Payment</span>
+                <span className="text-lg font-semibold">${data?.contract.installmentAmount || '0.00'}</span>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsPaymentLinkDialogOpen(false)}>
+
+            {/* Late Fee Option */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="addLateFee"
+                  checked={addLateFee}
+                  onChange={(e) => setAddLateFee(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="addLateFee" className="cursor-pointer">Add late fee</Label>
+              </div>
+              {addLateFee && (
+                <div className="ml-6">
+                  <Label htmlFor="lateFeeAmount" className="text-sm">Amount</Label>
+                  <Input
+                    id="lateFeeAmount"
+                    type="number"
+                    step="0.01"
+                    value={lateFeeAmount}
+                    onChange={(e) => setLateFeeAmount(e.target.value)}
+                    placeholder="30.00"
+                    className="mt-1"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Processing Fee Option */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="addProcessingFee"
+                checked={addProcessingFee}
+                onChange={(e) => setAddProcessingFee(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="addProcessingFee" className="cursor-pointer">Add processing fee (4%)</Label>
+            </div>
+
+            {/* Breakdown */}
+            <Separator />
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium">
+                  ${(() => {
+                    const base = parseFloat(data?.contract.installmentAmount || '0');
+                    const late = addLateFee ? parseFloat(lateFeeAmount || '0') : 0;
+                    return (base + late).toFixed(2);
+                  })()}
+                </span>
+              </div>
+              {addProcessingFee && (
+                <div className="flex justify-between text-primary">
+                  <span>Processing Fee (4%)</span>
+                  <span className="font-medium">
+                    ${(() => {
+                      const base = parseFloat(data?.contract.installmentAmount || '0');
+                      const late = addLateFee ? parseFloat(lateFeeAmount || '0') : 0;
+                      const subtotal = base + late;
+                      return (subtotal * 0.04).toFixed(2);
+                    })()}
+                  </span>
+                </div>
+              )}
+              <Separator />
+              <div className="flex justify-between text-lg font-semibold">
+                <span>Total Amount</span>
+                <span>
+                  ${(() => {
+                    const base = parseFloat(data?.contract.installmentAmount || '0');
+                    const late = addLateFee ? parseFloat(lateFeeAmount || '0') : 0;
+                    const subtotal = base + late;
+                    const fee = addProcessingFee ? subtotal * 0.04 : 0;
+                    return (subtotal + fee).toFixed(2);
+                  })()}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" onClick={() => setIsPaymentLinkDialogOpen(false)} className="flex-1">
                 Cancelar
               </Button>
               <Button onClick={() => {
-                const amount = parseFloat(paymentLinkAmount) || 0;
-                const amountCents = Math.round(amount * 100);
-                const paymentLink = `${window.location.origin}/pay/${contractId}?amount=${amountCents}`;
+                const base = parseFloat(data?.contract.installmentAmount || '0');
+                const late = addLateFee ? parseFloat(lateFeeAmount || '0') : 0;
+                const subtotal = base + late;
+                const fee = addProcessingFee ? subtotal * 0.04 : 0;
+                const total = subtotal + fee;
+                const amountCents = Math.round(total * 100);
+                const lateCents = Math.round(late * 100);
+                
+                let paymentLink = `${window.location.origin}/pay/${contractId}?amount=${amountCents}`;
+                if (addLateFee) paymentLink += `&lateFee=${lateCents}`;
+                if (addProcessingFee) paymentLink += `&processingFee=true`;
+                
                 navigator.clipboard.writeText(paymentLink);
-                toast.success(`Link copiado! Valor: $${amount.toFixed(2)}`);
+                toast.success(`Link copiado! Valor total: $${total.toFixed(2)}`);
                 setIsPaymentLinkDialogOpen(false);
-              }}>
+                // Reset state
+                setAddLateFee(false);
+                setAddProcessingFee(false);
+                setLateFeeAmount('30.00');
+              }} className="flex-1">
                 Copiar Link
               </Button>
             </div>

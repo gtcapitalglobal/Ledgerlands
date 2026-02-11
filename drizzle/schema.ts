@@ -174,3 +174,19 @@ export const installments = mysqlTable("installments", {
 
 export type Installment = typeof installments.$inferSelect;
 export type InsertInstallment = typeof installments.$inferInsert;
+
+/**
+ * System Configuration table
+ * Stores global system settings
+ */
+export const systemConfig = mysqlTable("systemConfig", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(), // e.g., "processingFeePercentage"
+  value: text("value").notNull(), // JSON string for complex values
+  description: text("description"),
+  updatedBy: varchar("updatedBy", { length: 255 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SystemConfig = typeof systemConfig.$inferSelect;
+export type InsertSystemConfig = typeof systemConfig.$inferInsert;
