@@ -935,3 +935,26 @@
 - [x] Update Installments page UI to show "Marcar como Pendente" button for PAID installments
 - [x] Add confirmation dialog before reverting
 - [x] Test revert functionality and verify KPI updates correctly
+
+
+## Bug: Revert Installment Not Saving
+- [x] Check server logs for errors when clicking "Marcar como Pendente"
+- [x] Check browser console for JavaScript errors
+- [x] Debug revertInstallmentToPending procedure in db.ts
+- [x] Verify tRPC procedure installments.revertToPending is being called
+- [x] Test fix and confirm changes persist in database
+
+**Resolution**: Functionality is working correctly. Paid count changed from 50→48, Pending from 271→273. Reverted installments correctly show as OVERDUE when past due date.
+
+## Add Overdue Installments Tracking
+- [x] Add "Parcelas Atrasadas" menu item in DashboardLayout sidebar
+- [x] Create OverdueInstallments page to display all overdue installments
+- [x] Route /overdue-installments in App.tsx
+- [x] Test overdue installments page displays correctly
+
+**Features Implemented:**
+- Dedicated page showing only OVERDUE installments
+- KPIs: Total Atrasadas (2), Valor Total em Atraso ($513.00), Propriedades Afetadas (2)
+- Grouped by property with days overdue badge
+- Quick action "Marcar como Pago" button for each installment
+- Property filter dropdown

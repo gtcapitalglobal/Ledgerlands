@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, FileText, DollarSign, Calendar, BookOpen, Settings, AlertTriangle, TrendingUp, Trophy, CalendarClock } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, FileText, DollarSign, Calendar, BookOpen, Settings, AlertTriangle, TrendingUp, Trophy, CalendarClock, AlertCircle } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -32,6 +32,7 @@ const menuItems = [
   { icon: FileText, label: "Contratos", path: "/contracts" },
   { icon: DollarSign, label: "Pagamentos", path: "/payments" },
   { icon: CalendarClock, label: "Parcelas", path: "/installments" },
+  { icon: AlertCircle, label: "Parcelas Atrasadas", path: "/overdue-installments" },
   { icon: Calendar, label: "Tax Schedule", path: "/tax-schedule" },
   { icon: FileText, label: "Contracts Subledger", path: "/contracts-subledger" },
   { icon: TrendingUp, label: "Cash Flow Projection", path: "/cash-flow" },
