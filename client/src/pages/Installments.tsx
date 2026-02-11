@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, AlertCircle, DollarSign, FileDown } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, DollarSign, FileDown, ArrowLeft } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 
 
@@ -43,18 +43,30 @@ export default function Installments() {
 
   // Calculate KPIs from filtered installments
   const kpis = useMemo(() => {
-    const totalCount = installments.length;
-    const balloonCount = installments.filter(i => i.type === 'BALLOON').length;
-    const paidCount = installments.filter(i => i.status === 'PAID').length;
-    const pendingCount = installments.filter(i => i.status === 'PENDING' || i.status === 'OVERDUE').length;
+    // Total Installments = only REGULAR installments (exclude DOWN_PAYMENT and BALLOON)
+    const regularInstallments = installments.filter(i => i.type === 'REGULAR');
+    const totalCount = regularInstallments.length;
+    
+    // Paid = only REGULAR installments with PAID status
+    const paidCount = regularInstallments.filter(i => i.status === 'PAID').length;
+    
+    // Pending = only REGULAR installments with PENDING/OVERDUE status
+    const pendingCount = regularInstallments.filter(i => i.status === 'PENDING' || i.status === 'OVERDUE').length;
+    
+    // Balloon Paid = 0 or 1 (only Property #25 has balloon)
+    const balloonPaid = installments.filter(i => i.type === 'BALLOON' && i.status === 'PAID').length;
+    
+    // Total Paid = DOWN_PAYMENT + REGULAR paid + BALLOON paid (includes everything)
     const totalPaid = installments
       .filter(i => i.status === 'PAID')
       .reduce((sum, i) => sum + parseFloat(i.paidAmount || i.amount), 0);
-    const totalReceivable = installments
+    
+    // Balance Due = sum of REGULAR pending installments only
+    const totalReceivable = regularInstallments
       .filter(i => i.status === 'PENDING' || i.status === 'OVERDUE')
       .reduce((sum, i) => sum + parseFloat(i.amount), 0);
     
-    return { totalCount, balloonCount, paidCount, pendingCount, totalPaid, totalReceivable };
+    return { totalCount, balloonPaid, paidCount, pendingCount, totalPaid, totalReceivable };
   }, [installments]);
 
   const markAsPaidMutation = trpc.installments.markAsPaid.useMutation({
@@ -195,46 +207,57 @@ export default function Installments() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Parcelas</h1>
-        <p className="text-muted-foreground">Gestão de vencimentos e pagamentos mensais</p>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => window.history.back()}
+          className="-ml-2"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Parcelas</h1>
+          <p className="text-muted-foreground">Gestão de vencimentos e pagamentos mensais</p>
+        </div>
       </div>
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Quantas Parcelas?</CardDescription>
+            <CardDescription>Total Installments</CardDescription>
             <CardTitle className="text-2xl">{kpis.totalCount}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Quantos Balão?</CardDescription>
-            <CardTitle className="text-2xl">{kpis.balloonCount}</CardTitle>
+            <CardDescription>Balloon Paid</CardDescription>
+            <CardTitle className="text-2xl text-purple-600">{kpis.balloonPaid}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Quantas Pagas?</CardDescription>
+            <CardDescription>Paid</CardDescription>
             <CardTitle className="text-2xl text-green-600">{kpis.paidCount}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Quantas em Aberto?</CardDescription>
+            <CardDescription>Pending</CardDescription>
             <CardTitle className="text-2xl text-orange-600">{kpis.pendingCount}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Valor Já Pago?</CardDescription>
+            <CardDescription>Total Paid</CardDescription>
             <CardTitle className="text-2xl text-green-600">${kpis.totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Valor Ainda a Receber?</CardDescription>
+            <CardDescription>Balance Due</CardDescription>
             <CardTitle className="text-2xl text-blue-600">${kpis.totalReceivable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</CardTitle>
           </CardHeader>
         </Card>

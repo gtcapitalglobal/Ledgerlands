@@ -21,17 +21,28 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
   const installments = await db.getInstallmentsByContractId(contractId);
   const payments = await db.getPaymentsByContractId(contractId);
 
-  // Calculate summary
-  const totalInstallments = installments.length;
-  const paidInstallments = installments.filter(i => i.status === 'PAID').length;
-  const pendingInstallments = installments.filter(i => i.status === 'PENDING' || i.status === 'OVERDUE').length;
-  const overdueInstallments = installments.filter(i => i.status === 'OVERDUE').length;
+  // Calculate summary with correct KPI logic
+  // Total Installments = only REGULAR installments (exclude DOWN_PAYMENT and BALLOON)
+  const regularInstallments = installments.filter(i => i.type === 'REGULAR');
+  const totalInstallments = regularInstallments.length;
   
+  // Paid = only REGULAR installments with PAID status
+  const paidInstallments = regularInstallments.filter(i => i.status === 'PAID').length;
+  
+  // Pending = only REGULAR installments with PENDING/OVERDUE status
+  const pendingInstallments = regularInstallments.filter(i => i.status === 'PENDING' || i.status === 'OVERDUE').length;
+  const overdueInstallments = regularInstallments.filter(i => i.status === 'OVERDUE').length;
+  
+  // Balloon Paid = 0 or 1
+  const balloonPaid = installments.filter(i => i.type === 'BALLOON' && i.status === 'PAID').length;
+  
+  // Total Paid = DOWN_PAYMENT + REGULAR paid + BALLOON paid (includes everything)
   const totalPaid = installments
     .filter(i => i.status === 'PAID')
     .reduce((sum, i) => sum + parseFloat(i.paidAmount || i.amount), 0);
   
-  const totalDue = installments
+  // Balance Due = sum of REGULAR pending installments only
+  const totalDue = regularInstallments
     .filter(i => i.status === 'PENDING' || i.status === 'OVERDUE')
     .reduce((sum, i) => sum + parseFloat(i.amount), 0);
 

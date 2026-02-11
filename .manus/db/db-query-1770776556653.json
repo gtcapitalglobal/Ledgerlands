@@ -1,0 +1,91 @@
+{
+  "query": "SELECT \n  CONCAT(p.id, ',', \n         p.contractId, ',',\n         p.propertyId, ',',\n         p.paymentDate, ',',\n         p.amountTotal, ',',\n         p.principalAmount, ',',\n         p.lateFeeAmount, ',',\n         p.receivedBy, ',',\n         p.channel, ',',\n         IFNULL(REPLACE(p.memo, ',', ';'), '')) AS csv_row\nFROM payments p\nLEFT JOIN contracts c ON p.contractId = c.id\nWHERE c.id IS NULL\nORDER BY p.propertyId, p.paymentDate;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT \n  CONCAT(p.id, ',', \n         p.contractId, ',',\n         p.propertyId, ',',\n         p.paymentDate, ',',\n         p.amountTotal, ',',\n         p.principalAmount, ',',\n         p.lateFeeAmount, ',',\n         p.receivedBy, ',',\n         p.channel, ',',\n         IFNULL(REPLACE(p.memo, ',', ';'), '')) AS csv_row\nFROM payments p\nLEFT JOIN contracts c ON p.contractId = c.id\nWHERE c.id IS NULL\nORDER BY p.propertyId, p.paymentDate;",
+  "rows": [
+    {
+      "csv_row": "210001,240002,#ASSUMED-TEST-1770675587329,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "210002,240002,#ASSUMED-TEST-1770675587329,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "210003,240002,#ASSUMED-TEST-1770675587329,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "210004,240008,#ASSUMED-TEST-1770676680969,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "210005,240008,#ASSUMED-TEST-1770676680969,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "210006,240008,#ASSUMED-TEST-1770676680969,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "240001,270011,#ASSUMED-TEST-1770687012715,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "240002,270011,#ASSUMED-TEST-1770687012715,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "240003,270011,#ASSUMED-TEST-1770687012715,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "270001,300001,#ASSUMED-TEST-1770688398824,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "270002,300001,#ASSUMED-TEST-1770688398824,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "270003,300001,#ASSUMED-TEST-1770688398824,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "300001,330001,#ASSUMED-TEST-1770691381569,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "300002,330001,#ASSUMED-TEST-1770691381569,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "300003,330001,#ASSUMED-TEST-1770691381569,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "330001,360002,#ASSUMED-TEST-1770693106285,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "330002,360002,#ASSUMED-TEST-1770693106285,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "330003,360002,#ASSUMED-TEST-1770693106285,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "360001,390001,#ASSUMED-TEST-1770734052432,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "360002,390001,#ASSUMED-TEST-1770734052432,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "360003,390001,#ASSUMED-TEST-1770734052432,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "390001,420002,#ASSUMED-TEST-1770739102465,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "390002,420002,#ASSUMED-TEST-1770739102465,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "390003,420002,#ASSUMED-TEST-1770739102465,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    },
+    {
+      "csv_row": "390004,420008,#ASSUMED-TEST-1770740038366,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored"
+    },
+    {
+      "csv_row": "390005,420008,#ASSUMED-TEST-1770740038366,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer"
+    },
+    {
+      "csv_row": "390006,420008,#ASSUMED-TEST-1770740038366,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer"
+    }
+  ],
+  "messages": [],
+  "stdout": "csv_row\n210001,240002,#ASSUMED-TEST-1770675587329,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n210002,240002,#ASSUMED-TEST-1770675587329,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n210003,240002,#ASSUMED-TEST-1770675587329,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n210004,240008,#ASSUMED-TEST-1770676680969,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n210005,240008,#ASSUMED-TEST-1770676680969,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n210006,240008,#ASSUMED-TEST-1770676680969,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n240001,270011,#ASSUMED-TEST-1770687012715,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n240002,270011,#ASSUMED-TEST-1770687012715,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n240003,270011,#ASSUMED-TEST-1770687012715,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n270001,300001,#ASSUMED-TEST-1770688398824,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n270002,300001,#ASSUMED-TEST-1770688398824,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n270003,300001,#ASSUMED-TEST-1770688398824,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n300001,330001,#ASSUMED-TEST-1770691381569,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n300002,330001,#ASSUMED-TEST-1770691381569,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n300003,330001,#ASSUMED-TEST-1770691381569,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n330001,360002,#ASSUMED-TEST-1770693106285,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n330002,360002,#ASSUMED-TEST-1770693106285,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n330003,360002,#ASSUMED-TEST-1770693106285,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n360001,390001,#ASSUMED-TEST-1770734052432,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n360002,390001,#ASSUMED-TEST-1770734052432,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n360003,390001,#ASSUMED-TEST-1770734052432,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n390001,420002,#ASSUMED-TEST-1770739102465,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n390002,420002,#ASSUMED-TEST-1770739102465,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n390003,420002,#ASSUMED-TEST-1770739102465,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n390004,420008,#ASSUMED-TEST-1770740038366,2024-05-14,500.00,500.00,0.00,GT_REAL_BANK,ACH,Payment before transfer - should be ignored\n390005,420008,#ASSUMED-TEST-1770740038366,2024-06-30,1000.00,1000.00,0.00,GT_REAL_BANK,ACH,First payment after transfer\n390006,420008,#ASSUMED-TEST-1770740038366,2024-07-31,1525.00,1500.00,25.00,GT_REAL_BANK,ACH,Second payment after transfer\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

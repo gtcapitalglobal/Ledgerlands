@@ -1,0 +1,343 @@
+{
+  "query": "SELECT \n  i.installmentNumber,\n  i.type,\n  i.dueDate,\n  i.amount,\n  i.status,\n  i.paidDate,\n  i.paidAmount\nFROM installments i\nJOIN contracts c ON i.contractId = c.id\nWHERE c.propertyId = '#45'\nORDER BY i.installmentNumber;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT \n  i.installmentNumber,\n  i.type,\n  i.dueDate,\n  i.amount,\n  i.status,\n  i.paidDate,\n  i.paidAmount\nFROM installments i\nJOIN contracts c ON i.contractId = c.id\nWHERE c.propertyId = '#45'\nORDER BY i.installmentNumber;",
+  "rows": [
+    {
+      "installmentNumber": "0",
+      "type": "DOWN_PAYMENT",
+      "dueDate": "2025-04-30",
+      "amount": "2000.00",
+      "status": "PAID",
+      "paidDate": "2025-04-30",
+      "paidAmount": "2000.00"
+    },
+    {
+      "installmentNumber": "1",
+      "type": "REGULAR",
+      "dueDate": "2025-05-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "2",
+      "type": "REGULAR",
+      "dueDate": "2025-06-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "3",
+      "type": "REGULAR",
+      "dueDate": "2025-07-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "4",
+      "type": "REGULAR",
+      "dueDate": "2025-08-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "5",
+      "type": "REGULAR",
+      "dueDate": "2025-09-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "6",
+      "type": "REGULAR",
+      "dueDate": "2025-10-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "7",
+      "type": "REGULAR",
+      "dueDate": "2025-11-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "8",
+      "type": "REGULAR",
+      "dueDate": "2025-12-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "9",
+      "type": "REGULAR",
+      "dueDate": "2026-01-25",
+      "amount": "277.00",
+      "status": "PAID",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "10",
+      "type": "REGULAR",
+      "dueDate": "2026-02-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "11",
+      "type": "REGULAR",
+      "dueDate": "2026-03-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "12",
+      "type": "REGULAR",
+      "dueDate": "2026-04-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "13",
+      "type": "REGULAR",
+      "dueDate": "2026-05-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "14",
+      "type": "REGULAR",
+      "dueDate": "2026-06-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "15",
+      "type": "REGULAR",
+      "dueDate": "2026-07-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "16",
+      "type": "REGULAR",
+      "dueDate": "2026-08-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "17",
+      "type": "REGULAR",
+      "dueDate": "2026-09-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "18",
+      "type": "REGULAR",
+      "dueDate": "2026-10-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "19",
+      "type": "REGULAR",
+      "dueDate": "2026-11-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "20",
+      "type": "REGULAR",
+      "dueDate": "2026-12-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "21",
+      "type": "REGULAR",
+      "dueDate": "2027-01-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "22",
+      "type": "REGULAR",
+      "dueDate": "2027-02-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "23",
+      "type": "REGULAR",
+      "dueDate": "2027-03-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "24",
+      "type": "REGULAR",
+      "dueDate": "2027-04-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "25",
+      "type": "REGULAR",
+      "dueDate": "2027-05-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "26",
+      "type": "REGULAR",
+      "dueDate": "2027-06-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "27",
+      "type": "REGULAR",
+      "dueDate": "2027-07-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "28",
+      "type": "REGULAR",
+      "dueDate": "2027-08-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "29",
+      "type": "REGULAR",
+      "dueDate": "2027-09-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "30",
+      "type": "REGULAR",
+      "dueDate": "2027-10-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "31",
+      "type": "REGULAR",
+      "dueDate": "2027-11-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "32",
+      "type": "REGULAR",
+      "dueDate": "2027-12-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "33",
+      "type": "REGULAR",
+      "dueDate": "2028-01-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "34",
+      "type": "REGULAR",
+      "dueDate": "2028-02-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "35",
+      "type": "REGULAR",
+      "dueDate": "2028-03-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    },
+    {
+      "installmentNumber": "36",
+      "type": "REGULAR",
+      "dueDate": "2028-04-25",
+      "amount": "277.00",
+      "status": "PENDING",
+      "paidDate": "NULL",
+      "paidAmount": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "installmentNumber\ttype\tdueDate\tamount\tstatus\tpaidDate\tpaidAmount\n0\tDOWN_PAYMENT\t2025-04-30\t2000.00\tPAID\t2025-04-30\t2000.00\n1\tREGULAR\t2025-05-25\t277.00\tPAID\tNULL\tNULL\n2\tREGULAR\t2025-06-25\t277.00\tPAID\tNULL\tNULL\n3\tREGULAR\t2025-07-25\t277.00\tPAID\tNULL\tNULL\n4\tREGULAR\t2025-08-25\t277.00\tPAID\tNULL\tNULL\n5\tREGULAR\t2025-09-25\t277.00\tPAID\tNULL\tNULL\n6\tREGULAR\t2025-10-25\t277.00\tPAID\tNULL\tNULL\n7\tREGULAR\t2025-11-25\t277.00\tPAID\tNULL\tNULL\n8\tREGULAR\t2025-12-25\t277.00\tPAID\tNULL\tNULL\n9\tREGULAR\t2026-01-25\t277.00\tPAID\tNULL\tNULL\n10\tREGULAR\t2026-02-25\t277.00\tPENDING\tNULL\tNULL\n11\tREGULAR\t2026-03-25\t277.00\tPENDING\tNULL\tNULL\n12\tREGULAR\t2026-04-25\t277.00\tPENDING\tNULL\tNULL\n13\tREGULAR\t2026-05-25\t277.00\tPENDING\tNULL\tNULL\n14\tREGULAR\t2026-06-25\t277.00\tPENDING\tNULL\tNULL\n15\tREGULAR\t2026-07-25\t277.00\tPENDING\tNULL\tNULL\n16\tREGULAR\t2026-08-25\t277.00\tPENDING\tNULL\tNULL\n17\tREGULAR\t2026-09-25\t277.00\tPENDING\tNULL\tNULL\n18\tREGULAR\t2026-10-25\t277.00\tPENDING\tNULL\tNULL\n19\tREGULAR\t2026-11-25\t277.00\tPENDING\tNULL\tNULL\n20\tREGULAR\t2026-12-25\t277.00\tPENDING\tNULL\tNULL\n21\tREGULAR\t2027-01-25\t277.00\tPENDING\tNULL\tNULL\n22\tREGULAR\t2027-02-25\t277.00\tPENDING\tNULL\tNULL\n23\tREGULAR\t2027-03-25\t277.00\tPENDING\tNULL\tNULL\n24\tREGULAR\t2027-04-25\t277.00\tPENDING\tNULL\tNULL\n25\tREGULAR\t2027-05-25\t277.00\tPENDING\tNULL\tNULL\n26\tREGULAR\t2027-06-25\t277.00\tPENDING\tNULL\tNULL\n27\tREGULAR\t2027-07-25\t277.00\tPENDING\tNULL\tNULL\n28\tREGULAR\t2027-08-25\t277.00\tPENDING\tNULL\tNULL\n29\tREGULAR\t2027-09-25\t277.00\tPENDING\tNULL\tNULL\n30\tREGULAR\t2027-10-25\t277.00\tPENDING\tNULL\tNULL\n31\tREGULAR\t2027-11-25\t277.00\tPENDING\tNULL\tNULL\n32\tREGULAR\t2027-12-25\t277.00\tPENDING\tNULL\tNULL\n33\tREGULAR\t2028-01-25\t277.00\tPENDING\tNULL\tNULL\n34\tREGULAR\t2028-02-25\t277.00\tPENDING\tNULL\tNULL\n35\tREGULAR\t2028-03-25\t277.00\tPENDING\tNULL\tNULL\n36\tREGULAR\t2028-04-25\t277.00\tPENDING\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

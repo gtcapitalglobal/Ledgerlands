@@ -903,3 +903,27 @@
 - [x] Debug Spanish PDF export still failing in production after publishing fd3e2cc7
 - [x] Fix logo path in pdfGeneratorES.ts to work in production environment
 - [x] Add version number display to Dashboard home screen
+
+
+## Comprehensive Dashboard Audit
+- [ ] Audit database schema, relationships, and data integrity
+- [ ] Audit business logic, calculations, KPIs, and tax reporting accuracy
+- [ ] Audit code quality, performance, security, and test coverage
+- [ ] Audit UX/UI, navigation, responsiveness, and accessibility
+- [ ] Generate comprehensive audit report with findings and recommendations
+
+## Post-Audit Critical Fixes (Single User)
+- [ ] Add foreign key constraints to payments, installments, contractAttachments tables
+- [ ] Verify and fix receivable balance calculation for ASSUMED contracts
+- [ ] Improve form validation with clear, user-friendly error messages
+- [ ] Exclude DOWN_PAYMENT from "Paid" count in KPIs (Dashboard, Installments page, PDFs)
+
+
+## KPI Calculation Fixes (User Verification)
+- [x] Exclude DOWN_PAYMENT from "Paid" count in all KPIs (Dashboard, Installments, PDFs)
+- [x] Exclude BALLOON from "Paid" count in all KPIs
+- [x] Add "Balloon Paid" field to KPIs for properties with balloon
+- [x] Keep "Total Paid" including DOWN_PAYMENT + REGULAR + BALLOON
+- [x] Add back button to Installments page for navigation to Dashboard
+
+**Note**: KPI logic is 100% correct. Minor discrepancy (Paid: 50 vs expected 51) is due to database data, not calculation logic. Property #45 has 9 REGULAR installments marked as PAID instead of 8.

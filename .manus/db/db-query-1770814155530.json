@@ -1,0 +1,22 @@
+{
+  "query": "SELECT \n  c.propertyId,\n  c.downPayment,\n  c.installmentAmount,\n  COUNT(i.id) AS total_installments,\n  SUM(CASE WHEN i.type = 'REGULAR' AND i.status = 'PAID' THEN 1 ELSE 0 END) AS regular_paid,\n  SUM(CASE WHEN i.type = 'BALLOON' AND i.status = 'PAID' THEN 1 ELSE 0 END) AS balloon_paid,\n  SUM(CASE WHEN i.type = 'DOWN_PAYMENT' AND i.status = 'PAID' THEN 1 ELSE 0 END) AS down_paid,\n  SUM(CASE WHEN i.type = 'REGULAR' AND (i.status = 'PENDING' OR i.status = 'OVERDUE') THEN 1 ELSE 0 END) AS regular_pending,\n  SUM(CASE WHEN i.status = 'PAID' THEN CAST(i.paidAmount AS DECIMAL(10,2)) ELSE 0 END) AS total_paid_amount,\n  SUM(CASE WHEN i.status IN ('PENDING', 'OVERDUE') THEN CAST(i.amount AS DECIMAL(10,2)) ELSE 0 END) AS balance_due\nFROM contracts c\nLEFT JOIN installments i ON c.id = i.contractId\nWHERE c.propertyId = '#45'\nGROUP BY c.propertyId, c.downPayment, c.installmentAmount;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3krvCwj2bCKp68a.921b4e0a8333 --database TnDmUootRUrjFAU3xdbYec --execute SELECT \n  c.propertyId,\n  c.downPayment,\n  c.installmentAmount,\n  COUNT(i.id) AS total_installments,\n  SUM(CASE WHEN i.type = 'REGULAR' AND i.status = 'PAID' THEN 1 ELSE 0 END) AS regular_paid,\n  SUM(CASE WHEN i.type = 'BALLOON' AND i.status = 'PAID' THEN 1 ELSE 0 END) AS balloon_paid,\n  SUM(CASE WHEN i.type = 'DOWN_PAYMENT' AND i.status = 'PAID' THEN 1 ELSE 0 END) AS down_paid,\n  SUM(CASE WHEN i.type = 'REGULAR' AND (i.status = 'PENDING' OR i.status = 'OVERDUE') THEN 1 ELSE 0 END) AS regular_pending,\n  SUM(CASE WHEN i.status = 'PAID' THEN CAST(i.paidAmount AS DECIMAL(10,2)) ELSE 0 END) AS total_paid_amount,\n  SUM(CASE WHEN i.status IN ('PENDING', 'OVERDUE') THEN CAST(i.amount AS DECIMAL(10,2)) ELSE 0 END) AS balance_due\nFROM contracts c\nLEFT JOIN installments i ON c.id = i.contractId\nWHERE c.propertyId = '#45'\nGROUP BY c.propertyId, c.downPayment, c.installmentAmount;",
+  "rows": [
+    {
+      "propertyId": "#45",
+      "downPayment": "2000.00",
+      "installmentAmount": "277.00",
+      "total_installments": "37",
+      "regular_paid": "9",
+      "balloon_paid": "0",
+      "down_paid": "1",
+      "regular_pending": "27",
+      "total_paid_amount": "2000.00",
+      "balance_due": "7479.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "propertyId\tdownPayment\tinstallmentAmount\ttotal_installments\tregular_paid\tballoon_paid\tdown_paid\tregular_pending\ttotal_paid_amount\tbalance_due\n#45\t2000.00\t277.00\t37\t9\t0\t1\t27\t2000.00\t7479.00\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}
