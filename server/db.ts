@@ -634,6 +634,57 @@ export async function markInstallmentAsPaid(
 }
 
 /**
+ * Revert a paid installment back to pending status
+ * Deletes the associated payment record
+ */
+export async function revertInstallmentToPending(installmentId: number): Promise<Installment> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+
+  // Get installment
+  const installmentResult = await db.select().from(installments)
+    .where(eq(installments.id, installmentId))
+    .limit(1);
+
+  if (installmentResult.length === 0) {
+    throw new Error(`Installment ${installmentId} not found`);
+  }
+
+  const installment = installmentResult[0];
+
+  if (installment.status !== 'PAID' && installment.status !== 'PARTIAL') {
+    throw new Error(`Installment ${installmentId} is not paid (status: ${installment.status})`);
+  }
+
+  // Delete associated payment if exists
+  if (installment.paymentId) {
+    await db.delete(payments)
+      .where(eq(payments.id, installment.paymentId));
+  }
+
+  // Check if overdue
+  const today = new Date().toISOString().split('T')[0];
+  const dueDate = typeof installment.dueDate === 'string' ? installment.dueDate : new Date(installment.dueDate).toISOString().split('T')[0];
+  const newStatus = dueDate < today ? 'OVERDUE' : 'PENDING';
+
+  // Revert installment to pending/overdue
+  await db.update(installments)
+    .set({
+      status: newStatus,
+      paidDate: null,
+      paidAmount: null,
+      paymentId: null,
+    })
+    .where(eq(installments.id, installmentId));
+
+  const updatedInstallment = await db.select().from(installments)
+    .where(eq(installments.id, installmentId))
+    .limit(1);
+
+  return updatedInstallment[0];
+}
+
+/**
  * Update overdue status for all pending installments
  * Should be called periodically or on-demand
  */

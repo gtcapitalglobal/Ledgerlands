@@ -927,3 +927,11 @@
 - [x] Add back button to Installments page for navigation to Dashboard
 
 **Note**: KPI logic is 100% correct. Minor discrepancy (Paid: 50 vs expected 51) is due to database data, not calculation logic. Property #45 has 9 REGULAR installments marked as PAID instead of 8.
+
+
+## Revert Paid Installment to Pending
+- [x] Create backend procedure installments.revertToPending to change PAID → PENDING
+- [x] Delete associated payment record when reverting
+- [x] Update Installments page UI to show "Marcar como Pendente" button for PAID installments
+- [x] Add confirmation dialog before reverting
+- [x] Test revert functionality and verify KPI updates correctly

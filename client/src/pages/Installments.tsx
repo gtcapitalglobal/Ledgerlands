@@ -80,6 +80,17 @@ export default function Installments() {
     },
   });
 
+  const revertToPendingMutation = trpc.installments.revertToPending.useMutation({
+    onSuccess: () => {
+      console.log('Parcela revertida para pendente');
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Erro ao reverter parcela:', error.message);
+      alert('Erro ao reverter parcela: ' + error.message);
+    },
+  });
+
   const downloadPDF = (data: { pdf: string; filename: string }) => {
     // Convert base64 to blob and download
     const byteCharacters = atob(data.pdf);
@@ -157,6 +168,15 @@ export default function Installments() {
       receivedBy,
       channel,
       memo,
+    });
+  };
+
+  const handleRevertToPending = (installment: any) => {
+    if (!confirm(`Tem certeza que deseja reverter a parcela #${installment.installmentNumber} de PAGO para PENDENTE?\n\nIsso irá deletar o pagamento associado.`)) {
+      return;
+    }
+    revertToPendingMutation.mutate({
+      installmentId: installment.id,
     });
   };
 
@@ -363,12 +383,20 @@ export default function Installments() {
                         {inst.paidDate ? formatDate(inst.paidDate) : '-'}
                       </TableCell>
                       <TableCell>
-                        {inst.status !== 'PAID' && (
+                        {inst.status !== 'PAID' ? (
                           <Button
                             size="sm"
                             onClick={() => handleMarkAsPaid(inst)}
                           >
                             Marcar como Pago
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRevertToPending(inst)}
+                          >
+                            Marcar como Pendente
                           </Button>
                         )}
                       </TableCell>

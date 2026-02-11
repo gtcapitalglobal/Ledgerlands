@@ -2381,6 +2381,15 @@ export const appRouter = router({
         return result;
       }),
 
+    revertToPending: protectedProcedure
+      .input(z.object({
+        installmentId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await db.revertInstallmentToPending(input.installmentId);
+        return result;
+      }),
+
     getOverdueCount: protectedProcedure.query(async () => {
       await db.updateOverdueInstallments();
       return await db.getOverdueInstallmentsCount();
