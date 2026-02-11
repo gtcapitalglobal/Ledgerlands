@@ -210,7 +210,7 @@ export default function PaymentPortal() {
 
             {/* Payment Buttons */}
             <div className="space-y-3">
-              {installmentAmount > 0 && (
+              {installmentAmount > 0 && !amountFromUrl && (
                 <Button
                   className="w-full"
                   size="lg"

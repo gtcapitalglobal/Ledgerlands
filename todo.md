@@ -1014,3 +1014,16 @@
 - Example: `/pay/210002?amount=50000` for $500.00
 - PaymentPortal reads URL parameter and pre-fills custom amount field
 - Toast confirmation: "Link copiado! Valor: $500.00"
+
+
+## Payment Portal UX Fix (Custom Amount Priority)
+- [x] Hide "Pay Monthly Amount" button when custom amount is provided in URL
+- [x] Show only "Custom Amount" field pre-filled when URL has amount parameter
+- [x] Test with custom amount link to verify client can only pay the specified amount
+
+**Verification Results (Property #45 - Feb 11, 2026):**
+- Test URL: `/pay/210005?amount=28800` (Custom Amount: $288.00)
+- "Pay Monthly Amount ($277.00)" button successfully hidden
+- Only "Custom Amount" field visible with $288.00 pre-filled
+- Client has only ONE payment option: the custom amount specified in URL
+- No risk of client paying wrong amount
