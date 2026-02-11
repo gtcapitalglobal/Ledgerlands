@@ -72,6 +72,8 @@ export default function ContractDetail() {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadDocType, setUploadDocType] = useState<string>('Other');
+  const [isPaymentLinkDialogOpen, setIsPaymentLinkDialogOpen] = useState(false);
+  const [paymentLinkAmount, setPaymentLinkAmount] = useState<string>('');
 
   const { data: contractData, isLoading: contractLoading } = trpc.contracts.getById.useQuery({ 
     id: contractId
@@ -268,9 +270,9 @@ export default function ContractDetail() {
             <Button
               variant="outline"
               onClick={() => {
-                const paymentLink = `${window.location.origin}/pay/${contract.id}`;
-                navigator.clipboard.writeText(paymentLink);
-                toast.success('Link de pagamento copiado!');
+                // Set default amount to monthly installment
+                setPaymentLinkAmount(contract.installmentAmount || '0');
+                setIsPaymentLinkDialogOpen(true);
               }}
             >
               <LinkIcon className="h-4 w-4 mr-2" />
@@ -939,6 +941,46 @@ export default function ContractDetail() {
                 setUploadDocType('Other');
               }}>Cancelar</Button>
               <Button onClick={handleFileUpload} disabled={uploadAttachment.isPending}>Upload</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Link Dialog */}
+      <Dialog open={isPaymentLinkDialogOpen} onOpenChange={setIsPaymentLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerar Link de Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="paymentAmount">Valor do Pagamento</Label>
+              <Input
+                id="paymentAmount"
+                type="number"
+                step="0.01"
+                value={paymentLinkAmount}
+                onChange={(e) => setPaymentLinkAmount(e.target.value)}
+                placeholder="0.00"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Valor padrão: ${data?.contract.installmentAmount || '0.00'} (parcela mensal)
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsPaymentLinkDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => {
+                const amount = parseFloat(paymentLinkAmount) || 0;
+                const amountCents = Math.round(amount * 100);
+                const paymentLink = `${window.location.origin}/pay/${contractId}?amount=${amountCents}`;
+                navigator.clipboard.writeText(paymentLink);
+                toast.success(`Link copiado! Valor: $${amount.toFixed(2)}`);
+                setIsPaymentLinkDialogOpen(false);
+              }}>
+                Copiar Link
+              </Button>
             </div>
           </div>
         </DialogContent>

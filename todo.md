@@ -1000,3 +1000,17 @@
 - Total Atrasado: Moved inside RESUMEN DE PAGOS box (was below, now third row inside)
 - Box height: Increased from 120px to 150px to accommodate all content
 - Both EN and ES PDFs working correctly
+
+
+## Payment Link Amount Customization
+- [x] Add editable amount field in payment link generation dialog
+- [x] Allow user to modify amount before generating Square payment link
+- [x] Test with different custom amounts
+
+**Verification Results (Contract #33 - Feb 11, 2026):**
+- Dialog opens with default amount: $195.00 (monthly installment)
+- User can edit amount before generating link (tested with $500.00)
+- Link format: `/pay/{contractId}?amount={amountCents}`
+- Example: `/pay/210002?amount=50000` for $500.00
+- PaymentPortal reads URL parameter and pre-fills custom amount field
+- Toast confirmation: "Link copiado! Valor: $500.00"

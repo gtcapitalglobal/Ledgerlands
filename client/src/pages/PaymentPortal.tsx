@@ -26,6 +26,10 @@ export default function PaymentPortal() {
   const [, params] = useRoute('/pay/:contractId');
   const contractId = params?.contractId ? parseInt(params.contractId) : null;
   
+  // Get amount from URL query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const amountFromUrl = urlParams.get('amount');
+  
   const { data: contract, isLoading } = trpc.contracts.getById.useQuery(
     { id: contractId! },
     { enabled: !!contractId }
@@ -33,6 +37,14 @@ export default function PaymentPortal() {
 
   const [email, setEmail] = useState('');
   const [customAmount, setCustomAmount] = useState('');
+  
+  // Pre-fill custom amount if provided in URL
+  useEffect(() => {
+    if (amountFromUrl) {
+      const amountDollars = (parseInt(amountFromUrl) / 100).toFixed(2);
+      setCustomAmount(amountDollars);
+    }
+  }, [amountFromUrl]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [squareLoaded, setSquareLoaded] = useState(false);
   const [card, setCard] = useState<any>(null);
