@@ -1048,3 +1048,9 @@
 - [x] Fix payment portal (/pay/[contractId]) to allow public access without login
 - [x] Remove authentication requirement from payment portal route
 - [x] Test that clients can access payment links without signing in
+
+## WhatsApp Preview Fix
+- [x] Upload GT Lands logo to S3
+- [x] Add Open Graph meta tags to payment portal page
+- [x] Configure og:image to show GT Lands logo instead of dashboard
+- [ ] Test WhatsApp link preview after publish
