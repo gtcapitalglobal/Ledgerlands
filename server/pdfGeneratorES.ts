@@ -45,6 +45,11 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
   const totalDue = regularInstallments
     .filter(i => i.status === 'PENDING' || i.status === 'OVERDUE')
     .reduce((sum, i) => sum + parseFloat(i.amount), 0);
+  
+  // Total Overdue Amount = sum of REGULAR overdue installments only
+  const totalOverdueAmount = regularInstallments
+    .filter(i => i.status === 'OVERDUE')
+    .reduce((sum, i) => sum + parseFloat(i.amount), 0);
 
   const contractPrice = parseFloat(contract.contractPrice);
   const downPayment = parseFloat(contract.downPayment);
@@ -223,16 +228,31 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
        .fillColor(grayColor)
        .font('Helvetica')
        .text('Total Pagado', 60, yPos)
-       .text('Saldo Pendiente', 300, yPos);
+       .text('Saldo Pendiente', 340, yPos);
 
     yPos += 15;
 
-    doc.fontSize(16)
+    doc.fontSize(14)
        .font('Helvetica-Bold')
        .fillColor('#10B981')
        .text(`$${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 60, yPos)
+       .fillColor('#F59E0B')
+       .text(`$${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 340, yPos);
+
+    yPos += 20;
+
+    // Third row - Total Overdue Amount (highlighted)
+    doc.fontSize(9)
+       .fillColor(grayColor)
+       .font('Helvetica-Bold')
+       .text('Total Atrasado', 60, yPos);
+
+    yPos += 15;
+
+    doc.fontSize(14)
        .fillColor('#EF4444')
-       .text(`$${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 300, yPos);
+       .font('Helvetica-Bold')
+       .text(`$${totalOverdueAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 60, yPos);
 
     yPos += 35;
 
@@ -251,12 +271,13 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
     doc.fontSize(9)
        .fillColor('#FFFFFF')
        .font('Helvetica-Bold')
-       .text('#', 60, yPos + 8, { width: 30 })
-       .text('Tipo', 100, yPos + 8, { width: 70 })
-       .text('Vencimiento', 180, yPos + 8, { width: 80 })
-       .text('Monto', 270, yPos + 8, { width: 80 })
-       .text('Estado', 360, yPos + 8, { width: 70 })
-       .text('Fecha de Pago', 440, yPos + 8, { width: 100 });
+       .text('#', 60, yPos + 8, { width: 25 })
+       .text('Tipo', 95, yPos + 8, { width: 60 })
+       .text('Vencimiento', 165, yPos + 8, { width: 70 })
+       .text('Monto', 245, yPos + 8, { width: 65 })
+       .text('Estado', 320, yPos + 8, { width: 60 })
+       .text('Días Atraso', 390, yPos + 8, { width: 55 })
+       .text('Fecha Pago', 455, yPos + 8, { width: 95 });
 
     yPos += 25;
 
@@ -303,19 +324,27 @@ export async function generateInstallmentStatementPDF_ES(options: InstallmentSta
       const statusColor = inst.status === 'PAID' ? '#10B981' : 
                          inst.status === 'OVERDUE' ? '#EF4444' : '#F59E0B';
 
+      // Calculate days overdue if status is OVERDUE
+      const daysOverdue = inst.status === 'OVERDUE' 
+        ? Math.floor((new Date().getTime() - new Date(inst.dueDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+      const daysLateText = inst.status === 'OVERDUE' ? `${daysOverdue}d` : '-';
+
       doc.fontSize(8)
          .fillColor(grayColor)
          .font('Helvetica')
-         .text(inst.installmentNumber.toString(), 60, yPos + 4, { width: 30 })
-         .text(typeLabel, 100, yPos + 4, { width: 70 })
-         .text(new Date(inst.dueDate).toLocaleDateString('es-ES'), 180, yPos + 4, { width: 80 })
-         .text(`$${parseFloat(inst.amount).toFixed(2)}`, 270, yPos + 4, { width: 80 })
+         .text(inst.installmentNumber.toString(), 60, yPos + 4, { width: 25 })
+         .text(typeLabel, 95, yPos + 4, { width: 60 })
+         .text(new Date(inst.dueDate).toLocaleDateString('es-ES'), 165, yPos + 4, { width: 70 })
+         .text(`$${parseFloat(inst.amount).toFixed(2)}`, 245, yPos + 4, { width: 65 })
          .fillColor(statusColor)
          .font('Helvetica-Bold')
-         .text(statusLabel, 360, yPos + 4, { width: 70 })
+         .text(statusLabel, 320, yPos + 4, { width: 60 })
+         .fillColor(inst.status === 'OVERDUE' ? '#EF4444' : grayColor)
+         .text(daysLateText, 390, yPos + 4, { width: 55 })
          .fillColor(grayColor)
          .font('Helvetica')
-         .text(inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('es-ES') : '-', 440, yPos + 4, { width: 100 });
+         .text(inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('es-ES') : '-', 455, yPos + 4, { width: 95 });
 
       yPos += rowHeight;
     }

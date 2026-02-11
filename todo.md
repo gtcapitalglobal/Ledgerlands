@@ -958,3 +958,16 @@
 - Grouped by property with days overdue badge
 - Quick action "Marcar como Pago" button for each installment
 - Property filter dropdown
+
+
+## Enhance PDF with Overdue Details
+- [x] Add "Days Overdue" column in installment table for OVERDUE installments
+- [x] Add "Total Overdue Amount" KPI in summary section (highlighted in red)
+- [x] Update English PDF generator (pdfGenerator.ts)
+- [x] Update Spanish PDF generator (pdfGeneratorES.ts)
+- [x] Test PDF generation with overdue installments
+
+**Verification Results (Property #45 - Feb 11, 2026):**
+- Total Overdue Amount: $277.00 displayed in red below Balance Due
+- Days Late column shows "17d" in red for overdue installment #9
+- Both English and Spanish PDFs working correctly

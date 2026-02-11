@@ -45,6 +45,11 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
   const totalDue = regularInstallments
     .filter(i => i.status === 'PENDING' || i.status === 'OVERDUE')
     .reduce((sum, i) => sum + parseFloat(i.amount), 0);
+  
+  // Total Overdue Amount = sum of REGULAR overdue installments only
+  const totalOverdueAmount = regularInstallments
+    .filter(i => i.status === 'OVERDUE')
+    .reduce((sum, i) => sum + parseFloat(i.amount), 0);
 
   const contractPrice = parseFloat(contract.contractPrice);
   const downPayment = parseFloat(contract.downPayment);
@@ -230,8 +235,23 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
        .fillColor('#10B981')
        .font('Helvetica-Bold')
        .text(`$${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col1, yPos)
-       .fillColor('#EF4444')
+       .fillColor('#F59E0B')
        .text(`$${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col3, yPos);
+
+    yPos += 20;
+
+    // Third row - Total Overdue Amount (highlighted)
+    doc.fontSize(9)
+       .fillColor(grayColor)
+       .font('Helvetica-Bold')
+       .text('Total Overdue Amount', col1, yPos);
+
+    yPos += 15;
+
+    doc.fontSize(14)
+       .fillColor('#EF4444')
+       .font('Helvetica-Bold')
+       .text(`$${totalOverdueAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col1, yPos);
 
     yPos += 25;
 
@@ -250,12 +270,13 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
     doc.fontSize(9)
        .fillColor('#FFFFFF')
        .font('Helvetica-Bold')
-       .text('#', 60, yPos + 8, { width: 30 })
-       .text('Type', 100, yPos + 8, { width: 70 })
-       .text('Due Date', 180, yPos + 8, { width: 80 })
-       .text('Amount', 270, yPos + 8, { width: 80 })
-       .text('Status', 360, yPos + 8, { width: 70 })
-       .text('Paid Date', 440, yPos + 8, { width: 100 });
+       .text('#', 60, yPos + 8, { width: 25 })
+       .text('Type', 95, yPos + 8, { width: 60 })
+       .text('Due Date', 165, yPos + 8, { width: 70 })
+       .text('Amount', 245, yPos + 8, { width: 65 })
+       .text('Status', 320, yPos + 8, { width: 60 })
+       .text('Days Late', 390, yPos + 8, { width: 55 })
+       .text('Paid Date', 455, yPos + 8, { width: 95 });
 
     yPos += 25;
 
@@ -299,19 +320,27 @@ export async function generateInstallmentStatementPDF(options: InstallmentStatem
       const statusColor = inst.status === 'PAID' ? '#10B981' : 
                          inst.status === 'OVERDUE' ? '#EF4444' : '#F59E0B';
 
+      // Calculate days overdue if status is OVERDUE
+      const daysOverdue = inst.status === 'OVERDUE' 
+        ? Math.floor((new Date().getTime() - new Date(inst.dueDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+      const daysLateText = inst.status === 'OVERDUE' ? `${daysOverdue}d` : '-';
+
       doc.fontSize(8)
          .fillColor(grayColor)
          .font('Helvetica')
-         .text(inst.installmentNumber.toString(), 60, yPos + 4, { width: 30 })
-         .text(typeLabel, 100, yPos + 4, { width: 70 })
-         .text(new Date(inst.dueDate).toLocaleDateString('en-US'), 180, yPos + 4, { width: 80 })
-         .text(`$${parseFloat(inst.amount).toFixed(2)}`, 270, yPos + 4, { width: 80 })
+         .text(inst.installmentNumber.toString(), 60, yPos + 4, { width: 25 })
+         .text(typeLabel, 95, yPos + 4, { width: 60 })
+         .text(new Date(inst.dueDate).toLocaleDateString('en-US'), 165, yPos + 4, { width: 70 })
+         .text(`$${parseFloat(inst.amount).toFixed(2)}`, 245, yPos + 4, { width: 65 })
          .fillColor(statusColor)
          .font('Helvetica-Bold')
-         .text(inst.status, 360, yPos + 4, { width: 70 })
+         .text(inst.status, 320, yPos + 4, { width: 60 })
+         .fillColor(inst.status === 'OVERDUE' ? '#EF4444' : grayColor)
+         .text(daysLateText, 390, yPos + 4, { width: 55 })
          .fillColor(grayColor)
          .font('Helvetica')
-         .text(inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('en-US') : '-', 440, yPos + 4, { width: 100 });
+         .text(inst.paidDate ? new Date(inst.paidDate).toLocaleDateString('en-US') : '-', 455, yPos + 4, { width: 95 });
 
       yPos += rowHeight;
     }
