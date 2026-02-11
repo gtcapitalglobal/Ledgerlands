@@ -1042,3 +1042,9 @@
   - [x] Display "Processing Fee (4%): $Z.ZZ" (if applicable)
   - [x] Display "Total Amount: $W.WW" with divider line
 - [x] Test complete flow with both fees enabled
+
+
+## CRITICAL BUG - Payment Portal Authentication
+- [x] Fix payment portal (/pay/[contractId]) to allow public access without login
+- [x] Remove authentication requirement from payment portal route
+- [x] Test that clients can access payment links without signing in

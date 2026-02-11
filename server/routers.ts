@@ -28,7 +28,7 @@ export const appRouter = router({
       return await db.getAllContracts();
     }),
 
-    getById: protectedProcedure
+    getById: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const contract = await db.getContractById(input.id);
