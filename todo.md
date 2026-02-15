@@ -1054,3 +1054,20 @@
 - [x] Add Open Graph meta tags to payment portal page
 - [x] Configure og:image to show GT Lands logo instead of dashboard
 - [ ] Test WhatsApp link preview after publish
+
+## UX Improvement - Form Field Placeholders
+- [x] Add placeholder to Contract Price field (e.g., "11059" for $11,059.00)
+- [x] Add placeholder to Cost Basis field (e.g., "7500" for $7,500.00)
+- [x] Add placeholder to Monthly Payment field (e.g., "250" for $250.00)
+- [x] Add placeholder to Down Payment field (e.g., "2000" for $2,000.00)
+- [x] Verify date fields have clear format hints (DD/MM/YYYY or MM/DD/YYYY)
+
+## UX Improvements - Form Labels and Tooltips
+- [x] Change "Installment Count" to "Number of Payments"
+- [x] Add tooltips to form fields:
+  - [x] Cost Basis Source (explain each option)
+  - [x] Cost Basis (what it is and why important)
+  - [x] Contract Price vs Cost Basis (difference)
+  - [x] Balloon Amount (what it means)
+  - [x] Number of Payments (calculation example)
+- [x] Add placeholder to Number of Payments field (e.g., "60 for 5 years monthly")

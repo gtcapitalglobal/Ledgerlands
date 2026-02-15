@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 export default function Contracts() {
   const [location] = useLocation();
@@ -624,15 +626,55 @@ export default function Contracts() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="contractPrice">Contract Price *</Label>
-                <Input id="contractPrice" type="number" step="0.01" value={formData.contractPrice} onChange={(e) => setFormData({...formData, contractPrice: e.target.value})} required />
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="contractPrice">Contract Price *</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Total sale price agreed with the buyer. This is the amount the buyer will pay over the life of the contract.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input id="contractPrice" type="number" step="0.01" value={formData.contractPrice} onChange={(e) => setFormData({...formData, contractPrice: e.target.value})} placeholder="11059 (for $11,059.00)" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="costBasis">Cost Basis *</Label>
-                <Input id="costBasis" type="number" step="0.01" value={formData.costBasis} onChange={(e) => setFormData({...formData, costBasis: e.target.value})} required />
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="costBasis">Cost Basis *</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Your total acquisition cost for this property. Used to calculate profit: Contract Price - Cost Basis = Profit.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input id="costBasis" type="number" step="0.01" value={formData.costBasis} onChange={(e) => setFormData({...formData, costBasis: e.target.value})} placeholder="7500 (for $7,500.00)" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="costBasisSource">Cost Basis Source</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="costBasisSource">Cost Basis Source</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p><strong>HUD Statement:</strong> Official closing document<br/>
+                        <strong>Purchase Agreement:</strong> Signed contract<br/>
+                        <strong>Assignment:</strong> Contract transfer<br/>
+                        <strong>Legacy Data:</strong> Imported old records<br/>
+                        <strong>Other:</strong> Specify in notes</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Select value={formData.costBasisSource} onValueChange={(v: any) => setFormData({...formData, costBasisSource: v})}>
                   <SelectTrigger><SelectValue placeholder="Select source..." /></SelectTrigger>
                   <SelectContent>
@@ -650,25 +692,49 @@ export default function Contracts() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="downPayment">Down Payment</Label>
-                <Input id="downPayment" type="number" step="0.01" value={formData.downPayment} onChange={(e) => setFormData({...formData, downPayment: e.target.value})} />
+                <Input id="downPayment" type="number" step="0.01" value={formData.downPayment} onChange={(e) => setFormData({...formData, downPayment: e.target.value})} placeholder="2000 (for $2,000.00)" />
               </div>
               {formData.saleType === "CFD" && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="installmentAmount">Installment Amount *</Label>
-                    <Input id="installmentAmount" type="number" step="0.01" value={formData.installmentAmount} onChange={(e) => setFormData({...formData, installmentAmount: e.target.value})} required />
+                    <Input id="installmentAmount" type="number" step="0.01" value={formData.installmentAmount} onChange={(e) => setFormData({...formData, installmentAmount: e.target.value})} placeholder="250 (for $250.00)" required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="installmentCount">Installment Count *</Label>
-                    <Input id="installmentCount" type="number" value={formData.installmentCount} onChange={(e) => setFormData({...formData, installmentCount: e.target.value})} required />
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="installmentCount">Number of Payments *</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Total number of monthly payments. Example: 60 payments = 5 years (60 ÷ 12 months).</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Input id="installmentCount" type="number" value={formData.installmentCount} onChange={(e) => setFormData({...formData, installmentCount: e.target.value})} placeholder="60 (for 5 years monthly)" required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="firstInstallmentDate">Data Primeira Parcela *</Label>
                     <Input id="firstInstallmentDate" type="date" value={formData.firstInstallmentDate} onChange={(e) => setFormData({...formData, firstInstallmentDate: e.target.value})} required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="balloonAmount">Balloon Amount</Label>
-                    <Input id="balloonAmount" type="number" step="0.01" value={formData.balloonAmount} onChange={(e) => setFormData({...formData, balloonAmount: e.target.value})} />
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="balloonAmount">Balloon Amount</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Large final payment due at the end of the contract. Used when monthly payments don't cover the full balance.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Input id="balloonAmount" type="number" step="0.01" value={formData.balloonAmount} onChange={(e) => setFormData({...formData, balloonAmount: e.target.value})} placeholder="5000 (for $5,000.00)" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="balloonDate">Balloon Date</Label>
