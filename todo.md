@@ -1071,3 +1071,14 @@
   - [x] Balloon Amount (what it means)
   - [x] Number of Payments (calculation example)
 - [x] Add placeholder to Number of Payments field (e.g., "60 for 5 years monthly")
+
+
+## UX Improvement - Replace Tooltips with Help Text
+- [x] Remove broken tooltip implementation (TooltipProvider, Tooltip components)
+- [x] Add help text below Contract Price field
+- [x] Add help text below Cost Basis field
+- [x] Add help text below Cost Basis Source field
+- [x] Add help text below Number of Payments field
+- [x] Add help text below Balloon Amount field
+- [x] Style help text with muted color and small font
+- [x] Test form readability and spacing
