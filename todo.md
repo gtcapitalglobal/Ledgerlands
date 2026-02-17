@@ -1105,3 +1105,10 @@
 - [x] Replace Balloon Amount input with CurrencyInput
 - [x] Replace Custom Amount input in PaymentPortal with CurrencyInput
 - [x] Test all currency fields (type 2950 → should show $2,950.00 on blur)
+
+
+## Windows Batch Automation Files
+- [x] Create start.bat for starting dev server
+- [x] Create update.bat for updating dependencies and restarting
+- [x] Create install.bat for initial project setup
+- [x] Create README-WINDOWS.md with usage instructions
