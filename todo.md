@@ -1082,3 +1082,26 @@
 - [x] Add help text below Balloon Amount field
 - [x] Style help text with muted color and small font
 - [x] Test form readability and spacing
+
+
+## Real-Time Currency Formatting
+- [ ] Create reusable CurrencyInput component with real-time formatting
+- [ ] Replace Contract Price input with CurrencyInput
+- [ ] Replace Cost Basis input with CurrencyInput
+- [ ] Replace Down Payment input with CurrencyInput
+- [ ] Replace Installment Amount input with CurrencyInput
+- [ ] Replace Balloon Amount input with CurrencyInput
+- [ ] Replace Custom Amount in PaymentPortal with CurrencyInput
+- [ ] Test formatting: typing "2950" shows "$2,950.00" in real-time
+- [ ] Test formatting: typing "2950.00" shows "$2,950.00" in real-time
+- [ ] Ensure cursor position stays correct during formatting
+
+## Real-Time Currency Formatting
+- [x] Create CurrencyInput component with real-time formatting
+- [x] Replace Contract Price input with CurrencyInput
+- [x] Replace Cost Basis input with CurrencyInput
+- [x] Replace Down Payment input with CurrencyInput
+- [x] Replace Installment Amount input with CurrencyInput
+- [x] Replace Balloon Amount input with CurrencyInput
+- [x] Replace Custom Amount input in PaymentPortal with CurrencyInput
+- [x] Test all currency fields (type 2950 → should show $2,950.00 on blur)

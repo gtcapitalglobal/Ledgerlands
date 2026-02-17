@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CurrencyInput } from "@/components/CurrencyInput";
 
 
 export default function Contracts() {
@@ -627,14 +628,14 @@ export default function Contracts() {
               <div className="space-y-2">
                 <div>
                   <Label htmlFor="contractPrice">Contract Price *</Label>
-                  <Input id="contractPrice" type="number" step="0.01" value={formData.contractPrice} onChange={(e) => setFormData({...formData, contractPrice: e.target.value})} placeholder="11059 (for $11,059.00)" required />
+                  <CurrencyInput id="contractPrice" value={formData.contractPrice ? parseFloat(formData.contractPrice) * 100 : 0} onChange={(cents) => setFormData({...formData, contractPrice: (cents / 100).toString()})} required />
                   <p className="text-xs text-muted-foreground mt-1">Total sale price agreed with the buyer</p>
                 </div>
               </div>
               <div className="space-y-2">
                 <div>
                   <Label htmlFor="costBasis">Cost Basis *</Label>
-                  <Input id="costBasis" type="number" step="0.01" value={formData.costBasis} onChange={(e) => setFormData({...formData, costBasis: e.target.value})} placeholder="7500 (for $7,500.00)" required />
+                  <CurrencyInput id="costBasis" value={formData.costBasis ? parseFloat(formData.costBasis) * 100 : 0} onChange={(cents) => setFormData({...formData, costBasis: (cents / 100).toString()})} required />
                   <p className="text-xs text-muted-foreground mt-1">Your acquisition cost (Contract Price - Cost Basis = Profit)</p>
                 </div>
               </div>
@@ -660,13 +661,13 @@ export default function Contracts() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="downPayment">Down Payment</Label>
-                <Input id="downPayment" type="number" step="0.01" value={formData.downPayment} onChange={(e) => setFormData({...formData, downPayment: e.target.value})} placeholder="2000 (for $2,000.00)" />
+                <CurrencyInput id="downPayment" value={formData.downPayment ? parseFloat(formData.downPayment) * 100 : 0} onChange={(cents) => setFormData({...formData, downPayment: (cents / 100).toString()})} />
               </div>
               {formData.saleType === "CFD" && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="installmentAmount">Installment Amount *</Label>
-                    <Input id="installmentAmount" type="number" step="0.01" value={formData.installmentAmount} onChange={(e) => setFormData({...formData, installmentAmount: e.target.value})} placeholder="250 (for $250.00)" required />
+                    <CurrencyInput id="installmentAmount" value={formData.installmentAmount ? parseFloat(formData.installmentAmount) * 100 : 0} onChange={(cents) => setFormData({...formData, installmentAmount: (cents / 100).toString()})} required />
                   </div>
                   <div className="space-y-2">
                     <div>
@@ -682,7 +683,7 @@ export default function Contracts() {
                   <div className="space-y-2">
                     <div>
                       <Label htmlFor="balloonAmount">Balloon Amount</Label>
-                      <Input id="balloonAmount" type="number" step="0.01" value={formData.balloonAmount} onChange={(e) => setFormData({...formData, balloonAmount: e.target.value})} placeholder="5000 (for $5,000.00)" />
+                      <CurrencyInput id="balloonAmount" value={formData.balloonAmount ? parseFloat(formData.balloonAmount) * 100 : 0} onChange={(cents) => setFormData({...formData, balloonAmount: (cents / 100).toString()})} />
                       <p className="text-xs text-muted-foreground mt-1">Large final payment at contract end</p>
                     </div>
                   </div>

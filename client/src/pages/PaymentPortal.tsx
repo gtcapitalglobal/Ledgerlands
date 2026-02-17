@@ -7,6 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { CurrencyInput } from '../components/CurrencyInput';
 
 // Square Web Payments SDK types
 declare global {
@@ -38,13 +39,13 @@ export default function PaymentPortal() {
   );
 
   const [email, setEmail] = useState('');
-  const [customAmount, setCustomAmount] = useState('');
+  const [customAmount, setCustomAmount] = useState(0); // Store in cents
   
   // Pre-fill custom amount if provided in URL
   useEffect(() => {
     if (amountFromUrl) {
-      const amountDollars = (parseInt(amountFromUrl) / 100).toFixed(2);
-      setCustomAmount(amountDollars);
+      const amountCents = parseInt(amountFromUrl);
+      setCustomAmount(amountCents);
     }
   }, [amountFromUrl]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -126,7 +127,7 @@ export default function PaymentPortal() {
 
       // Reset form
       setEmail('');
-      setCustomAmount('');
+      setCustomAmount(0);
       
       // Reload card form
       setCard(null);
@@ -269,21 +270,16 @@ export default function PaymentPortal() {
               <div className="space-y-2">
                 <Label htmlFor="customAmount">Custom Amount</Label>
                 <div className="flex gap-2">
-                  <Input
+                  <CurrencyInput
                     id="customAmount"
-                    type="number"
-                    placeholder="0.00"
                     value={customAmount}
-                    onChange={(e) => setCustomAmount(e.target.value)}
+                    onChange={(cents) => setCustomAmount(cents)}
                     disabled={isProcessing}
-                    step="0.01"
-                    min="0"
                   />
                   <Button
                     onClick={() => {
-                      const amount = parseFloat(customAmount);
-                      if (amount > 0) {
-                        handlePayment(Math.round(amount * 100));
+                      if (customAmount > 0) {
+                        handlePayment(customAmount);
                       } else {
                         toast.error('Please enter a valid amount');
                       }
