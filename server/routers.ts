@@ -2433,6 +2433,144 @@ export const appRouter = router({
         };
       }),
   }),
+
+  buyers: router({
+    // PUBLIC - anyone can submit the buyer form (no auth required)
+    publicSubmit: publicProcedure
+      .input(z.object({
+        fullName: z.string().min(1),
+        phone: z.string().min(1),
+        email: z.string().email(),
+        personalOrBusiness: z.enum(["Personal", "Business"]).default("Personal"),
+        hasCoBuyer: z.number().default(0),
+        coBuyerName: z.string().optional(),
+        coBuyerEmail: z.string().optional(),
+        businessName: z.string().optional(),
+        representativeName: z.string().optional(),
+        streetAddress: z.string().min(1),
+        city: z.string().min(1),
+        state: z.string().default("FL"),
+        zipCode: z.string().min(1),
+        driverLicenseUrl: z.string().optional(),
+        preferredPayment: z.enum(["Zelle", "Cash App", "Venmo", "Credit or Debit Card", "Wire Transfer", "Other"]).default("Zelle"),
+      }))
+      .mutation(async ({ input }) => {
+        const id = await db.createBuyer({
+          fullName: input.fullName,
+          phone: input.phone,
+          email: input.email,
+          personalOrBusiness: input.personalOrBusiness,
+          hasCoBuyer: input.hasCoBuyer,
+          coBuyerName: input.coBuyerName || null,
+          coBuyerEmail: input.coBuyerEmail || null,
+          businessName: input.businessName || null,
+          representativeName: input.representativeName || null,
+          streetAddress: input.streetAddress,
+          city: input.city,
+          state: input.state,
+          zipCode: input.zipCode,
+          driverLicenseUrl: input.driverLicenseUrl || null,
+          preferredPayment: input.preferredPayment,
+          status: "NEW",
+        });
+        return { id, success: true };
+      }),
+
+    // PROTECTED - list all buyers (admin only)
+    list: protectedProcedure.query(async () => {
+      return await db.getAllBuyers();
+    }),
+
+    // PROTECTED - get single buyer
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getBuyerById(input.id);
+      }),
+
+    // PROTECTED - update buyer status
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["NEW", "PSA_SENT", "CFD_SENT", "CONTRACTED", "CANCELLED"]),
+      }))
+      .mutation(async ({ input }) => {
+        await db.updateBuyerStatus(input.id, input.status);
+        return { success: true };
+      }),
+
+    // PROTECTED - create contract from buyer data
+    createContractFromBuyer: protectedProcedure
+      .input(z.object({
+        buyerId: z.number(),
+        propertyAddress: z.string().min(1),
+        parcelId: z.string().min(1),
+        legalDescription: z.string().optional(),
+        purchasePrice: z.string().min(1),
+        downPayment: z.string().min(1),
+        monthlyPayment: z.string().min(1),
+        installments: z.number().min(1),
+        costBasis: z.string().default("0"),
+        county: z.string().default("Putnam"),
+        state: z.string().default("FL"),
+        effectiveDate: z.string().min(1),
+        firstPaymentDate: z.string().optional(),
+        dueDay: z.string().default("15"),
+      }))
+      .mutation(async ({ input }) => {
+        // Get the buyer
+        const buyer = await db.getBuyerById(input.buyerId);
+        if (!buyer) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Buyer not found" });
+        }
+
+        // Build buyer name
+        const buyerName = buyer.hasCoBuyer && buyer.coBuyerName
+          ? `${buyer.fullName} and ${buyer.coBuyerName}`
+          : buyer.fullName;
+
+        // Create the contract in Ledgerlands
+        const contractId = await db.createContract({
+          propertyId: input.parcelId,
+          buyerName: buyerName,
+          originType: "DIRECT",
+          saleType: "CFD",
+          county: input.county,
+          state: input.state,
+          contractDate: new Date(input.effectiveDate),
+          contractPrice: input.purchasePrice,
+          costBasis: input.costBasis,
+          downPayment: input.downPayment,
+          installmentAmount: input.monthlyPayment,
+          installmentCount: input.installments,
+          firstInstallmentDate: input.firstPaymentDate ? new Date(input.firstPaymentDate) : undefined,
+          status: "Active",
+          notes: `Buyer: ${buyer.fullName} | Email: ${buyer.email} | Phone: ${buyer.phone} | Address: ${buyer.streetAddress}, ${buyer.city}, ${buyer.state} ${buyer.zipCode} | Payment: ${buyer.preferredPayment}`,
+        });
+
+        // Auto-generate installments
+        if (input.firstPaymentDate) {
+          try {
+            await db.generateInstallments(contractId);
+          } catch (error) {
+            console.error(`Failed to generate installments for contract ${contractId}:`, error);
+          }
+        }
+
+        // Update buyer status
+        await db.updateBuyerStatus(input.buyerId, "CONTRACTED", contractId);
+
+        return { contractId, success: true };
+      }),
+
+    // PROTECTED - delete buyer
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteBuyer(input.id);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1112,3 +1112,13 @@
 - [x] Create update.bat for updating dependencies and restarting
 - [x] Create install.bat for initial project setup
 - [x] Create README-WINDOWS.md with usage instructions
+
+
+## Buyers Module Integration (V6.0)
+- [x] Created buyers table in database with all required fields
+- [x] Added buyers schema to drizzle/schema.ts
+- [x] Added buyer database functions to server/db.ts (getAllBuyers, getBuyerById, createBuyer, updateBuyerStatus, deleteBuyer)
+- [x] Added buyers router to server/routers.ts with public and protected procedures
+- [x] Copied Buyers.tsx and BuyerForm.tsx pages from zip
+- [x] Added buyers routes to App.tsx (/buyers, /buyer-form)
+- [x] Added "Compradores" menu item to DashboardLayout sidebar

@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, contracts, payments, installments, Contract, Payment, InsertContract, InsertPayment, Installment, InsertInstallment } from "../drizzle/schema";
+import { InsertUser, users, contracts, payments, installments, buyers, Contract, Payment, InsertContract, InsertPayment, Installment, InsertInstallment, Buyer, InsertBuyer } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -718,4 +718,41 @@ export async function getOverdueInstallmentsCount(): Promise<number> {
     .where(eq(installments.status, 'OVERDUE'));
 
   return result[0]?.count || 0;
+}
+
+
+// --- BUYERS FUNCTIONS ---
+
+export async function getAllBuyers() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(buyers).orderBy(desc(buyers.createdAt));
+}
+
+export async function getBuyerById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(buyers).where(eq(buyers.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createBuyer(buyer: InsertBuyer) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(buyers).values(buyer);
+  return Number(result[0].insertId);
+}
+
+export async function updateBuyerStatus(id: number, status: string, contractId?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updates: any = { status };
+  if (contractId !== undefined) updates.contractId = contractId;
+  await db.update(buyers).set(updates).where(eq(buyers.id, id));
+}
+
+export async function deleteBuyer(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(buyers).where(eq(buyers.id, id));
 }

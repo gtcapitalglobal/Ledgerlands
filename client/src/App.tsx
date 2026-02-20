@@ -18,6 +18,8 @@ import PerformanceRanking from "./pages/PerformanceRanking";
 import PaymentPortal from "./pages/PaymentPortal";
 import Installments from "./pages/Installments";
 import OverdueInstallments from "./pages/OverdueInstallments";
+import BuyerForm from "./pages/BuyerForm";
+import Buyers from "./pages/Buyers";
 
 function Router() {
   return (
@@ -36,6 +38,8 @@ function Router() {
         <Route path="/exceptions" component={Exceptions} />
         <Route path="/performance" component={PerformanceRanking} />
         <Route path="/pay/:contractId" component={PaymentPortal} />
+      <Route path="/buyer-form" component={BuyerForm} />
+      <Route path="/buyers" component={Buyers} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

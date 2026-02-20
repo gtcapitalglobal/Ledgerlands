@@ -190,3 +190,35 @@ export const systemConfig = mysqlTable("systemConfig", {
 
 export type SystemConfig = typeof systemConfig.$inferSelect;
 export type InsertSystemConfig = typeof systemConfig.$inferInsert;
+
+/**
+ * V6.0: Buyers table
+ * Public intake form submissions from potential buyers
+ * Links to contracts once a deal is created
+ */
+export const buyers = mysqlTable("buyers", {
+  id: int("id").autoincrement().primaryKey(),
+  fullName: varchar("fullName", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  personalOrBusiness: mysqlEnum("personalOrBusiness", ["Personal", "Business"]).notNull().default("Personal"),
+  hasCoBuyer: int("hasCoBuyer").notNull().default(0), // 0 = No, 1 = Yes
+  coBuyerName: varchar("coBuyerName", { length: 255 }),
+  coBuyerEmail: varchar("coBuyerEmail", { length: 320 }),
+  businessName: varchar("businessName", { length: 255 }),
+  representativeName: varchar("representativeName", { length: 255 }),
+  streetAddress: varchar("streetAddress", { length: 500 }).notNull(),
+  city: varchar("city", { length: 100 }).notNull(),
+  state: varchar("state", { length: 2 }).notNull().default("FL"),
+  zipCode: varchar("zipCode", { length: 20 }).notNull(),
+  driverLicenseUrl: text("driverLicenseUrl"),
+  preferredPayment: mysqlEnum("preferredPayment", ["Zelle", "Cash App", "Venmo", "Credit or Debit Card", "Wire Transfer", "Other"]).notNull().default("Zelle"),
+  status: mysqlEnum("status", ["NEW", "PSA_SENT", "CFD_SENT", "CONTRACTED", "CANCELLED"]).notNull().default("NEW"),
+  notes: text("notes"),
+  contractId: int("contractId"), // Links to contracts.id once deal is created
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Buyer = typeof buyers.$inferSelect;
+export type InsertBuyer = typeof buyers.$inferInsert;
